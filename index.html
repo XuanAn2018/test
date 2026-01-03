@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MES Defect Reporting - Báo Cáo Lỗi</title>
+  <title>MES QR Scanner Pro - Anti-Glare Mode</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Turnstile Script -->
+  <!-- 1. Thêm Script Turnstile -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  
+
   <style>
     :root {
-      /* Palette màu Đỏ/Cam - Cảnh báo sự cố */
-      --primary-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-      --accent-color: #dc2626;
-
-      /* Các nút chức năng */
-      --btn-load-bg: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-      --btn-reset-bg: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      /* Palette màu dịu mắt (Anti-glare) */
+      --primary-gradient: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
       
-      /* Nền */
+      /* Màu nút bấm */
+      --btn-import-bg: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --btn-download-bg: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      --btn-test-bg: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+      --btn-clear-bg: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+      
+      /* Màu nền và chữ */
       --bg-body: #e2e8f0; 
       --bg-card: #ffffff;
-      
       --text-main: #1e293b;
       --text-muted: #64748b;
       --border-color: #cbd5e1;
@@ -38,329 +38,151 @@
       background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
       color: var(--text-main);
       margin: 0; padding: 0; min-height: 100vh;
-      padding-bottom: 80px; /* Để tránh nội dung bị che bởi widget */
     }
 
     /* Navbar */
     .navbar {
-      background: #7f1d1d;
-      color: white;
-      padding: 1rem 2rem;
+      background: #1e293b; color: white; padding: 1rem 2rem;
       display: flex; align-items: center; justify-content: space-between;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       position: sticky; top: 0; z-index: 100;
     }
     
-    .brand {
-      font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px;
-      display: flex; align-items: center; gap: 12px; color: #fef2f2;
-    }
+    .brand { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #f8fafc; }
     
     .status-badge {
-      font-size: 0.85rem;
-      background: rgba(254, 202, 202, 0.15);
-      color: #fca5a5;
+      font-size: 0.85rem; background: rgba(16, 185, 129, 0.15); color: #34d399;
       padding: 6px 16px; border-radius: 99px; font-weight: 600;
-      border: 1px solid rgba(254, 202, 202, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      display: flex; align-items: center; gap: 8px;
     }
+    .status-badge::before { content: ''; width: 8px; height: 8px; background: currentColor; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
 
     /* Layout */
     .container {
-      max-width: 1200px;
-      margin: 30px auto; padding: 0 20px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
+      max-width: 1400px; margin: 30px auto; padding: 0 20px;
+      display: grid; grid-template-columns: 400px 1fr; gap: 25px;
     }
-
-    @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
 
     /* Cards */
-    .card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-soft);
-      padding: 24px; margin-bottom: 24px;
-      border: 1px solid white;
-      height: fit-content;
-    }
-
-    .card-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 15px; padding-bottom: 12px;
-      border-bottom: 2px solid #f1f5f9;
-    }
-    .card-title {
-      font-size: 1.1rem; font-weight: 700; color: #7f1d1d;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow-soft); padding: 24px; margin-bottom: 24px; border: 1px solid white; }
+    .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; }
+    .card-title { font-size: 1.1rem; font-weight: 700; color: #334155; }
 
     /* Inputs */
-    .form-row { display: flex; gap: 15px; }
-    .form-col { flex: 1; }
     .form-group { margin-bottom: 18px; }
+    .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    .input-wrapper { display: flex; gap: 5px; }
     
-    label {
-      display: block; margin-bottom: 6px;
-      font-weight: 600; font-size: 0.9rem; color: #475569;
-    }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569; }
     input, textarea, select {
-      width: 100%; padding: 12px;
-      border: 2px solid var(--border-color);
+      width: 100%; padding: 12px; border: 2px solid var(--border-color);
       border-radius: 10px; font-size: 0.95rem; font-family: inherit;
       background: #f8fafc; transition: all 0.2s;
     }
     input:focus, textarea:focus, select:focus {
-      border-color: #ef4444; background: white;
-      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+      border-color: #6366f1; background: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
     }
-    textarea { min-height: 100px; resize: vertical; }
-
-    /* Search Box Styles */
-    .search-wrapper { position: relative; margin-bottom: 10px; }
-    .search-wrapper input { padding-left: 38px; border-color: #e2e8f0; }
-    .search-wrapper input:disabled { background-color: #f1f5f9; cursor: not-allowed; }
-    .search-icon {
-      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-      color: #94a3b8; font-size: 1rem; pointer-events: none;
-    }
+    textarea { min-height: 140px; font-family: 'Courier New', monospace; line-height: 1.5; }
 
     /* Buttons */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 12px 20px; border-radius: 10px; font-weight: 600;
-      cursor: pointer; border: none; color: white;
-      transition: all 0.2s ease; font-size: 0.95rem; width: 100%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer; border: none; color: white; transition: all 0.2s ease;
+      font-size: 0.95rem; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .btn:hover { transform: translateY(-2px); filter: brightness(110%); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(100%); }
 
-    .btn-submit { background: var(--primary-gradient); font-size: 1.1rem; }
-    .btn-load { background: var(--btn-load-bg); }
-    .btn-reset { background: var(--btn-reset-bg); }
-    .btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; }
-
-    /* Defect List Area */
-    .defect-container {
-      max-height: 300px; overflow-y: auto;
-      border: 2px solid #e2e8f0; border-radius: 10px;
-      background: #f8fafc; padding: 5px;
-    }
-    .defect-item {
-      padding: 12px; margin-bottom: 4px;
-      border-radius: 8px; cursor: pointer;
-      transition: all 0.2s; border: 1px solid transparent;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .defect-item:hover { background: #fee2e2; border-color: #fecaca; }
-    .defect-item.selected {
-      background: #fef2f2; border-color: #ef4444;
-      color: #b91c1c; font-weight: 700;
-      box-shadow: inset 0 0 0 1px #ef4444;
-    }
-    .defect-item.selected::after { content: '✓'; font-weight: bold; }
-    .defect-item.hidden { display: none !important; }
-
-    /* Image Preview */
-    .image-upload-box {
-      border: 2px dashed #cbd5e1; border-radius: 10px;
-      padding: 20px; text-align: center;
-      background: #f8fafc; cursor: pointer;
-      transition: all 0.2s; position: relative;
-    }
-    .image-upload-box:hover { border-color: #ef4444; background: #fff; }
-    #imagePreview {
-      max-width: 100%; max-height: 250px;
-      border-radius: 8px; margin-top: 10px;
-      display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    input[type="file"] { display: none; }
-
-    /* Logs */
-    .log-container {
-      background: #1e293b; color: #e2e8f0;
-      padding: 15px; border-radius: 12px;
-      font-family: 'Consolas', monospace; font-size: 0.85rem;
-      height: 200px; overflow-y: auto;
-      margin-top: 20px;
-      white-space: pre-wrap;
-    }
-    .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .log-success { color: #4ade80; }
-    .log-error { color: #f87171; }
-    .log-info { color: #60a5fa; }
-    .log-detail { color: #e2e8f0; font-size: 0.8em; margin-left: 15px; opacity: 0.8; }
-
-    /* Animation Pulse */
-    @keyframes pulse-red {
-      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-    }
-    .pulse-btn { animation: pulse-red 2s infinite; }
-    .input-wrapper { display: flex; gap: 5px; }
-
-    /* =========================================
-       FIXED & IMPROVED TURNSTILE WIDGET CSS
-       ========================================= */
-    .turnstile-floating {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0,0,0,0.05);
-      border: 1px solid rgba(220, 38, 38, 0.15);
-      width: 320px;
-      overflow: hidden;
-      /* Hiệu ứng chuyển động mượt mà */
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Header */
-    .turnstile-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: linear-gradient(to right, #fff1f2, #fff);
-      border-bottom: 1px solid rgba(220, 38, 38, 0.1);
-    }
-
-    .turnstile-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #991b1b;
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .header-controls {
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    /* Badge Status */
-    .turnstile-badge {
-      font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 600;
-    }
-    .status-pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-    .status-success { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-    .status-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
-
-    /* Nút thu nhỏ */
-    .btn-icon {
-      background: none; border: none; cursor: pointer;
-      font-weight: bold; font-size: 1.2rem; color: #64748b;
-      padding: 0 4px; line-height: 1; display: flex; align-items: center;
-      transition: color 0.2s;
-    }
-    .btn-icon:hover { color: #dc2626; }
-
-    /* Body */
-    .turnstile-body {
-      padding: 16px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    .turnstile-note {
-      font-size: 0.75rem; color: #94a3b8; margin-top: 10px; text-align: center;
-    }
-
-    /* --- Logic Ẩn/Hiện (Toggle Class) --- */
+    .btn-primary { background: var(--primary-gradient); }
+    .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
     
-    /* 1. Phần nội dung chính (Mở rộng) */
-    .turnstile-content {
-      opacity: 1; 
-      visibility: visible; 
-      transition: opacity 0.3s, visibility 0.3s;
-      width: 100%;
-    }
+    .btn-purple { background: var(--btn-import-bg); }
+    .btn-cyan { background: var(--btn-download-bg); }
+    .btn-slate { background: var(--btn-test-bg); }
+    .btn-rose { background: var(--btn-clear-bg); }
+    .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 
-    /* 2. Phần Icon (Thu nhỏ) */
-    .turnstile-minimized-icon {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; cursor: pointer;
-      opacity: 0; visibility: hidden; 
-      transition: opacity 0.3s, visibility 0.3s;
-      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-      color: white;
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+    .stat-card {
+      background: white; padding: 15px; border-radius: 12px;
+      box-shadow: var(--shadow-soft); text-align: center; border-bottom: 4px solid transparent;
     }
+    .stat-card.total { border-color: #6366f1; }
+    .stat-card.success { border-color: #10b981; }
+    .stat-card.error { border-color: #ef4444; }
+    .stat-card.rate { border-color: #3b82f6; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #1e293b; }
+    .stat-label { font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
 
-    /* --- TRẠNG THÁI THU NHỎ (.minimized) --- */
-    .turnstile-floating.minimized {
-      width: 56px; height: 56px; /* Thu về hình tròn */
-      border-radius: 50%;
-      bottom: 30px; right: 30px;
-      cursor: pointer;
-      border-color: transparent;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    /* Progress & Logs */
+    .progress-track {
+      background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden; margin-bottom: 20px;
     }
+    .progress-bar {
+      height: 100%; background: linear-gradient(90deg, #4f46e5, #0ea5e9);
+      width: 0%; transition: width 0.3s ease; display: flex; align-items: center;
+      justify-content: flex-end; padding-right: 10px; color: white; font-size: 0.75rem; font-weight: 700;
+    }
+    .log-container {
+      background: #0f172a; color: #e2e8f0; padding: 20px; border-radius: 12px;
+      font-family: 'Consolas', monospace; font-size: 0.9rem; height: 450px; overflow-y: auto;
+    }
+    .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
+    .log-time { color: #64748b; min-width: 70px; font-size: 0.8rem; }
+    .log-success { color: #4ade80; } .log-error { color: #f87171; } .log-info { color: #60a5fa; } .log-warning { color: #facc15; }
 
-    .turnstile-floating.minimized .turnstile-content {
-      opacity: 0; visibility: hidden; position: absolute; /* Ẩn nội dung */
-    }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); } }
+    .btn-pulse { animation: pulse 2s infinite; }
 
-    .turnstile-floating.minimized .turnstile-minimized-icon {
-      opacity: 1; visibility: visible; /* Hiện icon */
-    }
-
-    /* Hiệu ứng rung nhẹ khi ở dạng icon */
-    @keyframes icon-pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    .turnstile-floating.minimized:hover {
-      animation: icon-pulse 1s infinite;
-    }
-
-    @media (max-width: 768px) {
-      .turnstile-floating:not(.minimized) {
-        width: calc(100% - 40px);
-        max-width: 320px;
-      }
+    /* Turnstile Styles */
+    .turnstile-wrapper {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      padding: 10px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      min-height: 85px; /* Giữ chỗ để tránh nhảy layout */
     }
   </style>
 </head>
 <body>
 
-  <!-- Navbar -->
   <div class="navbar">
-    <div class="brand">
-      <span>🚨 MES DEFECT REPORT</span>
-    </div>
-    <div class="status-badge">System Online</div>
+    <div class="brand"><span>⚡ MES QR Scanner 🚀 </span></div>
+    <div id="statusBadge" class="status-badge">Hệ thống sẵn sàng</div>
   </div>
 
   <div class="container">
     
-    <!-- Left Column: Input Info -->
+    <!-- LEFT: Configuration -->
     <div class="left-col">
-      <!-- Config -->
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">⚙️ Cấu Hình Sản Xuất</div>
-        </div>
+        <div class="card-header"><div class="card-title">📝 Cấu Hình Dữ Liệu</div></div>
         
-        <!-- API Key -->
         <div class="form-group">
           <label>API Key</label>
-          <input type="password" id="apiKey" placeholder="Nhập khóa bảo mật..." value="">
+          <input type="password" id="apiKey" placeholder="Nhập khóa bảo mật...">
         </div>
 
-        <!-- Factory & Date Row -->
+        <!-- Factory & Date -->
         <div class="form-row">
-          <div class="form-col">
+          <div style="flex: 1;">
             <label>Factory</label>
-            <input list="factoryOptions" id="factory" value="P2C1" placeholder="Chọn hoặc nhập...">
+            <input list="factoryOptions" id="factory" value="P2C1" placeholder="Chọn...">
             <datalist id="factoryOptions">
-              <option value="P2A1"></option>
-              <option value="P2B1"></option>
-              <option value="P2C1"></option>
-              <option value="P2D1"></option>
+              <option value="P2A1"><option value="P2B1"><option value="P2C1"><option value="P2D1">
             </datalist>
           </div>
-          <div class="form-col">
+          <div style="flex: 1;">
             <label>Date</label>
             <input type="date" id="dateSelect">
           </div>
@@ -368,581 +190,482 @@
 
         <!-- Package ID -->
         <div class="form-group">
-          <label>Package ID (Mã lô)</label>
+          <label>Package ID</label>
           <div class="input-wrapper">
-             <input type="text" id="package" list="packageList" placeholder="Nhập Key rồi nhấn 🔄 để tải..." autocomplete="off">
-             <button id="btnReloadPkg" class="btn btn-load btn-sm" style="width: auto;" title="Tải lại danh sách gói">🔄</button>
+             <input type="text" id="pkg" list="packageList" placeholder="Nhập Key rồi nhấn 🔄 tải gói..." autocomplete="off">
+             <button id="btnReloadPkg" class="btn btn-slate btn-sm" style="width: auto;">🔄</button>
           </div>
           <datalist id="packageList"></datalist>
           <small style="color: #64748b; font-size: 0.8rem;">Thông tin: Line | Style Name | Target | Factory</small>
         </div>
 
-        <!-- Operation -->
         <div class="form-group">
-          <label>Operation Serial (Công đoạn)</label>
-          <input type="number" id="opserial" value="0" placeholder="0">
+          <label>Dữ liệu (Opserial, MCID, Type)</label>
+          <div class="form-row" style="margin-bottom: 10px;">
+            <button id="importBtn" class="btn btn-purple btn-sm" style="flex:1;">📂 Mở File</button>
+            <button id="downloadTemplate" class="btn btn-cyan btn-sm" style="flex:1;">📥 Tải Mẫu</button>
+            <input type="file" id="fileInput" accept=".csv,.txt" style="display:none">
+          </div>
+          <textarea id="list" placeholder="1,60:01:94:3A:74:B5,QA
+2,60:01:94:3A:74:B6,FA"></textarea>
         </div>
       </div>
 
-      <!-- Defect Selection -->
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">⚠️ Chọn Loại Lỗi</div>
-          <button id="loadDefects" class="btn btn-load btn-sm">📥 Tải Danh Sách</button>
+        <div class="card-header"><div class="card-title">🔧 Tiện Ích</div></div>
+        <div class="form-row">
+           <button id="testConnection" class="btn btn-slate btn-sm">🔗 Test Kết Nối</button>
+           <button id="clearLog" class="btn btn-rose btn-sm">🧹 Xóa Log</button>
         </div>
-        
-        <div class="search-wrapper">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="defectSearch" placeholder="Lọc nhanh tên lỗi (vd: Keo, Tràn...)" disabled>
-        </div>
-        
-        <div id="defectsContainer" class="defect-container">
-          <div style="text-align:center; padding: 20px; color: #94a3b8;">
-            Vui lòng nhấn nút "Tải Danh Sách" để chọn lỗi.
-          </div>
-        </div>
-        <input type="hidden" id="selectedDefectCode" value="">
-        <input type="hidden" id="selectedDefectCat" value="">
       </div>
     </div>
 
-    <!-- Right Column: Details & Action -->
+    <!-- RIGHT: Monitor -->
     <div class="right-col">
-      <!-- Evidence -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">📸 Bằng Chứng & Ghi Chú</div>
-        </div>
-
-        <div class="form-group">
-          <label>Hình ảnh minh họa</label>
-          <div class="image-upload-box" onclick="document.getElementById('image').click()">
-            <div id="uploadPlaceholder">
-              <span style="font-size: 2rem;">📷</span><br>
-              <span style="color: #64748b; font-size: 0.9rem;">Nhấn để tải ảnh hoặc Chụp ảnh</span>
-            </div>
-            <img id="imagePreview" alt="Preview">
-            <input type="file" id="image" accept="image/*">
-          </div>
-          <div style="text-align: right; margin-top: 5px;">
-            <button id="clearImage" class="btn btn-reset btn-sm" style="display:none;">Xóa ảnh</button>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label>Ghi chú chi tiết</label>
-          <textarea id="comment" placeholder="Mô tả cụ thể về lỗi..."></textarea>
-        </div>
+      <div class="stats-grid">
+        <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tổng số</div></div>
+        <div class="stat-card success"><div class="stat-value" id="statSuccess">0</div><div class="stat-label">Thành công</div></div>
+        <div class="stat-card error"><div class="stat-value" id="statFailed">0</div><div class="stat-label">Thất bại</div></div>
+        <div class="stat-card rate"><div class="stat-value" id="statRate">0.0</div><div class="stat-label">Giây/Req</div></div>
       </div>
 
-      <!-- Submit Action -->
-      <button id="submitReport" class="btn btn-submit pulse-btn" disabled>
-        🔒 VUI LÒNG XÁC THỰC BÊN DƯỚI
-      </button>
-
-      <!-- Logs -->
-      <div class="log-container" id="log">
-        <div class="log-entry">Hệ thống khởi động...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- 🔐 FLOATING TURNSTILE WIDGET (IMPROVED)   -->
-  <!-- ========================================== -->
-  <div id="turnstileWidget" class="turnstile-floating">
-    
-    <!-- Nội dung chính (Khi mở rộng) -->
-    <div class="turnstile-content">
-      <div class="turnstile-header">
-        <div class="turnstile-title">
-          <span>🛡️</span>
-          <span>Xác Thực Bảo Mật</span>
-        </div>
-        <div class="header-controls">
-          <span id="turnstileStatus" class="turnstile-badge status-pending">Đang chờ</span>
-          <!-- Nút thu nhỏ -->
-          <button id="btnMinimize" class="btn-icon" title="Thu nhỏ">
-            ─
-          </button>
-        </div>
-      </div>
-      
-      <div class="turnstile-body">
-        <!-- Widget Cloudflare -->
-        <div class="cf-turnstile" 
-             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
+      <!-- 2. Thêm Khu vực Turnstile -->
+      <div class="turnstile-wrapper">
+        <div id="cf-turnstile-widget" class="cf-turnstile" 
+             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" 
              data-callback="onTurnstileSuccess"
              data-error-callback="onTurnstileError"
              data-expired-callback="onTurnstileExpired"
              data-theme="light">
         </div>
-        <div class="turnstile-note">
-          Tự động ẩn sau khi xác thực thành công.
+      </div>
+
+      <div class="card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+          <!-- Nút này mặc định disabled cho đến khi verify Turnstile -->
+          <button id="run" class="btn btn-primary btn-pulse" disabled style="flex: 2; font-size: 1.1rem; opacity: 0.5; cursor: not-allowed;">🔒 XÁC THỰC TRƯỚC KHI CHẠY</button>
+          <button id="pause" class="btn btn-warning" style="display:none; flex: 1;">⏸️ Tạm Dừng</button>
+          <button id="stop" class="btn btn-danger" style="display:none; flex: 1;">⏹️ Dừng Lại</button>
+          <button id="export" class="btn btn-success" disabled style="flex: 1;">💾 Xuất CSV</button>
         </div>
       </div>
-    </div>
 
-    <!-- Icon khi thu nhỏ -->
-    <div class="turnstile-minimized-icon" title="Nhấn để mở xác thực">
-      <span id="minimizedIconChar">🔐</span>
+      <div class="progress-track"><div id="progressBar" class="progress-bar" style="width: 0%">0%</div></div>
+      <div class="log-container" id="log">
+        <div class="log-entry"><span class="log-time">SYSTEM</span><span class="log-info">Giao diện sẵn sàng. Vui lòng xác thực bảo mật.</span></div>
+      </div>
     </div>
   </div>
 
   <script>
-  // ==========================================
-  // 🔒 CẤU HÌNH HỆ THỐNG
-  // ==========================================
-  const DEFECT_API = "https://defect-management.chiscoong-cloudflare-com.workers.dev";
-  const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
-  
-  // State Variables
-  let selectedDefectData = null;
-  let currentPackageDataList = [];
-  let turnstileToken = null;
-  let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // ==========================================
+    // CẤU HÌNH & BIẾN TOÀN CỤC
+    // ==========================================
+    const API_ENDPOINT = "https://mes-qr-scanner.chiscoong-cloudflare-com.workers.dev/";
+    const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
 
-  // ==========================================
-  // 🛠️ UTILS & LOGGER
-  // ==========================================
-  function appendLog(message, type = 'info') {
+    let isPaused = false;
+    let isStopped = false;
+    let currentBatchStart = null;
+    let batchResults = [];
+    let currentPackages = [];
+    
+    // 3. Biến quản lý Turnstile
+    let turnstileToken = null;
+    let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Tham chiếu Elements
     const logEl = document.getElementById("log");
-    const timeStr = new Date().toLocaleTimeString('vi-VN', { hour12: false });
-    let colorClass = '';
-    
-    if (type === 'error') colorClass = 'log-error';
-    else if (type === 'success') colorClass = 'log-success';
-    else if (type === 'detail') colorClass = 'log-detail';
+    const progressBar = document.getElementById("progressBar");
+    const btnRun = document.getElementById("run");
+    const btnPause = document.getElementById("pause");
+    const btnStop = document.getElementById("stop");
+    const btnExport = document.getElementById("export");
+    const statusBadge = document.getElementById("statusBadge");
 
-    const div = document.createElement('div');
-    div.className = `log-entry ${colorClass}`;
-    
-    if (type === 'detail') {
-        div.innerHTML = `${message}`;
-    } else {
-        div.innerHTML = `<span style="color: #64748b">[${timeStr}]</span> <span class="${colorClass}">${message}</span>`;
-    }
-    
-    logEl.appendChild(div);
-    logEl.scrollTop = logEl.scrollHeight;
-  }
+    // ==========================================
+    // 4. XỬ LÝ SỰ KIỆN TURNSTILE
+    // ==========================================
+    window.onTurnstileSuccess = function(token) {
+        turnstileToken = token;
+        btnRun.disabled = false;
+        btnRun.style.opacity = "1";
+        btnRun.style.cursor = "pointer";
+        btnRun.textContent = "🚀 BẮT ĐẦU CHẠY";
+        appendLog("✅ Đã xác thực bảo mật thành công.", "success");
+    };
 
-  // ==========================================
-  // 🔐 TURNSTILE LOGIC (ĐÃ TỐI ƯU)
-  // ==========================================
-  const widgetEl = document.getElementById('turnstileWidget');
-  const btnMinimize = document.getElementById('btnMinimize');
-
-  // Hàm chuyển đổi trạng thái (Toggle Class thay vì sửa HTML)
-  function toggleWidgetState(forceMinimize = false) {
-    if (forceMinimize) {
-      widgetEl.classList.add('minimized');
-    } else {
-      widgetEl.classList.toggle('minimized');
-    }
-  }
-
-  // 1. Sự kiện nút Thu nhỏ
-  btnMinimize.addEventListener('click', (e) => {
-    e.stopPropagation(); // Ngăn sự kiện nổi lên cha
-    toggleWidgetState(true); 
-  });
-
-  // 2. Sự kiện click vào Widget khi đang thu nhỏ để mở lại
-  widgetEl.addEventListener('click', (e) => {
-    // Nếu đang thu nhỏ thì click vào đâu cũng mở ra
-    if (widgetEl.classList.contains('minimized')) {
-      toggleWidgetState(false);
-    }
-  });
-
-  // Callback thành công
-  window.onTurnstileSuccess = function(token) {
-    if (turnstileToken) return;
-    turnstileToken = token;
-    
-    // Cập nhật UI
-    const statusEl = document.getElementById('turnstileStatus');
-    statusEl.textContent = 'Đã xác thực';
-    statusEl.className = 'turnstile-badge status-success';
-    
-    // Đổi icon thu nhỏ thành dấu tích
-    document.getElementById('minimizedIconChar').textContent = '✅';
-    
-    // Enable nút gửi
-    const submitBtn = document.getElementById('submitReport');
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '🚀 GỬI BÁO CÁO LỖI';
-    
-    appendLog("✅ Đã xác thực bảo mật", "success");
-    
-    // Tự động thu nhỏ sau 1.5s
-    setTimeout(() => {
-      toggleWidgetState(true);
-    }, 1500);
-  };
-
-  // Callback lỗi
-  window.onTurnstileError = function() {
-    const statusEl = document.getElementById('turnstileStatus');
-    statusEl.textContent = 'Lỗi';
-    statusEl.className = 'turnstile-badge status-error';
-    
-    turnstileToken = null;
-    document.getElementById('submitReport').disabled = true;
-    document.getElementById('minimizedIconChar').textContent = '⚠️';
-    appendLog("❌ Lỗi xác thực Turnstile", "error");
-  };
-  
-  // Callback hết hạn
-  window.onTurnstileExpired = function() {
-    const statusEl = document.getElementById('turnstileStatus');
-    statusEl.textContent = 'Hết hạn';
-    statusEl.className = 'turnstile-badge status-error';
-    
-    turnstileToken = null;
-    document.getElementById('submitReport').disabled = true;
-    document.getElementById('minimizedIconChar').textContent = '🔐';
-    appendLog("⚠️ Phiên xác thực hết hạn", "error");
-    
-    // Tự động mở widget để người dùng xác thực lại
-    toggleWidgetState(false);
-  };
-
-  // ==========================================
-  // 📦 PACKAGE MANAGEMENT
-  // ==========================================
-  function setTodayDate() {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    document.getElementById('dateSelect').value = `${yyyy}-${mm}-${dd}`;
-  }
-
-  function getApiDateString() {
-    const dateVal = document.getElementById('dateSelect').value;
-    if(!dateVal) return "";
-    return dateVal.replace(/-/g, '');
-  }
-
-  async function fetchPackages() {
-    const factory = document.getElementById('factory').value.trim();
-    const dateStr = getApiDateString();
-    const apiKey = document.getElementById('apiKey').value.trim();
-
-    if (!apiKey) {
-        appendLog("⚠️ Vui lòng nhập API Key để tải gói.", "error");
-        document.getElementById('apiKey').focus();
-        return; 
-    }
-    if (!factory || !dateStr) {
-        appendLog("⚠️ Vui lòng chọn Factory và Date.", "error");
-        return;
-    }
-
-    const btnReload = document.getElementById('btnReloadPkg');
-    const inputPkg = document.getElementById('package');
-    const datalist = document.getElementById('packageList');
-
-    try {
-        btnReload.disabled = true;
-        btnReload.textContent = "⏳";
-        inputPkg.placeholder = "Đang tải dữ liệu...";
-        
-        const url = `${PACKAGE_API}?factory=${encodeURIComponent(factory)}&fromDate=${dateStr}&withDetails=true&apikey=${encodeURIComponent(apiKey)}`;
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            const errJson = await response.json().catch(() => ({}));
-            throw new Error(errJson.error || `Lỗi HTTP ${response.status}`);
-        }
-        
-        const rawData = await response.json();
-        
-        let list = [];
-        if (rawData.data && Array.isArray(rawData.data.packages)) {
-            list = rawData.data.packages;
-        } else if (Array.isArray(rawData)) {
-            list = rawData;
-        } else if (rawData.data && Array.isArray(rawData.data)) {
-            list = rawData.data;
-        }
-        
-        currentPackageDataList = list || [];
-        datalist.innerHTML = '';
-
-        if (currentPackageDataList.length === 0) {
-            appendLog(`⚠️ Không tìm thấy gói nào cho ${factory} ngày ${dateStr}.`, 'error');
-        } else {
-            currentPackageDataList.forEach(pkg => {
-                const option = document.createElement('option');
-                option.value = pkg.packageId; 
-                const line = pkg.lineName || "?";
-                const style = pkg.styleText || "N/A";
-                const target = pkg.target || "0";
-                const fact = pkg.factory || "";
-                const displayText = `${line} | ${style} | ${target} | ${fact}`;
-                option.label = displayText;
-                option.textContent = displayText;
-                datalist.appendChild(option);
-            });
-            appendLog(`✅ Đã tải ${currentPackageDataList.length} gói sản xuất.`, 'success');
-        }
-
-    } catch (e) {
-        appendLog(`❌ Lỗi tải Package: ${e.message}`, 'error');
-        console.error(e);
-        currentPackageDataList = []; 
-    } finally {
-        btnReload.disabled = false;
-        btnReload.textContent = "🔄";
-        inputPkg.placeholder = "Nhập hoặc chọn gói...";
-    }
-  }
-
-  document.getElementById('package').addEventListener('input', function(e) {
-      const val = e.target.value.trim();
-      if (!val) return;
-      const pkgDetails = currentPackageDataList.find(p => p.packageId === val);
-      if (pkgDetails) {
-          appendLog(`🔹 Đã chọn: ${pkgDetails.packageId}`, 'info');
-          let detailsLog = "";
-          const fields = [
-              { key: 'lineName', label: 'Line' },
-              { key: 'styleText', label: 'Style' },
-              { key: 'target', label: 'Target' },
-              { key: 'status', label: 'Status' }
-          ];
-          fields.forEach(field => {
-              if (pkgDetails[field.key]) {
-                  detailsLog += `   • ${field.label}: ${pkgDetails[field.key]}\n`;
-              }
-          });
-          appendLog(detailsLog, 'detail');
-      }
-  });
-
-  document.getElementById('factory').addEventListener('change', () => {
-      if(document.getElementById('apiKey').value) fetchPackages();
-  });
-  
-  document.getElementById('dateSelect').addEventListener('change', () => {
-      if(document.getElementById('apiKey').value) fetchPackages();
-  });
-  
-  document.getElementById('btnReloadPkg').addEventListener('click', fetchPackages);
-
-  // ==========================================
-  // 🖼️ IMAGE & UI LOGIC
-  // ==========================================
-  const imageInput = document.getElementById('image');
-  const imagePreview = document.getElementById('imagePreview');
-  const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-  const clearImageBtn = document.getElementById('clearImage');
-
-  imageInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        imagePreview.src = e.target.result;
-        imagePreview.style.display = 'inline-block';
-        uploadPlaceholder.style.display = 'none';
-        clearImageBtn.style.display = 'inline-block';
-        appendLog(`📸 Đã chọn ảnh: ${file.name}`);
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  clearImageBtn.addEventListener('click', function() {
-    imageInput.value = '';
-    imagePreview.style.display = 'none';
-    uploadPlaceholder.style.display = 'block';
-    clearImageBtn.style.display = 'none';
-    appendLog("Đã xóa ảnh đã chọn.");
-  });
-
-  const defectSearch = document.getElementById('defectSearch');
-  defectSearch.addEventListener('input', function(e) {
-    const filterText = e.target.value.toLowerCase().trim();
-    const items = document.querySelectorAll('.defect-item');
-    items.forEach(item => {
-      const text = item.textContent.toLowerCase();
-      item.classList.toggle('hidden', !text.includes(filterText));
-    });
-  });
-
-  // ==========================================
-  // 📥 TẢI DANH SÁCH LỖI
-  // ==========================================
-  document.getElementById('loadDefects').addEventListener('click', async function() {
-    const apiKey = document.getElementById('apiKey').value.trim();
-    const pkg = document.getElementById('package').value.trim();
-    
-    if (!apiKey) return alert('Vui lòng nhập API Key!');
-    if (!pkg) return alert('Vui lòng chọn hoặc nhập Package ID!');
-
-    const btn = this;
-    const container = document.getElementById('defectsContainer');
-    
-    try {
-      btn.textContent = '⏳ Đang tải...';
-      btn.disabled = true;
-      defectSearch.value = '';
-      defectSearch.disabled = true;
-      
-      appendLog(`Đang lấy danh sách lỗi cho gói ${pkg}...`);
-
-      const url = `${DEFECT_API}/api/defects?package=${encodeURIComponent(pkg)}&apikey=${encodeURIComponent(apiKey)}`;
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.error || 'Lỗi tải danh sách');
-
-      const defects = data.data || [];
-      
-      if(defects.length === 0) {
-        container.innerHTML = '<div style="padding:10px; text-align:center">Không tìm thấy mã lỗi nào.</div>';
-      } else {
-        container.innerHTML = '';
-        defects.forEach(defect => {
-          const div = document.createElement('div');
-          div.className = 'defect-item';
-          div.textContent = defect.display;
-          div.onclick = () => selectDefect(div, defect);
-          container.appendChild(div);
-        });
-        
-        defectSearch.disabled = false;
-        defectSearch.focus();
-        appendLog(`✅ Đã tải ${defects.length} loại lỗi.`, 'success');
-      }
-
-    } catch (error) {
-      appendLog(`❌ Lỗi tải Defects: ${error.message}`, 'error');
-      container.innerHTML = `<div style="color:red; padding:10px;">Lỗi: ${error.message}</div>`;
-    } finally {
-      btn.textContent = '📥 Tải Danh Sách';
-      btn.disabled = false;
-    }
-  });
-
-  function selectDefect(element, defect) {
-    document.querySelectorAll('.defect-item').forEach(el => el.classList.remove('selected'));
-    element.classList.add('selected');
-    selectedDefectData = defect;
-    appendLog(`Đã chọn lỗi: ${defect.display}`);
-  }
-
-  // ==========================================
-  // 🚀 SUBMIT REPORT
-  // ==========================================
-  document.getElementById('submitReport').addEventListener('click', async function() {
-    const apiKey = document.getElementById('apiKey').value.trim();
-    const pkg = document.getElementById('package').value.trim();
-    const opserial = document.getElementById('opserial').value.trim();
-    const comment = document.getElementById('comment').value.trim();
-    const imgFile = imageInput.files[0];
-
-    if (!apiKey) return alert('Thiếu API Key!');
-    if (!pkg) return alert('Thiếu Package ID!');
-    if (!selectedDefectData) return alert('⚠️ Vui lòng CHỌN LOẠI LỖI trước khi gửi!');
-    
-    // Kiểm tra Turnstile
-    if (!turnstileToken && !isLocalhost) {
-      alert('⚠️ Vui lòng hoàn thành xác thực bảo mật trước khi gửi!');
-      toggleWidgetState(false); // Mở widget nếu đang đóng
-      return;
-    }
-
-    if (!confirm(`Xác nhận báo cáo lỗi: "${selectedDefectData.display}" cho gói ${pkg}?`)) return;
-
-    const btn = this;
-    
-    try {
-      btn.innerHTML = '⏳ ĐANG GỬI...';
-      btn.disabled = true;
-      document.body.style.cursor = 'wait';
-
-      const formData = new FormData();
-      formData.append('package', pkg);
-      formData.append('opserial', opserial || '0');
-      formData.append('defect_cat', selectedDefectData.cat_code);
-      formData.append('defect_code', selectedDefectData.defect_code);
-      formData.append('comment', comment);
-      
-      if (!isLocalhost) {
-        formData.append('cf-turnstile-response', turnstileToken);
-      }
-      
-      if (imgFile) formData.append('image', imgFile);
-
-      const url = `${DEFECT_API}/api/report?apikey=${encodeURIComponent(apiKey)}`;
-      
-      const response = await fetch(url, { method: 'POST', body: formData });
-      const result = await response.json();
-
-      if (!response.ok) throw new Error(result.error || 'Gửi thất bại');
-
-      appendLog(`✅ BÁO CÁO THÀNH CÔNG! ID: ${result.defect_id}`, 'success');
-      alert(`✅ Gửi thành công!\nMã lỗi: ${result.defect_id}`);
-
-      // Reset form
-      document.getElementById('comment').value = '';
-      clearImageBtn.click();
-      document.querySelectorAll('.defect-item').forEach(el => el.classList.remove('selected'));
-      selectedDefectData = null;
-      
-      // Reset Turnstile (nếu không phải localhost)
-      if (!isLocalhost) {
-        if(window.turnstile) window.turnstile.reset();
+    window.onTurnstileError = function() {
         turnstileToken = null;
-        
-        const statusEl = document.getElementById('turnstileStatus');
-        statusEl.textContent = 'Đang chờ';
-        statusEl.className = 'turnstile-badge status-pending';
-        
-        document.getElementById('minimizedIconChar').textContent = '🔐';
-        document.getElementById('submitReport').disabled = true;
-        document.getElementById('submitReport').innerHTML = '🔒 VUI LÒNG XÁC THỰC';
-        
-        toggleWidgetState(false); // Mở lại để xác thực lần tiếp theo
-      }
+        btnRun.disabled = true;
+        btnRun.textContent = "❌ LỖI XÁC THỰC";
+        appendLog("❌ Lỗi kết nối Turnstile.", "error");
+    };
 
-    } catch (error) {
-      appendLog(`❌ Gửi thất bại: ${error.message}`, 'error');
-      alert(`❌ Lỗi: ${error.message}`);
-    } finally {
-      if(isLocalhost || turnstileToken) {
-          btn.innerHTML = '🚀 GỬI BÁO CÁO LỖI';
-          btn.disabled = false;
-      }
-      document.body.style.cursor = 'default';
+    window.onTurnstileExpired = function() {
+        turnstileToken = null;
+        btnRun.disabled = true;
+        btnRun.textContent = "⌛ HẾT HẠN - LÀM MỚI LẠI";
+        appendLog("⚠️ Phiên xác thực hết hạn.", "warning");
+    };
+
+    // ==========================================
+    // HÀM TIỆN ÍCH
+    // ==========================================
+    function formatTime(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const m = Math.floor(totalSec / 60).toString().padStart(2, "0");
+      const s = (totalSec % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
     }
-  });
 
-  // ==========================================
-  // 🏁 INITIALIZATION
-  // ==========================================
-  document.addEventListener('DOMContentLoaded', () => {
-      setTodayDate();
-      appendLog("📝 Vui lòng nhập API Key rồi nhấn nút 🔄 để tải gói.", "info");
+    function appendLog(message, type = 'info') {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+      let colorClass = 'log-info';
       
-      // Nếu là Localhost: Bypass
-      if (isLocalhost) {
-        const btn = document.getElementById('submitReport');
-        btn.disabled = false;
-        btn.innerHTML = '🚀 GỬI BÁO CÁO LỖI (Localhost)';
-        turnstileToken = 'LOCAL_MODE_BYPASS';
-        
-        // Ẩn Turnstile đi
-        widgetEl.style.display = 'none';
-        appendLog("🔧 Đang chạy ở chế độ localhost - Turnstile đã tắt", "info");
+      if (type === 'error') colorClass = 'log-error';
+      else if (type === 'success') colorClass = 'log-success';
+      else if (type === 'warning') colorClass = 'log-warning';
+
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = `<span class="log-time">${timeStr}</span> <span class="${colorClass}">${message}</span>`;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // ==========================================
+    // PHẦN 1: QUẢN LÝ GÓI (PACKAGE LOADER)
+    // ==========================================
+    function setTodayDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('dateSelect').value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function getApiDateString() {
+      const dateVal = document.getElementById('dateSelect').value;
+      return dateVal ? dateVal.replace(/-/g, '') : "";
+    }
+
+    async function fetchPackages() {
+      const factory = document.getElementById('factory').value.trim();
+      const dateStr = getApiDateString();
+      const apiKey = document.getElementById('apiKey').value.trim();
+
+      if (!apiKey) {
+          appendLog("⚠️ Chưa nhập API Key để tải gói.", "warning");
+          document.getElementById('apiKey').focus();
+          return; 
       }
-  });
+      if (!factory || !dateStr) return;
+
+      const btnReload = document.getElementById('btnReloadPkg');
+      const datalist = document.getElementById('packageList');
+
+      try {
+          btnReload.disabled = true;
+          btnReload.textContent = "⏳";
+          
+          const url = `${PACKAGE_API}?factory=${encodeURIComponent(factory)}&fromDate=${dateStr}&withDetails=true&apikey=${encodeURIComponent(apiKey)}`;
+          appendLog(`Đang tải danh sách gói...`, 'info');
+
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Lỗi HTTP ${res.status}`);
+          
+          const rawData = await res.json();
+          let list = [];
+          if (rawData.data && Array.isArray(rawData.data.packages)) list = rawData.data.packages;
+          else if (Array.isArray(rawData)) list = rawData;
+          else if (rawData.data && Array.isArray(rawData.data)) list = rawData.data;
+          
+          currentPackages = list || [];
+          datalist.innerHTML = '';
+
+          if (currentPackages.length === 0) {
+              appendLog(`⚠️ Không tìm thấy gói nào cho ${factory}.`, 'warning');
+          } else {
+              currentPackages.forEach(pkg => {
+                  const option = document.createElement('option');
+                  option.value = pkg.packageId; 
+                  // Định dạng: Line | Style | Target | Factory
+                  const txt = `${pkg.lineName||'?'} | ${pkg.styleText||'N/A'} | ${pkg.target||0} | ${pkg.factory||''}`;
+                  option.textContent = txt;
+                  option.label = txt;
+                  datalist.appendChild(option);
+              });
+              appendLog(`✅ Đã tải ${currentPackages.length} gói.`, 'success');
+          }
+      } catch (e) {
+          appendLog(`❌ Lỗi tải Package: ${e.message}`, 'error');
+      } finally {
+          btnReload.disabled = false;
+          btnReload.textContent = "🔄";
+      }
+    }
+
+    // --- SỰ KIỆN CHỌN GÓI ---
+    document.getElementById('pkg').addEventListener('input', function(e) {
+        const val = e.target.value.trim();
+        const p = currentPackages.find(x => x.packageId === val);
+        if(p) {
+            appendLog(`🔹 Đã chọn: ${p.packageId}`, 'info');
+            appendLog(`   • Line: ${p.lineName || 'N/A'}`, 'info');
+            appendLog(`   • Style: ${p.styleText || 'N/A'}`, 'info');
+            appendLog(`   • Target: ${p.target || 0}`, 'info');
+            appendLog(`   • Status: ${p.status || 'N/A'}`, 'info');
+        }
+    });
+
+    document.getElementById('factory').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
+    document.getElementById('dateSelect').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
+    document.getElementById('btnReloadPkg').addEventListener('click', fetchPackages);
+
+    // ==========================================
+    // PHẦN 2: SCANNER LOGIC
+    // ==========================================
+    function updateStats(results, total, startTime) {
+      const success = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success && r.status !== "STOPPED").length;
+      
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statSuccess").textContent = success;
+      document.getElementById("statFailed").textContent = failed;
+
+      const elapsedTime = (Date.now() - startTime) / 1000;
+      const rate = elapsedTime > 0 ? (results.length / elapsedTime).toFixed(2) : "0.0";
+      document.getElementById("statRate").textContent = rate;
+    }
+
+    function setRunningState(isRunning) {
+      btnRun.style.display = isRunning ? "none" : "block";
+      btnPause.style.display = isRunning ? "block" : "none";
+      btnStop.style.display = isRunning ? "block" : "none";
+      
+      // Khóa inputs
+      document.getElementById("apiKey").disabled = isRunning;
+      document.getElementById("factory").disabled = isRunning;
+      document.getElementById("dateSelect").disabled = isRunning;
+      document.getElementById("pkg").disabled = isRunning;
+      document.getElementById("btnReloadPkg").disabled = isRunning;
+      document.getElementById("list").disabled = isRunning;
+      document.getElementById("importBtn").disabled = isRunning;
+      
+      btnExport.disabled = isRunning || batchResults.length === 0;
+
+      if (isRunning) {
+        statusBadge.innerHTML = "⚡ Đang xử lý...";
+        statusBadge.style.color = "#f59e0b";
+        statusBadge.style.background = "rgba(245, 158, 11, 0.15)";
+        statusBadge.style.borderColor = "#f59e0b";
+      } else {
+        statusBadge.innerHTML = "✅ Sẵn sàng";
+        statusBadge.style.color = "#34d399";
+        statusBadge.style.background = "rgba(16, 185, 129, 0.15)";
+        statusBadge.style.borderColor = "#34d399";
+        isPaused = false;
+        isStopped = false;
+        btnPause.textContent = "⏸️ Tạm Dừng";
+        btnPause.className = "btn btn-warning";
+      }
+    }
+
+    // 5. Cập nhật sendRequest để gửi kèm Token
+    async function sendRequest({apiKey, pkg, opserial, mcid, processtype}) {
+      // Thêm tham số cf-turnstile-response vào URL
+      let url = `${API_ENDPOINT}?mxpackage=${encodeURIComponent(pkg)}&opserial=${opserial}&mcid=${mcid}${processtype ? `&processtype=${processtype}` : ''}&apikey=${encodeURIComponent(apiKey)}`;
+      
+      if (turnstileToken && !isLocalhost) {
+        url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
+      }
+
+      const start = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); 
+        const res = await fetch(url, { method: 'GET', signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        const text = await res.text();
+        const duration = ((Date.now() - start) / 1000).toFixed(2);
+        
+        let ok = res.ok;
+        try {
+          const json = JSON.parse(text);
+          if (json.IsSuccess === true) ok = true;
+        } catch (e) {}
+        
+        return { ok, status: res.status, body: text, duration };
+      } catch (err) {
+        const duration = ((Date.now() - start) / 1000).toFixed(2);
+        return { ok: false, error: err.message, duration };
+      }
+    }
+
+    async function runBatchProcess() {
+      // 6. Kiểm tra Token trước khi chạy
+      if (!turnstileToken && !isLocalhost) {
+        alert("Vui lòng hoàn thành xác thực bảo mật trước khi chạy!");
+        return;
+      }
+
+      const apiKey = document.getElementById("apiKey").value.trim();
+      const pkg = document.getElementById("pkg").value.trim();
+      const rawLines = document.getElementById("list").value.split("\n").map(x => x.trim()).filter(Boolean);
+
+      if (!apiKey || !pkg || rawLines.length === 0) return alert("Thiếu thông tin đầu vào (Key, Package hoặc Dữ liệu)!");
+
+      batchResults = [];
+      document.getElementById("statSuccess").textContent = "0";
+      document.getElementById("statFailed").textContent = "0";
+      progressBar.style.width = "0%";
+      progressBar.textContent = "0%";
+      
+      appendLog("--- KHỞI ĐỘNG TIẾN TRÌNH ---", "info");
+      setRunningState(true);
+      currentBatchStart = Date.now();
+
+      const queue = rawLines.map((line, idx) => {
+        const parts = line.split(",").map(x => x.trim());
+        return { apiKey, pkg, opserial: parts[0], mcid: parts[1], processtype: parts[2]||'', index: idx + 1 };
+      });
+
+      const total = queue.length;
+      let done = 0;
+
+      while (queue.length > 0) {
+        if (isStopped) break;
+        if (isPaused) { await new Promise(r => setTimeout(r, 500)); continue; }
+
+        const task = queue.shift();
+        if (!task.opserial || !task.mcid) { done++; continue; }
+
+        appendLog(`📤 [${task.index}/${total}] Gửi MCID: ${task.mcid}...`);
+        
+        let attempt = 0;
+        let result = null;
+        while (attempt < 3 && !isStopped) {
+          attempt++;
+          result = await sendRequest(task);
+          if (result.ok) break;
+          if (attempt < 3) await new Promise(r => setTimeout(r, 1000));
+        }
+
+        const resObj = { ...task, status: result.ok ? "OK" : (result.error||result.status), success: result.ok, duration: result.duration };
+        batchResults.push(resObj);
+        done++;
+        
+        const pct = Math.round((done/total)*100);
+        progressBar.style.width = `${pct}%`;
+        progressBar.textContent = `${pct}%`;
+
+        if (result.ok) appendLog(`✅ Thành công (${result.duration}s)`, "success");
+        else appendLog(`❌ Thất bại: ${resObj.status}`, "error");
+
+        updateStats(batchResults, total, currentBatchStart);
+        
+        if (queue.length > 0 && !isStopped) {
+          await new Promise(r => setTimeout(r, Math.random() * 2000 + 4000));
+        }
+      }
+
+      setRunningState(false);
+      appendLog(`🏁 Hoàn tất trong ${formatTime(Date.now() - currentBatchStart)}.`);
+      
+      // 7. Reset Turnstile sau khi hoàn tất để đảm bảo an toàn cho lượt sau
+      if (window.turnstile) {
+          window.turnstile.reset('#cf-turnstile-widget');
+          turnstileToken = null;
+          btnRun.disabled = true;
+          btnRun.innerHTML = "🔒 XÁC THỰC LẠI ĐỂ CHẠY TIẾP";
+          btnRun.style.opacity = "0.5";
+          btnRun.style.cursor = "not-allowed";
+          appendLog("🔒 Đã reset phiên bảo mật. Vui lòng xác thực lại.", "warning");
+      }
+    }
+
+    // ==========================================
+    // SỰ KIỆN NÚT BẤM
+    // ==========================================
+    btnRun.onclick = runBatchProcess;
+    
+    btnPause.onclick = () => {
+      isPaused = !isPaused;
+      btnPause.textContent = isPaused ? "▶️ Tiếp Tục" : "⏸️ Tạm Dừng";
+      btnPause.className = isPaused ? "btn btn-success" : "btn btn-warning";
+      appendLog(isPaused ? "⏸️ Đã tạm dừng." : "▶️ Tiếp tục chạy.");
+    };
+
+    btnStop.onclick = () => {
+      if(confirm("Dừng hệ thống?")) {
+        isStopped = true;
+        appendLog("🛑 Đã nhận lệnh dừng!", "error");
+      }
+    };
+
+    document.getElementById("testConnection").onclick = async () => {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if(!apiKey) return alert("Nhập API Key trước!");
+      
+      if (!turnstileToken && !isLocalhost) return alert("Vui lòng xác thực Turnstile trước!");
+
+      appendLog("🔗 Đang kiểm tra server...");
+      const res = await sendRequest({ apiKey, pkg: "TEST", opserial: "0", mcid: "TEST" });
+      if (res.status === 404 || res.status === 200 || res.ok) appendLog("✅ Kết nối Server Tốt!", "success");
+      else appendLog(`❌ Lỗi kết nối: ${res.status||res.error}`, "error");
+    };
+
+    document.getElementById("importBtn").onclick = () => document.getElementById("fileInput").click();
+    document.getElementById("fileInput").onchange = (e) => {
+      const f = e.target.files[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = (ev) => {
+        const t = ev.target.result;
+        const l = t.split('\n').filter(x=>x.trim().length>0);
+        const d = l[0].toLowerCase().includes('opserial') ? l.slice(1) : l;
+        document.getElementById("list").value = d.map(x=>x.replace(/\t/g,',')).join('\n');
+        appendLog(`📂 Đã load ${d.length} dòng dữ liệu.`, "success");
+      };
+      r.readAsText(f);
+      e.target.value = '';
+    };
+
+    btnExport.onclick = () => {
+      if(!batchResults.length) return;
+      const csv = "Index,Opserial,Mcid,Type,Status,Duration\n" + batchResults.map(r=>`${r.index},${r.opserial},${r.mcid},${r.processtype},${r.status},${r.duration}`).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:'text/csv'}));
+      a.download = `MES_Report_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    };
+
+    document.getElementById("downloadTemplate").onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(["\uFEFFopserial,mcid,processtype\n1,MC001,QA\n2,MC002,FA"],{type:'text/csv'}));
+      a.download = "template.csv";
+      a.click();
+    };
+
+    document.getElementById("clearLog").onclick = () => {
+      logEl.innerHTML = "";
+      appendLog("Log đã được dọn dẹp.");
+    };
+
+    // Khởi tạo
+    document.addEventListener('DOMContentLoaded', () => {
+        setTodayDate();
+        if(isLocalhost) {
+            btnRun.disabled = false;
+            btnRun.innerHTML = "🚀 BẮT ĐẦU CHẠY (Localhost)";
+            btnRun.style.opacity = "1";
+            btnRun.style.cursor = "pointer";
+            appendLog("🔧 Đang chạy ở chế độ Localhost (Bypass Turnstile)", "warning");
+        }
+    });
   </script>
 </body>
 </html>
