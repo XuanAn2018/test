@@ -189,18 +189,115 @@
     .log-info { color: #60a5fa; }
     .log-detail { color: #e2e8f0; font-size: 0.8em; margin-left: 15px; opacity: 0.8; }
 
-    /* Turnstile Widget - Compact Style */
-    .turnstile-compact {
-      margin: 15px 0 5px 0;
-      display: flex;
-      justify-content: center;
+    /* Floating Turnstile Widget */
+    .turnstile-floating {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      max-width: 320px;
+      transition: all 0.3s ease;
     }
-    .turnstile-note {
-      color: #64748b;
+
+    .turnstile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+    }
+
+    .turnstile-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #7f1d1d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .turnstile-status {
       font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .status-pending {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+
+    .status-success {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .turnstile-minimize {
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .turnstile-minimize:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .turnstile-minimized {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .turnstile-minimized .turnstile-header {
+      display: none;
+    }
+
+    .turnstile-minimized .cf-turnstile {
+      display: none;
+    }
+
+    .turnstile-minimized .turnstile-note {
+      display: none;
+    }
+
+    .turnstile-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: white;
+      border-radius: 8px;
+      font-size: 1.2rem;
+    }
+
+    .turnstile-note {
+      font-size: 0.7rem;
+      color: #64748b;
       text-align: center;
-      margin-top: 5px;
+      margin-top: 8px;
       opacity: 0.8;
+      line-height: 1.3;
     }
 
     @keyframes pulse-red {
@@ -211,6 +308,15 @@
     .pulse-btn { animation: pulse-red 2s infinite; }
     
     .input-wrapper { display: flex; gap: 5px; }
+
+    /* Responsive for mobile */
+    @media (max-width: 768px) {
+      .turnstile-floating {
+        bottom: 10px;
+        right: 10px;
+        max-width: 280px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -331,22 +437,6 @@
         </div>
       </div>
 
-      <!-- Compact Turnstile Section -->
-      <div class="turnstile-compact">
-        <div class="cf-turnstile" 
-             id="turnstile-widget"
-             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
-             data-callback="onTurnstileSuccess"
-             data-error-callback="onTurnstileError"
-             data-expired-callback="onTurnstileExpired"
-             data-theme="light"
-             data-size="compact">
-        </div>
-      </div>
-      <div class="turnstile-note">
-        Cloudflare Turnstile giúp bảo vệ hệ thống khỏi spam và tự động hóa
-      </div>
-
       <!-- Submit Action -->
       <button id="submitReport" class="btn btn-submit pulse-btn" disabled>
         🚀 GỬI BÁO CÁO LỖI
@@ -357,6 +447,34 @@
         <div class="log-entry">Hệ thống khởi động...</div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Floating Turnstile Widget -->
+  <div id="turnstileWidget" class="turnstile-floating">
+    <div class="turnstile-header">
+      <div class="turnstile-title">
+        <span>🔐</span>
+        <span>Xác Thực Bảo Mật</span>
+      </div>
+      <div id="turnstileStatus" class="turnstile-status status-pending">
+        Đang chờ
+      </div>
+      <button id="turnstileToggle" class="turnstile-minimize" title="Thu gọn">
+        ➖
+      </button>
+    </div>
+    
+    <div class="cf-turnstile" 
+         data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
+         data-callback="onTurnstileSuccess"
+         data-error-callback="onTurnstileError"
+         data-expired-callback="onTurnstileExpired"
+         data-theme="light">
+    </div>
+    
+    <div class="turnstile-note">
+      Bảo vệ hệ thống khỏi spam • Tự động ẩn khi đã xác thực
     </div>
   </div>
 
@@ -371,6 +489,8 @@
   let selectedDefectData = null;
   let currentPackageDataList = [];
   let turnstileToken = null;
+  let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  let turnstileMinimized = false;
 
   // ==========================================
   // 🛠️ UTILS & LOGGER
@@ -398,32 +518,154 @@
   }
 
   // ==========================================
-  // 🔐 TURNSTILE INTEGRATION - SIMPLE & CLEAN
+  // 🔐 TURNSTILE FLOATING WIDGET
   // ==========================================
+
+  // Toggle minimize/maximize widget
+  document.getElementById('turnstileToggle').addEventListener('click', function() {
+    const widget = document.getElementById('turnstileWidget');
+    const toggleBtn = this;
+    
+    if (turnstileMinimized) {
+      // Maximize
+      widget.classList.remove('turnstile-minimized');
+      widget.innerHTML = `
+        <div class="turnstile-header">
+          <div class="turnstile-title">
+            <span>🔐</span>
+            <span>Xác Thực Bảo Mật</span>
+          </div>
+          <div id="turnstileStatus" class="turnstile-status ${turnstileToken ? 'status-success' : 'status-pending'}">
+            ${turnstileToken ? 'Đã xác thực' : 'Đang chờ'}
+          </div>
+          <button id="turnstileToggle" class="turnstile-minimize" title="Thu gọn">
+            ➖
+          </button>
+        </div>
+        <div class="cf-turnstile" 
+             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
+             data-callback="onTurnstileSuccess"
+             data-error-callback="onTurnstileError"
+             data-expired-callback="onTurnstileExpired"
+             data-theme="light">
+        </div>
+        <div class="turnstile-note">
+          Bảo vệ hệ thống khỏi spam • Tự động ẩn khi đã xác thực
+        </div>
+      `;
+      
+      // Re-attach event listener
+      setTimeout(() => {
+        document.getElementById('turnstileToggle').addEventListener('click', arguments.callee);
+      }, 100);
+      
+      turnstileMinimized = false;
+    } else {
+      // Minimize
+      widget.classList.add('turnstile-minimized');
+      widget.innerHTML = `
+        <div class="turnstile-icon" title="Nhấn để mở xác thực">
+          🔐
+        </div>
+      `;
+      
+      // Click icon to maximize
+      widget.querySelector('.turnstile-icon').addEventListener('click', function() {
+        turnstileMinimized = false;
+        widget.classList.remove('turnstile-minimized');
+        widget.innerHTML = `
+          <div class="turnstile-header">
+            <div class="turnstile-title">
+              <span>🔐</span>
+              <span>Xác Thực Bảo Mật</span>
+            </div>
+            <div id="turnstileStatus" class="turnstile-status ${turnstileToken ? 'status-success' : 'status-pending'}">
+              ${turnstileToken ? 'Đã xác thực' : 'Đang chờ'}
+            </div>
+            <button id="turnstileToggle" class="turnstile-minimize" title="Thu gọn">
+              ➖
+            </button>
+          </div>
+          <div class="cf-turnstile" 
+               data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
+               data-callback="onTurnstileSuccess"
+               data-error-callback="onTurnstileError"
+               data-expired-callback="onTurnstileExpired"
+               data-theme="light">
+          </div>
+          <div class="turnstile-note">
+            Bảo vệ hệ thống khỏi spam • Tự động ẩn khi đã xác thực
+          </div>
+        `;
+        
+        // Re-attach event listener
+        setTimeout(() => {
+          document.getElementById('turnstileToggle').addEventListener('click', arguments.callee);
+        }, 100);
+      });
+      
+      turnstileMinimized = true;
+    }
+  });
+
+  // Auto-hide widget after successful verification
+  function autoHideWidget() {
+    setTimeout(() => {
+      if (turnstileToken && !turnstileMinimized) {
+        const toggleBtn = document.getElementById('turnstileToggle');
+        if (toggleBtn) toggleBtn.click();
+      }
+    }, 3000); // Hide after 3 seconds
+  }
 
   // Callback khi Turnstile thành công
   window.onTurnstileSuccess = function(token) {
     if (turnstileToken) return; // Chỉ xử lý một lần
     turnstileToken = token;
+    
+    // Update status
+    const statusEl = document.getElementById('turnstileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'Đã xác thực';
+      statusEl.className = 'turnstile-status status-success';
+    }
+    
+    // Enable submit button
     document.getElementById('submitReport').disabled = false;
     document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
+    
     appendLog("✅ Đã xác thực bảo mật", "success");
+    
+    // Auto-hide widget
+    autoHideWidget();
   };
 
   // Callback khi có lỗi
   window.onTurnstileError = function() {
-    appendLog("❌ Lỗi xác thực", "error");
+    const statusEl = document.getElementById('turnstileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'Lỗi xác thực';
+      statusEl.className = 'turnstile-status status-error';
+    }
+    
     document.getElementById('submitReport').disabled = true;
-    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
     turnstileToken = null;
+    
+    appendLog("❌ Lỗi xác thực", "error");
   };
 
   // Callback khi token hết hạn
   window.onTurnstileExpired = function() {
-    appendLog("⚠️ Phiên xác thực hết hạn", "error");
+    const statusEl = document.getElementById('turnstileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'Đã hết hạn';
+      statusEl.className = 'turnstile-status status-error';
+    }
+    
     document.getElementById('submitReport').disabled = true;
-    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
     turnstileToken = null;
+    
+    appendLog("⚠️ Phiên xác thực hết hạn", "error");
   };
 
   // ==========================================
@@ -497,10 +739,8 @@
             currentPackageDataList.forEach(pkg => {
                 const option = document.createElement('option');
                 
-                // Value: Giữ nguyên Package ID
                 option.value = pkg.packageId; 
                 
-                // Label hiển thị: Line | StyleText | Target | Factory
                 const line = pkg.lineName || "?";
                 const style = pkg.styleText || "N/A";
                 const target = pkg.target || "0";
@@ -564,7 +804,6 @@
   });
   
   document.getElementById('btnReloadPkg').addEventListener('click', fetchPackages);
-
 
   // ==========================================
   // 🖼️ IMAGE & UI LOGIC - GIỮ NGUYÊN
@@ -684,8 +923,13 @@
     if (!selectedDefectData) return alert('⚠️ Vui lòng CHỌN LOẠI LỖI trước khi gửi!');
     
     // Kiểm tra Turnstile token
-    if (!turnstileToken) {
+    if (!turnstileToken && !isLocalhost) {
       alert('⚠️ Vui lòng hoàn thành xác thực bảo mật trước khi gửi!');
+      
+      // Auto-expand widget if minimized
+      if (turnstileMinimized) {
+        document.querySelector('.turnstile-icon').click();
+      }
       return;
     }
 
@@ -704,7 +948,12 @@
       formData.append('defect_cat', selectedDefectData.cat_code);
       formData.append('defect_code', selectedDefectData.defect_code);
       formData.append('comment', comment);
-      formData.append('cf-turnstile-response', turnstileToken); // Thêm Turnstile token
+      
+      // Chỉ thêm Turnstile token khi không phải localhost
+      if (!isLocalhost) {
+        formData.append('cf-turnstile-response', turnstileToken);
+      }
+      
       if (imgFile) formData.append('image', imgFile);
 
       const url = `${DEFECT_API}/api/report?apikey=${encodeURIComponent(apiKey)}`;
@@ -723,10 +972,16 @@
       document.querySelectorAll('.defect-item').forEach(el => el.classList.remove('selected'));
       selectedDefectData = null;
       
-      // Reset Turnstile
-      turnstileToken = null;
-      document.getElementById('submitReport').disabled = true;
-      document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
+      // Reset Turnstile (chỉ khi không phải localhost)
+      if (!isLocalhost) {
+        turnstileToken = null;
+        const statusEl = document.getElementById('turnstileStatus');
+        if (statusEl) {
+          statusEl.textContent = 'Đang chờ';
+          statusEl.className = 'turnstile-status status-pending';
+        }
+        document.getElementById('submitReport').disabled = true;
+      }
 
     } catch (error) {
       appendLog(`❌ Gửi thất bại: ${error.message}`, 'error');
@@ -745,16 +1000,16 @@
       setTodayDate();
       appendLog("📝 Vui lòng nhập API Key rồi nhấn nút 🔄 để tải gói.", "info");
       
-      // Tự động enable nút submit sau 2 giây (để Turnstile có thời gian load)
-      setTimeout(() => {
-        // Kiểm tra nếu đang ở localhost thì không cần Turnstile
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          document.getElementById('submitReport').disabled = false;
-          document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
-          turnstileToken = 'LOCAL_MODE_BYPASS';
-          appendLog("🔧 Đang chạy ở chế độ localhost - Turnstile bypass", "info");
-        }
-      }, 2000);
+      // Tự động enable nút submit nếu là localhost
+      if (isLocalhost) {
+        document.getElementById('submitReport').disabled = false;
+        document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
+        turnstileToken = 'LOCAL_MODE_BYPASS';
+        
+        // Ẩn Turnstile widget trên localhost
+        document.getElementById('turnstileWidget').style.display = 'none';
+        appendLog("🔧 Đang chạy ở chế độ localhost - Turnstile đã tắt", "info");
+      }
   });
 
   </script>
