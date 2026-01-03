@@ -6,17 +6,8 @@
   <title>MES Defect Reporting - Báo Cáo Lỗi</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Turnstile Script - Chỉ tải khi không phải localhost -->
-  <script>
-    // Kiểm tra nếu là localhost thì không tải Turnstile
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-  </script>
+  <!-- Turnstile Script -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   
   <style>
     :root {
@@ -198,35 +189,18 @@
     .log-info { color: #60a5fa; }
     .log-detail { color: #e2e8f0; font-size: 0.8em; margin-left: 15px; opacity: 0.8; }
 
-    /* Turnstile Widget */
-    .turnstile-card {
-      margin-bottom: 20px;
-      border: 2px solid #e2e8f0;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    }
-    .turnstile-container {
+    /* Turnstile Widget - Compact Style */
+    .turnstile-compact {
+      margin: 15px 0 5px 0;
       display: flex;
       justify-content: center;
-      padding: 10px 0;
-      min-height: 65px;
     }
     .turnstile-note {
       color: #64748b;
-      font-size: 0.8rem;
-      text-align: center;
-      margin-top: 8px;
-      padding: 0 10px;
-    }
-
-    /* Local mode indicator */
-    .local-mode-badge {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
       font-size: 0.75rem;
-      font-weight: 600;
-      margin-left: 10px;
+      text-align: center;
+      margin-top: 5px;
+      opacity: 0.8;
     }
 
     @keyframes pulse-red {
@@ -245,7 +219,6 @@
   <div class="navbar">
     <div class="brand">
       <span>🚨 MES DEFECT REPORT</span>
-      <span id="localModeBadge" class="local-mode-badge" style="display: none;">LOCAL MODE</span>
     </div>
     <div class="status-badge">System Online</div>
   </div>
@@ -295,7 +268,6 @@
           <datalist id="packageList">
              <!-- Javascript sẽ điền dữ liệu vào đây -->
           </datalist>
-          <!-- Cập nhật dòng hướng dẫn bên dưới cho đúng định dạng mới -->
           <small style="color: #64748b; font-size: 0.8rem;">Thông tin: Line | Style Name | Target | Factory</small>
         </div>
 
@@ -359,39 +331,20 @@
         </div>
       </div>
 
-      <!-- Turnstile Security (Chỉ hiển thị khi không phải localhost) -->
-      <div id="turnstileCard" class="card turnstile-card" style="display: none;">
-        <div class="card-header">
-          <div class="card-title">🔐 Xác Thực Bảo Mật</div>
-        </div>
-        
-        <div class="turnstile-container">
-          <div class="cf-turnstile" 
-               id="turnstile-widget"
-               data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
-               data-callback="onTurnstileSuccess"
-               data-error-callback="onTurnstileError"
-               data-expired-callback="onTurnstileExpired"
-               data-theme="light">
-          </div>
-        </div>
-        
-        <div class="turnstile-note">
-          Cloudflare Turnstile giúp bảo vệ hệ thống khỏi spam và tự động hóa
+      <!-- Compact Turnstile Section -->
+      <div class="turnstile-compact">
+        <div class="cf-turnstile" 
+             id="turnstile-widget"
+             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V"
+             data-callback="onTurnstileSuccess"
+             data-error-callback="onTurnstileError"
+             data-expired-callback="onTurnstileExpired"
+             data-theme="light"
+             data-size="compact">
         </div>
       </div>
-
-      <!-- Local Mode Notice (Chỉ hiển thị khi là localhost) -->
-      <div id="localModeNotice" class="card" style="display: none; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: #10b981;">
-        <div class="card-header">
-          <div class="card-title">🛡️ CHẾ ĐỘ KIỂM THỬ (LOCAL)</div>
-        </div>
-        <div style="color: #065f46; font-size: 0.9rem; padding: 5px 0;">
-          • Đang chạy ở chế độ localhost<br>
-          • Turnstile đã được tắt để test<br>
-          • Có thể gửi báo cáo ngay lập tức<br>
-          • Khi deploy lên production sẽ tự động bật Turnstile
-        </div>
+      <div class="turnstile-note">
+        Cloudflare Turnstile giúp bảo vệ hệ thống khỏi spam và tự động hóa
       </div>
 
       <!-- Submit Action -->
@@ -418,8 +371,6 @@
   let selectedDefectData = null;
   let currentPackageDataList = [];
   let turnstileToken = null;
-  let turnstileWidgetId = null;
-  let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   // ==========================================
   // 🛠️ UTILS & LOGGER
@@ -447,72 +398,36 @@
   }
 
   // ==========================================
-  // 🔐 TURNSTILE INTEGRATION
+  // 🔐 TURNSTILE INTEGRATION - SIMPLE & CLEAN
   // ==========================================
 
   // Callback khi Turnstile thành công
   window.onTurnstileSuccess = function(token) {
+    if (turnstileToken) return; // Chỉ xử lý một lần
     turnstileToken = token;
     document.getElementById('submitReport').disabled = false;
     document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
-    appendLog("✅ Đã xác thực bảo mật thành công", "success");
+    appendLog("✅ Đã xác thực bảo mật", "success");
   };
 
   // Callback khi có lỗi
   window.onTurnstileError = function() {
-    appendLog("❌ Lỗi xác thực bảo mật. Vui lòng thử lại.", "error");
+    appendLog("❌ Lỗi xác thực", "error");
     document.getElementById('submitReport').disabled = true;
-    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI (Lỗi xác thực)';
+    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
     turnstileToken = null;
   };
 
   // Callback khi token hết hạn
   window.onTurnstileExpired = function() {
-    appendLog("⚠️ Phiên xác thực đã hết hạn. Vui lòng làm mới.", "error");
+    appendLog("⚠️ Phiên xác thực hết hạn", "error");
     document.getElementById('submitReport').disabled = true;
-    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI (Đã hết hạn)';
+    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
     turnstileToken = null;
-    
-    // Tự động reset widget
-    setTimeout(resetTurnstile, 1000);
   };
 
-  // Hàm reset Turnstile
-  function resetTurnstile() {
-    if (turnstileWidgetId && window.turnstile) {
-      window.turnstile.reset(turnstileWidgetId);
-      appendLog("🔄 Đang làm mới xác thực bảo mật...", "info");
-    }
-    turnstileToken = null;
-    document.getElementById('submitReport').disabled = true;
-    document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI (Vui lòng xác thực)';
-  }
-
-  // Hàm khởi tạo Turnstile (chỉ khi không phải localhost)
-  function initTurnstile() {
-    if (!isLocalhost && window.turnstile) {
-      turnstileWidgetId = window.turnstile.render('#turnstile-widget', {
-        sitekey: '0x4AAAAAACKJOBIKvTV3je0V',
-        callback: onTurnstileSuccess,
-        'error-callback': onTurnstileError,
-        'expired-callback': onTurnstileExpired,
-        theme: 'light',
-        size: 'normal'
-      });
-      appendLog("✅ Đã khởi tạo hệ thống xác thực bảo mật", "success");
-    } else if (isLocalhost) {
-      // Ở localhost: tự động enable nút submit
-      document.getElementById('submitReport').disabled = false;
-      document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI (LOCAL MODE)';
-      turnstileToken = 'LOCAL_MODE_SKIP_TURNSTILE';
-      appendLog("✅ Đang chạy ở chế độ LOCAL - Turnstile đã được tắt", "success");
-    } else {
-      appendLog("⚠️ Không thể tải Turnstile. Vui lòng kiểm tra kết nối mạng.", "error");
-    }
-  }
-
   // ==========================================
-  // 📦 PACKAGE MANAGEMENT
+  // 📦 PACKAGE MANAGEMENT - GIỮ NGUYÊN
   // ==========================================
   
   function setTodayDate() {
@@ -582,12 +497,10 @@
             currentPackageDataList.forEach(pkg => {
                 const option = document.createElement('option');
                 
-                // --- 🛠️ CHỈNH SỬA Ở ĐÂY ---
-                // Value: Giữ nguyên Package ID (để điền vào input)
+                // Value: Giữ nguyên Package ID
                 option.value = pkg.packageId; 
                 
                 // Label hiển thị: Line | StyleText | Target | Factory
-                // Bỏ PackageID ra khỏi phần mô tả để tránh lặp lại
                 const line = pkg.lineName || "?";
                 const style = pkg.styleText || "N/A";
                 const target = pkg.target || "0";
@@ -654,7 +567,7 @@
 
 
   // ==========================================
-  // 🖼️ IMAGE & UI LOGIC
+  // 🖼️ IMAGE & UI LOGIC - GIỮ NGUYÊN
   // ==========================================
   const imageInput = document.getElementById('image');
   const imagePreview = document.getElementById('imagePreview');
@@ -695,7 +608,7 @@
   });
 
   // ==========================================
-  // 📥 TẢI DANH SÁCH LỖI
+  // 📥 TẢI DANH SÁCH LỖI - GIỮ NGUYÊN
   // ==========================================
   document.getElementById('loadDefects').addEventListener('click', async function() {
     const apiKey = document.getElementById('apiKey').value.trim();
@@ -757,7 +670,7 @@
   }
 
   // ==========================================
-  // 🚀 SUBMIT REPORT
+  // 🚀 SUBMIT REPORT - CẬP NHẬT VỚI TURNSTILE
   // ==========================================
   document.getElementById('submitReport').addEventListener('click', async function() {
     const apiKey = document.getElementById('apiKey').value.trim();
@@ -770,10 +683,9 @@
     if (!pkg) return alert('Thiếu Package ID!');
     if (!selectedDefectData) return alert('⚠️ Vui lòng CHỌN LOẠI LỖI trước khi gửi!');
     
-    // Kiểm tra Turnstile token (chỉ khi không phải localhost)
-    if (!isLocalhost && !turnstileToken) {
-      alert('⚠️ Vui lòng hoàn thành xác thực bảo mật (Turnstile) trước khi gửi!');
-      resetTurnstile();
+    // Kiểm tra Turnstile token
+    if (!turnstileToken) {
+      alert('⚠️ Vui lòng hoàn thành xác thực bảo mật trước khi gửi!');
       return;
     }
 
@@ -792,31 +704,15 @@
       formData.append('defect_cat', selectedDefectData.cat_code);
       formData.append('defect_code', selectedDefectData.defect_code);
       formData.append('comment', comment);
-      
-      // Chỉ thêm Turnstile token khi không phải localhost
-      if (!isLocalhost && turnstileToken !== 'LOCAL_MODE_SKIP_TURNSTILE') {
-        formData.append('cf-turnstile-response', turnstileToken);
-      }
-      
+      formData.append('cf-turnstile-response', turnstileToken); // Thêm Turnstile token
       if (imgFile) formData.append('image', imgFile);
 
       const url = `${DEFECT_API}/api/report?apikey=${encodeURIComponent(apiKey)}`;
       
-      appendLog(`📤 Đang gửi báo cáo đến server...`, 'info');
-      
       const response = await fetch(url, { method: 'POST', body: formData });
       const result = await response.json();
 
-      if (!response.ok) {
-        // Kiểm tra nếu lỗi liên quan đến Turnstile
-        if (result.error && result.error.includes('Turnstile')) {
-          appendLog(`❌ Lỗi xác thực Turnstile: ${result.error}`, 'error');
-          if (!isLocalhost) resetTurnstile();
-          alert('❌ Xác thực bảo mật thất bại. Vui lòng thử lại!');
-          return;
-        }
-        throw new Error(result.error || 'Gửi thất bại');
-      }
+      if (!response.ok) throw new Error(result.error || 'Gửi thất bại');
 
       appendLog(`✅ BÁO CÁO THÀNH CÔNG! ID: ${result.defect_id}`, 'success');
       alert(`✅ Gửi thành công!\nMã lỗi: ${result.defect_id}`);
@@ -827,19 +723,14 @@
       document.querySelectorAll('.defect-item').forEach(el => el.classList.remove('selected'));
       selectedDefectData = null;
       
-      // Reset Turnstile sau khi gửi thành công (chỉ khi không phải localhost)
-      if (!isLocalhost) {
-        resetTurnstile();
-      }
+      // Reset Turnstile
+      turnstileToken = null;
+      document.getElementById('submitReport').disabled = true;
+      document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
 
     } catch (error) {
       appendLog(`❌ Gửi thất bại: ${error.message}`, 'error');
       alert(`❌ Lỗi: ${error.message}`);
-      
-      // Reset Turnstile nếu có lỗi (chỉ khi không phải localhost)
-      if (!isLocalhost) {
-        resetTurnstile();
-      }
     } finally {
       btn.innerHTML = '🚀 GỬI BÁO CÁO LỖI';
       btn.disabled = false;
@@ -852,26 +743,18 @@
   // ==========================================
   document.addEventListener('DOMContentLoaded', () => {
       setTodayDate();
+      appendLog("📝 Vui lòng nhập API Key rồi nhấn nút 🔄 để tải gói.", "info");
       
-      // Hiển thị thông báo tùy theo môi trường
-      if (isLocalhost) {
-        document.getElementById('localModeNotice').style.display = 'block';
-        document.getElementById('localModeBadge').style.display = 'inline-block';
-        document.getElementById('turnstileCard').style.display = 'none';
-        appendLog("🔧 Đang chạy ở chế độ LOCALHOST - Turnstile đã được tắt", "info");
-        appendLog("📝 Vui lòng nhập API Key rồi nhấn nút 🔄 để tải gói.", "info");
-      } else {
-        document.getElementById('localModeNotice').style.display = 'none';
-        document.getElementById('localModeBadge').style.display = 'none';
-        document.getElementById('turnstileCard').style.display = 'block';
-        appendLog("🔐 Đã bật xác thực bảo mật Turnstile", "info");
-        appendLog("📝 Vui lòng nhập API Key rồi nhấn nút 🔄 để tải gói.", "info");
-      }
-      
-      // Khởi tạo Turnstile sau khi DOM sẵn sàng
+      // Tự động enable nút submit sau 2 giây (để Turnstile có thời gian load)
       setTimeout(() => {
-        initTurnstile();
-      }, 500);
+        // Kiểm tra nếu đang ở localhost thì không cần Turnstile
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          document.getElementById('submitReport').disabled = false;
+          document.getElementById('submitReport').innerHTML = '🚀 GỬI BÁO CÁO LỖI';
+          turnstileToken = 'LOCAL_MODE_BYPASS';
+          appendLog("🔧 Đang chạy ở chế độ localhost - Turnstile bypass", "info");
+        }
+      }, 2000);
   });
 
   </script>
