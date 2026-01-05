@@ -6,7 +6,7 @@
   <title>MES QR Scanner Pro - Auto Refresh Token</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- 1. THÊM FONT AWESOME (Để hiển thị icon trong phần Chi tiết Package) -->
+  <!-- FONT AWESOME -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Script Turnstile -->
@@ -55,7 +55,7 @@
     /* Layout */
     .container {
       max-width: 1400px; margin: 30px auto; padding: 0 20px;
-      display: grid; grid-template-columns: 420px 1fr; gap: 25px; /* Cột trái rộng hơn chút để hiển thị info đẹp */
+      display: grid; grid-template-columns: 420px 1fr; gap: 25px;
     }
     @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
 
@@ -113,7 +113,6 @@
     .btn-cyan { background: var(--btn-download-bg); }
     .btn-slate { background: var(--btn-test-bg); }
     .btn-rose { background: var(--btn-clear-bg); }
-    /* Thêm màu nút Info */
     .btn-info { background: linear-gradient(90deg, #00BCD4 0%, #00acc1 100%); color: white; }
     .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 
@@ -170,7 +169,7 @@
     .turnstile-floating.minimized .turnstile-minimized-icon { opacity: 1; visibility: visible; }
 
     /* ========================================================================== */
-    /* 2. CSS CHO MODAL & CHI TIẾT PACKAGE (COPY TỪ FILE CŨ) */
+    /* CSS CHO MODAL & CHI TIẾT PACKAGE */
     /* ========================================================================== */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
     .modal-overlay.open { opacity: 1; visibility: visible; }
@@ -183,12 +182,40 @@
     
     .detail-module { margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
     .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 18px; font-weight: bold; color: #1565c0; display: flex; justify-content: space-between; font-size: 15px; }
-    .detail-row { padding: 10px 18px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: background 0.2s; }
+    
+    /* 🔥 CSS MỚI CHO DÒNG CHI TIẾT (GRID LAYOUT) */
+    .detail-row { 
+        display: grid; 
+        grid-template-columns: 30px 1fr auto auto; /* Checkbox, Tên, Badge, Serial */
+        align-items: center; 
+        gap: 10px;
+        padding: 10px 18px; 
+        border-bottom: 1px solid #f0f0f0; 
+        font-size: 14px; 
+        transition: background 0.2s; 
+        cursor: pointer;
+    }
     .detail-row:hover { background: #f9f9f9; }
     .detail-row:last-child { border-bottom: none; }
-    .serial-tag { background: #e0e0e0; padding: 4px 10px; border-radius: 20px; font-family: monospace; color: #333; font-weight: 600; font-size: 13px; }
-    .type-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; font-weight: bold; margin-left: 8px; }
+    
+    /* Checkbox nhỏ gọn */
+    .serial-checkbox { 
+        width: 18px; 
+        height: 18px; 
+        cursor: pointer; 
+    }
+    
+    /* Tên công đoạn tự xuống dòng nếu dài */
+    .op-name {
+        font-weight: 600;
+        line-height: 1.4;
+        color: #333;
+    }
+
+    .serial-tag { background: #e0e0e0; padding: 4px 10px; border-radius: 20px; font-family: monospace; color: #333; font-weight: 600; font-size: 13px; white-space: nowrap; }
+    .type-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; font-weight: bold; margin-left: 8px; white-space: nowrap; }
     .badge-fa { background: #4CAF50; }
+    
     .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
@@ -232,9 +259,9 @@
              <input type="text" id="pkg" list="packageList" placeholder="Nhập Key rồi nhấn 🔄 tải gói..." autocomplete="off">
              <button id="btnReloadPkg" class="btn btn-slate btn-sm" style="width: auto;">🔄</button>
           </div>
+          <!-- 🔥 DATALIST SẼ ĐƯỢC GENERATE BỞI JS VỚI PHÂN CÁCH -->
           <datalist id="packageList"></datalist>
           
-          <!-- KHUNG HIỂN THỊ THÔNG TIN GÓI -->
           <div id="pkgInfoCard" class="pkg-info-card">
             <div class="pkg-row"><span class="pkg-label">Line:</span> <span class="pkg-val" id="infoLine">-</span></div>
             <div class="pkg-row"><span class="pkg-label">Style:</span> <span class="pkg-val" id="infoStyle">-</span></div>
@@ -262,7 +289,6 @@
            <button id="testConnection" class="btn btn-slate btn-sm">🔗 Test Kết Nối</button>
            <button id="clearLog" class="btn btn-rose btn-sm">🧹 Xóa Log</button>
         </div>
-        <!-- 3. THÊM NÚT XEM CHI TIẾT VÀO ĐÂY -->
         <div class="form-row" style="margin-top: 10px;">
              <button id="btnViewDetails" class="btn btn-info btn-sm" onclick="viewPackageDetails()">👁️ Xem & Copy Chi Tiết Package</button>
         </div>
@@ -322,7 +348,7 @@
     </div>
   </div>
 
-  <!-- 4. MODAL HTML (ĐƯỢC THÊM MỚI Ở CUỐI BODY) -->
+  <!-- MODAL -->
   <div class="modal-overlay" id="detailModal">
       <div class="modal-box">
           <div class="modal-header">
@@ -344,8 +370,6 @@
     /* ========== CẤU HÌNH & VARIABLES ========== */
     const API_ENDPOINT = "https://mes-qr-scanner.chiscoong-cloudflare-com.workers.dev/";
     const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
-    
-    // 5. API MỚI CHO MODULE (ĐƯỢC THÊM MỚI)
     const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
     
     // 🔥 Cấu hình Token sống 4.5 phút (270s)
@@ -354,10 +378,9 @@
     let isPaused = false, isStopped = false;
     let currentBatchStart = null, batchResults = [], currentPackages = [];
     
-    // Biến quản lý Token & Auto-refresh
     let turnstileToken = null;
     let tokenTimestamp = 0; 
-    let tokenRefreshResolver = null; // Promise resolver để đợi user
+    let tokenRefreshResolver = null; 
     let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
     // UI Elements
@@ -389,18 +412,14 @@
     btnMinimize.addEventListener('click', (e) => { e.stopPropagation(); toggleWidgetState(true); });
     widgetEl.addEventListener('click', () => { if (widgetEl.classList.contains('minimized')) toggleWidgetState(false); });
 
-    // 1. Success Callback
     window.onTurnstileSuccess = function(token) {
         turnstileToken = token;
-        tokenTimestamp = Date.now(); // Ghi nhớ thời điểm
-        
-        // Update UI
+        tokenTimestamp = Date.now();
         document.getElementById('turnstileStatus').textContent = "Đã xác thực";
         document.getElementById('turnstileStatus').className = "turnstile-badge status-success";
         document.getElementById('minimizedIconChar').textContent = "✅";
         btnRun.disabled = false; btnRun.style.opacity = "1"; btnRun.style.cursor = "pointer"; btnRun.innerHTML = "🚀 BẮT ĐẦU CHẠY";
 
-        // Logic Auto-Resume: Nếu đang đợi, giải phóng Promise
         if (tokenRefreshResolver) {
             appendLog("♻️ Đã gia hạn Token thành công! Tự động chạy tiếp...", "success");
             tokenRefreshResolver(true); 
@@ -412,17 +431,15 @@
         }
     };
 
-    // 2. Error Callback
     window.onTurnstileError = function() {
         turnstileToken = null;
         btnRun.disabled = true; btnRun.textContent = "❌ LỖI XÁC THỰC";
         document.getElementById('minimizedIconChar').textContent = "⚠️";
     };
 
-    // 3. Expired Callback (Chỉ gọi khi token hết hạn tự nhiên mà chưa dùng)
     window.onTurnstileExpired = function() {
         turnstileToken = null;
-        if (!tokenRefreshResolver) { // Nếu không đang trong quy trình refresh
+        if (!tokenRefreshResolver) {
             btnRun.disabled = true; btnRun.textContent = "🔒 XÁC THỰC LẠI";
             document.getElementById('minimizedIconChar').textContent = "🔐";
             toggleWidgetState(false);
@@ -445,23 +462,20 @@
       if (type === 'error') colorClass = 'log-error';
       else if (type === 'success') colorClass = 'log-success';
       else if (type === 'warning') colorClass = 'log-warning';
-      else if (type === 'detail') colorClass = 'log-detail'; // Style riêng cho chi tiết gói
+      else if (type === 'detail') colorClass = 'log-detail';
 
       const div = document.createElement('div');
       div.className = 'log-entry';
-      
-      // Nếu là detail thì không in thời gian để nhìn gọn hơn, giống yêu cầu của bạn
       if (type === 'detail') {
           div.innerHTML = `<span style="width:70px; display:inline-block"></span><span class="${colorClass}">${message}</span>`;
       } else {
           div.innerHTML = `<span class="log-time">${timeStr}</span> <span class="${colorClass}">${message}</span>`;
       }
-      
       logEl.appendChild(div);
       logEl.scrollTop = logEl.scrollHeight;
     }
 
-    /* ========== PACKAGE LOGIC (NÂNG CẤP HIỂN THỊ) ========== */
+    /* ========== PACKAGE LOGIC (UPDATE SORTING) ========== */
     function setTodayDate() {
       const today = new Date();
       const yyyy = today.getFullYear();
@@ -471,6 +485,34 @@
     }
 
     function getApiDateString() { return document.getElementById('dateSelect').value.replace(/-/g, ''); }
+
+    // 🔥 HÀM SẮP XẾP LINE: SỐ TRƯỚC, CHỮ SAU
+    function compareLines(a, b) {
+        const lineA = (a.lineName || "").toUpperCase();
+        const lineB = (b.lineName || "").toUpperCase();
+        
+        // Tách số từ tên line (VD: "LINE 10" -> 10)
+        const matchA = lineA.match(/(\d+)/);
+        const matchB = lineB.match(/(\d+)/);
+        
+        // Nếu cả 2 đều có số -> so sánh số
+        if (matchA && matchB) {
+            const numA = parseInt(matchA[0]);
+            const numB = parseInt(matchB[0]);
+            if (numA !== numB) return numA - numB;
+        } 
+        // Nếu A có số, B không -> A lên trước
+        else if (matchA && !matchB) {
+            return -1;
+        }
+        // Nếu B có số, A không -> B lên trước
+        else if (!matchA && matchB) {
+            return 1;
+        }
+
+        // Nếu cả 2 không có số hoặc số bằng nhau -> so sánh chữ
+        return lineA.localeCompare(lineB);
+    }
 
     async function fetchPackages() {
       const factory = document.getElementById('factory').value.trim();
@@ -493,38 +535,58 @@
           const rawData = await res.json();
           let list = rawData.data?.packages || (Array.isArray(rawData.data) ? rawData.data : (Array.isArray(rawData) ? rawData : []));
           
+          // Sắp xếp lại danh sách
+          list.sort(compareLines);
+
           currentPackages = list;
           datalist.innerHTML = '';
 
           if (list.length === 0) appendLog(`⚠️ Không tìm thấy gói nào.`, 'warning');
           else {
+              let currentLine = null;
+
               list.forEach(pkg => {
+                  const lineName = pkg.lineName || "Unknown";
+                  
+                  // 🔥 LOGIC THÊM PHÂN CÁCH (SEPARATOR)
+                  if (lineName !== currentLine) {
+                      currentLine = lineName;
+                      const separator = document.createElement('option');
+                      // Dùng ký tự đặc biệt để tạo dòng kẻ
+                      separator.value = `────── LINE ${currentLine} ──────`;
+                      // Mặc dù datalist ko disable dc, nhưng ta tạo định dạng khác để user ko chọn nhầm
+                      datalist.appendChild(separator);
+                  }
+
                   const option = document.createElement('option');
                   option.value = pkg.packageId; 
                   option.textContent = `${pkg.lineName||'?'} | ${pkg.styleText||'N/A'} | ${pkg.target||0}`;
                   datalist.appendChild(option);
               });
-              appendLog(`✅ Đã tải ${list.length} gói.`, 'success');
+              appendLog(`✅ Đã tải ${list.length} gói (Đã sắp xếp).`, 'success');
           }
       } catch (e) { appendLog(`❌ Lỗi tải Package: ${e.message}`, 'error'); } 
       finally { btnReload.disabled = false; btnReload.textContent = "🔄"; }
     }
 
-    // 🔥 EVENT CHỌN GÓI - KHÔI PHỤC LOG & HIỆN INFO CARD
     document.getElementById('pkg').addEventListener('input', (e) => {
         const val = e.target.value.trim();
+        // Bỏ qua nếu user chọn dòng phân cách
+        if(val.startsWith('──────')) {
+            e.target.value = '';
+            return;
+        }
+
         const p = currentPackages.find(x => x.packageId === val);
         
         if(p) {
-            // 1. Cập nhật Package Info Card (Giao diện đẹp)
             infoLine.textContent = p.lineName || "N/A";
             infoStyle.textContent = p.styleText || "N/A";
             infoTarget.textContent = p.target || "0";
             infoStatus.textContent = p.status || "N/A";
-            infoPo.textContent = p.poNo || "N/A"; // Nếu API có trả về PO
+            infoPo.textContent = p.poNo || "N/A"; 
             pkgInfoCard.classList.add('active');
 
-            // 2. Khôi phục Log chi tiết (Như yêu cầu)
             appendLog(`🔹 Đã chọn: ${p.packageId}`, 'info');
             appendLog(`• Line: ${p.lineName || 'N/A'}`, 'detail');
             appendLog(`• Style: ${p.styleText || 'N/A'}`, 'detail');
@@ -535,7 +597,6 @@
         }
     });
 
-    // Auto load triggers
     document.getElementById('factory').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
     document.getElementById('dateSelect').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
     document.getElementById('btnReloadPkg').addEventListener('click', fetchPackages);
@@ -591,17 +652,12 @@
       }
     }
 
-    // --- LOGIC GIA HẠN TOKEN ---
     async function refreshTurnstileToken() {
         appendLog("⏳ Token sắp hết hạn. Tạm dừng để xác thực lại...", "warning");
-        
-        toggleWidgetState(false); // Mở widget
+        toggleWidgetState(false);
         document.getElementById('turnstileStatus').textContent = "Cần gia hạn";
         document.getElementById('turnstileStatus').className = "turnstile-badge status-pending";
-        
-        if(window.turnstile) window.turnstile.reset('#cf-turnstile-widget'); // Buộc refresh
-        
-        // Treo code tại đây cho đến khi user xác thực xong
+        if(window.turnstile) window.turnstile.reset('#cf-turnstile-widget');
         await new Promise(resolve => { tokenRefreshResolver = resolve; });
     }
 
@@ -631,9 +687,8 @@
         if (isStopped) break;
         if (isPaused) { await new Promise(r => setTimeout(r, 500)); continue; }
 
-        // 🔥 CHECK TOKEN AGE (4.5 phút)
         if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
-            await refreshTurnstileToken(); // Dừng và chờ xác thực
+            await refreshTurnstileToken();
         }
 
         const task = queue.shift();
@@ -646,14 +701,12 @@
           attempt++;
           result = await sendRequest(task);
           
-          // Nếu lỗi Auth -> Token chết -> Xin lại
           if (!result.ok && (result.status === 403 || result.status === 401) && !isLocalhost) {
              appendLog(`⚠️ Token bị từ chối. Đang xin cấp lại...`, "warning");
              await refreshTurnstileToken();
-             attempt--; // Retry
+             attempt--; 
              continue;
           }
-
           if (result.ok) break;
           if (attempt < 3) await new Promise(r => setTimeout(r, 1000));
         }
@@ -675,7 +728,6 @@
       setRunningState(false);
       appendLog(`🏁 Hoàn tất trong ${formatTime(Date.now() - currentBatchStart)}.`);
       
-      // Reset Turnstile cuối cùng
       if (window.turnstile && !isLocalhost) {
           window.turnstile.reset('#cf-turnstile-widget');
           turnstileToken = null;
@@ -726,7 +778,7 @@
     });
 
     /* ========================================================================== */
-    /* 6. LOGIC XỬ LÝ MODAL CHI TIẾT (COPY TỪ FILE CŨ) */
+    /* LOGIC MODAL CHI TIẾT (ĐÃ CẬP NHẬT GIAO DIỆN GRID) */
     /* ========================================================================== */
     async function viewPackageDetails() {
         const apiKey = document.getElementById('apiKey').value;
@@ -744,14 +796,16 @@
             const json = await res.json();
             if (!json.success || !json.data.modules.length) throw new Error("No modules found");
             
+            // 🔥 CẬP NHẬT CẤU TRÚC HTML SỬ DỤNG CLASS .op-name và .detail-row (Grid)
             content.innerHTML = json.data.modules.map(mod => `
                 <div class="detail-module">
                     <div class="detail-module-header"><span>${mod.name}</span></div>
                     ${mod.operations.map(op => {
                         const isFA = op.iottype === 'FA';
+                        // Sử dụng class detail-row đã sửa lại thành Grid
                         return `<label class="detail-row" style="border-left: 3px solid ${isFA?'#4CAF50':'#9E9E9E'}">
                             <input type="checkbox" class="serial-checkbox" value="${op.opserial}" data-remark="${op.remarks||op.opname}">
-                            <span style="flex:1"><b>${op.remarks||op.opname}</b></span>
+                            <span class="op-name">${op.remarks||op.opname}</span>
                             <span class="type-badge ${isFA?'badge-fa':''}">${op.iottype||'N/A'}</span>
                             <span class="serial-tag">OPSERIAL: ${op.opserial}</span>
                         </label>`
