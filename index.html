@@ -1,1211 +1,296 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MES Image Finder - Direct Client</title>
+    <title>MES API Mini Tester</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0; padding: 20px; background: #f5f5f5; 
         }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        .container { 
+            max-width: 800px; margin: 0 auto; background: white; 
+            border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+        h1 { color: #333; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+        input, select, button { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; 
+            border-radius: 5px; font-size: 14px;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+        button { 
+            background: #4CAF50; color: white; border: none; 
+            cursor: pointer; font-weight: 600; margin-top: 10px;
         }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+        button:hover { background: #45a049; }
+        .result { 
+            margin-top: 20px; padding: 15px; border-radius: 5px; 
+            background: #f8f9fa; border: 1px solid #e9ecef;
         }
-        
-        .header .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .loading { color: #6c757d; text-align: center; padding: 20px; }
+        .data-table { 
+            width: 100%; border-collapse: collapse; margin-top: 10px;
         }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 0;
-            min-height: 800px;
+        .data-table th, .data-table td { 
+            padding: 8px; text-align: left; border-bottom: 1px solid #ddd;
         }
-        
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
+        .status { 
+            display: inline-block; padding: 2px 8px; border-radius: 3px;
+            font-size: 12px; font-weight: 600;
         }
-        
-        .sidebar {
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            padding: 25px;
-            overflow-y: auto;
-        }
-        
-        .content {
-            padding: 25px;
-            background: white;
-            overflow-y: auto;
-        }
-        
-        .section-title {
-            color: #333;
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .result-area {
-            margin-top: 30px;
-        }
-        
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .image-card {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            background: white;
-            border: 1px solid #e9ecef;
-        }
-        
-        .image-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-        }
-        
-        .image-card img {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            display: block;
-            background: #f8f9fa;
-        }
-        
-        .image-info {
-            padding: 15px;
-        }
-        
-        .image-title {
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-            word-break: break-word;
-        }
-        
-        .image-meta {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 10px;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-right: 5px;
-        }
-        
-        .status-found {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-not-found {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .info-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .info-card h4 {
-            color: #495057;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .info-value {
-            color: #212529;
-            max-width: 60%;
-            text-align: right;
-            word-break: break-word;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-        }
-        
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-box {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #f5c6cb;
-            margin: 20px 0;
-        }
-        
-        .success-box {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #c3e6cb;
-            margin: 20px 0;
-        }
-        
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 10px;
-        }
-        
-        .tab-btn {
-            padding: 10px 20px;
-            background: #f8f9fa;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #6c757d;
-            transition: all 0.3s ease;
-        }
-        
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .api-response {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9rem;
-            overflow: auto;
-            max-height: 400px;
-            margin-top: 20px;
-        }
-        
-        .color-dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .btn-group .btn {
-            flex: 1;
-        }
+        .online { background: #d4edda; color: #155724; }
+        .offline { background: #f8d7da; color: #721c24; }
     </style>
-    
-    <!-- Cloudflare Turnstile -->
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🖼️ MES Image Finder - Direct Client</h1>
-            <p class="subtitle">Client-side trực tiếp đến MES API - Không qua Cloudflare Worker</p>
+        <h1>🔧 MES API Mini Tester</h1>
+        
+        <div class="input-group">
+            <label>MES API URL:</label>
+            <input type="text" id="apiUrl" value="http://203.113.151.219:8888">
         </div>
         
-        <div class="main-content">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <h2 class="section-title">🔍 Tìm Kiếm</h2>
-                
-                <div class="input-group">
-                    <label for="mesBaseUrl">MES API Base URL</label>
-                    <input type="text" id="mesBaseUrl" value="http://203.113.151.219:8888">
-                </div>
-                
-                <div class="input-group">
-                    <label for="imageBaseUrl">Image Base URL</label>
-                    <input type="text" id="imageBaseUrl" value="http://203.113.151.204:8080/PKPDM">
-                </div>
-                
-                <div class="input-group">
-                    <label for="authToken">Auth Token (Bearer)</label>
-                    <input type="password" id="authToken" placeholder="Nhập token nếu cần">
-                    <small style="color: #666; display: block; margin-top: 5px;">Lấy từ: /auth/login</small>
-                </div>
-                
-                <div class="input-group">
-                    <label for="searchType">Loại tìm kiếm</label>
-                    <select id="searchType" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #ddd;">
-                        <option value="style">Theo Style Code</option>
-                        <option value="package">Theo Package Code</option>
-                        <option value="search">Tìm kiếm Style</option>
-                    </select>
-                </div>
-                
-                <div id="styleInput" class="input-group">
-                    <label for="styleCode">Style Code (VD: ONR0112)</label>
-                    <input type="text" id="styleCode" placeholder="ONR0112" value="ONR0112">
-                </div>
-                
-                <div id="packageInput" class="input-group" style="display: none;">
-                    <label for="packageCode">Package Code</label>
-                    <input type="text" id="packageCode" placeholder="M_ONR-0141_1_ONR0112RGL018002_01_02">
-                </div>
-                
-                <div id="searchInput" class="input-group" style="display: none;">
-                    <label for="searchQuery">Tìm kiếm Style</label>
-                    <input type="text" id="searchQuery" placeholder="Nhập tên style...">
-                </div>
-                
-                <div class="btn-group">
-                    <button id="searchBtn" class="btn">🔍 Tìm Kiếm</button>
-                    <button id="testAllBtn" class="btn btn-secondary">🧪 Test Tất Cả Ảnh</button>
-                </div>
-                
-                <div id="turnstileWidget" style="margin-top: 20px;"></div>
-                
-                <div class="input-group" style="margin-top: 30px;">
-                    <h3>📊 Thông Tin Hệ Thống</h3>
-                    <div class="info-item">
-                        <span class="info-label">API Status:</span>
-                        <span id="apiStatus" class="info-value" style="color: #28a745;">● Online</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Requests:</span>
-                        <span id="requestCount" class="info-value">0</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Last Updated:</span>
-                        <span id="lastUpdated" class="info-value">-</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="content">
-                <div class="tab-buttons">
-                    <button class="tab-btn active" data-tab="images">🖼️ Ảnh</button>
-                    <button class="tab-btn" data-tab="info">📋 Thông Tin</button>
-                    <button class="tab-btn" data-tab="packages">📦 Packages</button>
-                    <button class="tab-btn" data-tab="raw">📄 Raw Data</button>
-                </div>
-                
-                <div id="loading" class="loading" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Đang tải dữ liệu từ MES API...</p>
-                </div>
-                
-                <!-- Tab: Images -->
-                <div id="tab-images" class="tab-content active">
-                    <div id="imagesResult"></div>
-                </div>
-                
-                <!-- Tab: Info -->
-                <div id="tab-info" class="tab-content">
-                    <div id="infoResult"></div>
-                </div>
-                
-                <!-- Tab: Packages -->
-                <div id="tab-packages" class="tab-content">
-                    <div id="packagesResult"></div>
-                </div>
-                
-                <!-- Tab: Raw Data -->
-                <div id="tab-raw" class="tab-content">
-                    <div id="rawResult"></div>
-                </div>
-            </div>
+        <div class="input-group">
+            <label>Test Type:</label>
+            <select id="testType">
+                <option value="packages">Test Packages API</option>
+                <option value="styles">Test Styles API</option>
+                <option value="image">Test Image Server</option>
+                <option value="all">Test All</option>
+            </select>
         </div>
+        
+        <div class="input-group" id="styleCodeGroup">
+            <label>Style Code:</label>
+            <input type="text" id="styleCode" value="ONR0112" placeholder="Enter style code">
+        </div>
+        
+        <button onclick="runTest()">▶️ Run Test</button>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <p>Testing... Please wait ⏳</p>
+        </div>
+        
+        <div id="result"></div>
     </div>
 
     <script>
-        // ==================== INITIALIZATION ====================
+        // Proxy configuration
+        const PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
         
-        // Cloudflare Turnstile
-        let turnstileToken = null;
+        let currentProxy = 0;
         
-        // Request counter
-        let requestCount = 0;
-        
-        // Current data
-        let currentData = null;
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            initApp();
-        });
-        
-        function initApp() {
-            // Initialize Turnstile
-            if (typeof turnstile !== 'undefined') {
-                turnstile.render('#turnstileWidget', {
-                    sitekey: '0x4AAAAAACKJOBIKvTV3je0V',
-                    callback: function(token) {
-                        turnstileToken = token;
-                        console.log('Turnstile token received');
-                    }
-                });
-            }
-            
-            // Tab switching
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    const tabId = 'tab-' + this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                });
-            });
-            
-            // Search type switching
-            document.getElementById('searchType').addEventListener('change', function() {
-                const type = this.value;
-                document.getElementById('styleInput').style.display = type === 'style' ? 'block' : 'none';
-                document.getElementById('packageInput').style.display = type === 'package' ? 'block' : 'none';
-                document.getElementById('searchInput').style.display = type === 'search' ? 'block' : 'none';
-            });
-            
-            // Search button
-            document.getElementById('searchBtn').addEventListener('click', performSearch);
-            
-            // Test all images button
-            document.getElementById('testAllBtn').addEventListener('click', testAllImages);
-            
-            // Enter key support
-            ['styleCode', 'packageCode', 'searchQuery'].forEach(id => {
-                document.getElementById(id).addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') performSearch();
-                });
-            });
-            
-            // Initial API test
-            testAPIConnection();
-        }
-        
-        // ==================== API FUNCTIONS ====================
-        
-        async function callMESAPI(endpoint) {
-            const mesBaseUrl = document.getElementById('mesBaseUrl').value.trim();
-            const authToken = document.getElementById('authToken').value.trim();
-            
-            requestCount++;
-            document.getElementById('requestCount').textContent = requestCount;
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
-            
-            const url = mesBaseUrl + endpoint;
-            console.log('🌐 Calling MES API:', url);
-            
-            const headers = {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            };
-            
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
-            
-            try {
-                const response = await fetch(url, { headers });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                // Check MES API success flag
-                if (data.IsSuccess === false) {
-                    throw new Error(data.Log || 'MES API returned IsSuccess=false');
-                }
-                
-                return { success: true, data };
-                
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                return { 
-                    success: false, 
-                    error: error.message,
-                    url: url 
-                };
-            }
-        }
-        
-        async function testImageExists(imageUrl) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = imageUrl;
-                
-                // Timeout after 3 seconds
-                setTimeout(() => resolve(false), 3000);
-            });
-        }
-        
-        // ==================== SEARCH FUNCTIONS ====================
-        
-        async function performSearch() {
-            const searchType = document.getElementById('searchType').value;
+        async function runTest() {
+            const testType = document.getElementById('testType').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+            const styleCode = document.getElementById('styleCode').value.toUpperCase();
             
             showLoading(true);
-            clearResults();
+            clearResult();
             
             try {
-                if (searchType === 'style') {
-                    await searchByStyleCode();
-                } else if (searchType === 'package') {
-                    await searchByPackageCode();
-                } else if (searchType === 'search') {
-                    await searchStyles();
+                let result;
+                
+                switch(testType) {
+                    case 'packages':
+                        result = await testPackagesAPI(apiUrl, styleCode);
+                        break;
+                    case 'styles':
+                        result = await testStylesAPI(apiUrl, styleCode);
+                        break;
+                    case 'image':
+                        result = await testImageServer(styleCode);
+                        break;
+                    case 'all':
+                        result = await testAll(apiUrl, styleCode);
+                        break;
                 }
+                
+                displayResult(result);
             } catch (error) {
-                showError('Lỗi tìm kiếm: ' + error.message);
+                displayError(error);
             } finally {
                 showLoading(false);
             }
         }
         
-        async function searchByStyleCode() {
-            const styleCode = document.getElementById('styleCode').value.trim().toUpperCase();
+        async function testPackagesAPI(apiUrl, styleCode) {
+            const endpoint = `/packages?stylecode=${styleCode}&pagesize=5`;
+            const result = await fetchViaProxy(apiUrl + endpoint);
             
-            if (!styleCode) {
-                showError('Vui lòng nhập Style Code');
-                return;
-            }
-            
-            // 1. Get packages data
-            const packagesResult = await callMESAPI(`/packages?stylecode=${styleCode}&pagesize=50`);
-            
-            if (!packagesResult.success) {
-                showError(`Không thể lấy packages: ${packagesResult.error}`);
-                return;
-            }
-            
-            const packagesData = packagesResult.data;
-            
-            if (!packagesData.Result || packagesData.Result.length === 0) {
-                // Try buyerstylecodes API
-                const styleResult = await callMESAPI(`/buyerstylecodes?stylecode=${styleCode}`);
-                
-                if (!styleResult.success || !styleResult.data.Result || styleResult.data.Result.length === 0) {
-                    showError(`Không tìm thấy style code: ${styleCode}`);
-                    return;
-                }
-                
-                const styleInfo = styleResult.data.Result[0];
-                currentData = { styleInfo, packages: [] };
-                displayStyleInfo(styleInfo, []);
-                
-            } else {
-                // 2. Get style info
-                const styleResult = await callMESAPI(`/buyerstylecodes?stylecode=${styleCode}`);
-                const styleInfo = styleResult.success && styleResult.data.Result ? styleResult.data.Result[0] : {};
-                
-                currentData = { 
-                    styleInfo, 
-                    packages: packagesData.Result,
-                    packagesMeta: {
-                        total: packagesData.TotalRecord,
-                        returned: packagesData.Result.length
-                    }
-                };
-                
-                // 3. Process and display
-                processAndDisplayData(styleCode, styleInfo, packagesData.Result);
-            }
+            return {
+                title: '📦 Packages API Test',
+                success: result.success,
+                data: result.data,
+                url: apiUrl + endpoint
+            };
         }
         
-        async function searchByPackageCode() {
-            const packageCode = document.getElementById('packageCode').value.trim();
+        async function testStylesAPI(apiUrl, styleCode) {
+            const endpoint = `/buyerstylecodes?stylecode=${styleCode}`;
+            const result = await fetchViaProxy(apiUrl + endpoint);
             
-            if (!packageCode) {
-                showError('Vui lòng nhập Package Code');
-                return;
-            }
-            
-            // Extract style code from package code
-            const styleCode = extractStyleCodeFromPackage(packageCode);
-            
-            if (!styleCode) {
-                showError('Package code không đúng định dạng');
-                return;
-            }
-            
-            // Set style code and search
-            document.getElementById('styleCode').value = styleCode;
-            await searchByStyleCode();
-            
-            // Add package info to display
-            if (currentData) {
-                currentData.sourcePackage = packageCode;
-                displayPackageInfo(packageCode, styleCode);
-            }
+            return {
+                title: '👕 Styles API Test',
+                success: result.success,
+                data: result.data,
+                url: apiUrl + endpoint
+            };
         }
         
-        async function searchStyles() {
-            const query = document.getElementById('searchQuery').value.trim();
-            
-            if (!query || query.length < 2) {
-                showError('Nhập ít nhất 2 ký tự để tìm kiếm');
-                return;
-            }
-            
-            const result = await callMESAPI(`/buyerstylecodes?pagesize=20&stylename=${encodeURIComponent(query)}`);
-            
-            if (!result.success) {
-                showError(`Lỗi tìm kiếm: ${result.error}`);
-                return;
-            }
-            
-            displaySearchResults(query, result.data);
-        }
-        
-        async function testAllImages() {
-            const styleCode = document.getElementById('styleCode').value.trim().toUpperCase();
-            
-            if (!styleCode) {
-                showError('Vui lòng nhập Style Code');
-                return;
-            }
-            
-            const imageBaseUrl = document.getElementById('imageBaseUrl').value.trim();
+        async function testImageServer(styleCode) {
             const buyer = styleCode.substring(0, 3);
-            
-            showLoading(true);
-            clearResults();
-            
             const results = [];
-            const imageGrid = document.getElementById('imagesResult');
             
-            imageGrid.innerHTML = `
-                <h2>🧪 Testing images for: ${styleCode}</h2>
-                <div class="image-grid" id="testResultsGrid"></div>
-            `;
-            
-            // Test images 1-9
-            for (let i = 1; i <= 9; i++) {
-                const fileName = `${styleCode}${i}.jpg`;
-                const imageUrl = `${imageBaseUrl}/style/${buyer}/${styleCode}/Images/${fileName}`;
-                
-                const exists = await testImageExists(imageUrl);
+            // Test first 3 images
+            for (let i = 1; i <= 3; i++) {
+                const imageUrl = `http://203.113.151.204:8080/PKPDM/style/${buyer}/${styleCode}/Images/${styleCode}${i}.jpg`;
+                const exists = await checkImageExists(imageUrl);
                 
                 results.push({
-                    fileName,
+                    image: `${styleCode}${i}.jpg`,
                     url: imageUrl,
-                    exists,
-                    sequence: i
+                    exists: exists
                 });
-                
-                // Update UI progressively
-                updateTestResults(results);
             }
             
-            const foundCount = results.filter(r => r.exists).length;
-            
-            imageGrid.innerHTML += `
-                <div class="success-box" style="margin-top: 20px;">
-                    <h3>✅ Test Complete</h3>
-                    <p>Found ${foundCount} out of ${results.length} images</p>
-                    ${foundCount === 0 ? '<p>⚠️ No images found. Check if image server is accessible.</p>' : ''}
-                </div>
-            `;
-            
-            showLoading(false);
+            return {
+                title: '🖼️ Image Server Test',
+                success: results.some(r => r.exists),
+                results: results
+            };
         }
         
-        // ==================== DISPLAY FUNCTIONS ====================
-        
-        function processAndDisplayData(styleCode, styleInfo, packages) {
-            const buyer = packages[0]?.BUYER || styleInfo.BUYER || styleCode.substring(0, 3);
-            const imageBaseUrl = document.getElementById('imageBaseUrl').value.trim();
+        async function testAll(apiUrl, styleCode) {
+            const [packagesResult, stylesResult, imageResult] = await Promise.all([
+                testPackagesAPI(apiUrl, styleCode),
+                testStylesAPI(apiUrl, styleCode),
+                testImageServer(styleCode)
+            ]);
             
-            // Collect unique filenames
-            const uniqueFileNames = new Set();
-            const fileNameSources = {};
-            
-            packages.forEach(pkg => {
-                if (pkg.FileName && pkg.FileName.trim()) {
-                    uniqueFileNames.add(pkg.FileName);
-                    if (!fileNameSources[pkg.FileName]) {
-                        fileNameSources[pkg.FileName] = [];
-                    }
-                    fileNameSources[pkg.FileName].push(pkg.MXPACKAGE);
-                }
-            });
-            
-            // Add PICTURE from style info
-            if (styleInfo.PICTURE && styleInfo.PICTURE.trim()) {
-                uniqueFileNames.add(styleInfo.PICTURE);
-            }
-            
-            // Process images
-            const imagePromises = Array.from(uniqueFileNames).map(async (fileName) => {
-                const imageUrl = `${imageBaseUrl}/style/${buyer}/${styleCode}/Images/${fileName}`;
-                const exists = await testImageExists(imageUrl);
-                
-                return {
-                    fileName,
-                    url: imageUrl,
-                    exists,
-                    isPrimary: fileName === styleInfo.PICTURE,
-                    sourcePackages: fileNameSources[fileName] || []
-                };
-            });
-            
-            // Wait for all image tests
-            Promise.all(imagePromises).then(images => {
-                // Filter only existing images
-                const existingImages = images.filter(img => img.exists);
-                
-                // Display
-                displayImages(styleCode, buyer, existingImages);
-                displayStyleInfo(styleInfo, packages);
-                displayPackages(packages);
-                displayRawData({ styleInfo, packages, images: existingImages });
-            });
+            return {
+                title: '🎯 Comprehensive Test',
+                packages: packagesResult,
+                styles: stylesResult,
+                images: imageResult,
+                success: packagesResult.success && stylesResult.success && imageResult.success
+            };
         }
         
-        function displayImages(styleCode, buyer, images) {
-            const container = document.getElementById('imagesResult');
-            
-            if (images.length === 0) {
-                container.innerHTML = `
-                    <div class="error-box">
-                        <h3>❌ Không tìm thấy ảnh</h3>
-                        <p>Style: <strong>${styleCode}</strong> | Buyer: <strong>${buyer}</strong></p>
-                        <p>Thử nút "Test Tất Cả Ảnh" để kiểm tra thủ công</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = `
-                <h2>🖼️ Images for: ${styleCode}</h2>
-                <p><strong>Buyer:</strong> ${buyer} | <strong>Found:</strong> ${images.length} images</p>
-                <div class="image-grid">
-            `;
-            
-            images.forEach(img => {
-                html += `
-                    <div class="image-card">
-                        <img src="${img.url}" alt="${img.fileName}"
-                             onerror="this.src='https://via.placeholder.com/280x220/eee/999?text=Image+Not+Loaded'">
-                        <div class="image-info">
-                            <div class="image-title">${img.fileName}</div>
-                            <div class="image-meta">
-                                ${img.isPrimary ? '<span class="status-badge status-found">Primary</span>' : ''}
-                                <span class="status-badge ${img.exists ? 'status-found' : 'status-not-found'}">
-                                    ${img.exists ? '✅ Found' : '❌ Missing'}
-                                </span>
-                            </div>
-                            <div style="margin-top: 10px;">
-                                <a href="${img.url}" target="_blank" style="color: #667eea; text-decoration: none;">
-                                    🔗 Open Original
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `</div>`;
-            container.innerHTML = html;
-        }
-        
-        function displayStyleInfo(styleInfo, packages) {
-            const container = document.getElementById('infoResult');
-            
-            // Get valuable fields (non-empty/non-zero)
-            const valuableFields = {};
-            for (const [key, value] of Object.entries(styleInfo)) {
-                if (value != null && value !== '' && value !== 0 && value !== false) {
-                    if (typeof value === 'object') {
-                        if (Array.isArray(value) && value.length > 0) {
-                            valuableFields[key] = value;
-                        } else if (!Array.isArray(value) && Object.keys(value).length > 0) {
-                            valuableFields[key] = value;
-                        }
-                    } else {
-                        valuableFields[key] = value;
-                    }
-                }
-            }
-            
-            let html = `<h2>📋 Style Information</h2>`;
-            
-            if (Object.keys(valuableFields).length === 0) {
-                html += `<p class="error-box">Không có thông tin style</p>`;
-            } else {
-                html += `<div class="info-grid">`;
+        async function fetchViaProxy(url) {
+            // Try each proxy
+            for (let i = 0; i < PROXIES.length; i++) {
+                const proxyIndex = (currentProxy + i) % PROXIES.length;
+                const proxy = PROXIES[proxyIndex];
+                const proxiedUrl = proxy + encodeURIComponent(url);
                 
-                // Group fields
-                const groups = {
-                    'Basic Info': ['STYLECODE', 'BUYER', 'STYLENAME', 'BUYERSTYLECODE', 'BUYERSTYLENAME', 'STATUS'],
-                    'Dates': ['REGISTRYDATE', 'CONFIRMDATE', 'LASTMODIDATE'],
-                    'Production': ['FACTORY', 'SEASONCODE', 'CURRCODE', 'UNITPRICE'],
-                    'Other': Object.keys(valuableFields).filter(k => !['STYLECODE', 'BUYER', 'STYLENAME', 'BUYERSTYLECODE', 
-                        'BUYERSTYLENAME', 'STATUS', 'REGISTRYDATE', 'CONFIRMDATE', 'LASTMODIDATE', 
-                        'FACTORY', 'SEASONCODE', 'CURRCODE', 'UNITPRICE'].includes(k))
-                };
-                
-                for (const [groupName, fields] of Object.entries(groups)) {
-                    const groupFields = fields.filter(f => valuableFields[f] !== undefined);
+                try {
+                    console.log(`Trying proxy ${proxyIndex + 1}: ${proxy}`);
+                    const response = await fetch(proxiedUrl, { 
+                        signal: AbortSignal.timeout(5000) 
+                    });
                     
-                    if (groupFields.length > 0) {
-                        html += `
-                            <div class="info-card">
-                                <h4>${groupName}</h4>
-                                ${groupFields.map(field => `
-                                    <div class="info-item">
-                                        <span class="info-label">${field}:</span>
-                                        <span class="info-value">${formatValue(valuableFields[field])}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentProxy = proxyIndex; // Remember working proxy
+                        
+                        return { success: true, data };
                     }
+                } catch (error) {
+                    console.log(`Proxy ${proxyIndex + 1} failed:`, error.message);
+                    continue;
                 }
-                
+            }
+            
+            return { success: false, error: 'All proxies failed' };
+        }
+        
+        function checkImageExists(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url + '?t=' + Date.now(); // Cache bust
+                setTimeout(() => resolve(false), 3000);
+            });
+        }
+        
+        function displayResult(result) {
+            const container = document.getElementById('result');
+            let html = `<div class="${result.success ? 'success' : 'error'} result">`;
+            
+            html += `<h3>${result.title}</h3>`;
+            
+            if (result.url) {
+                html += `<p><strong>URL:</strong> ${result.url}</p>`;
+            }
+            
+            html += `<p><strong>Status:</strong> <span class="status ${result.success ? 'online' : 'offline'}">${result.success ? '✅ SUCCESS' : '❌ FAILED'}</span></p>`;
+            
+            if (result.data) {
+                html += `<p><strong>Data:</strong> ${JSON.stringify(result.data).substring(0, 300)}...</p>`;
+            }
+            
+            if (result.results) {
+                html += `<table class="data-table"><tr><th>Image</th><th>Status</th></tr>`;
+                result.results.forEach(r => {
+                    html += `<tr>
+                        <td>${r.image}</td>
+                        <td><span class="status ${r.exists ? 'online' : 'offline'}">${r.exists ? '✅ Found' : '❌ Not found'}</span></td>
+                    </tr>`;
+                });
+                html += `</table>`;
+            }
+            
+            if (result.packages && result.styles && result.images) {
+                html += `<div style="margin-top: 20px;">`;
+                html += `<p><strong>Packages API:</strong> ${result.packages.success ? '✅' : '❌'}</p>`;
+                html += `<p><strong>Styles API:</strong> ${result.styles.success ? '✅' : '❌'}</p>`;
+                html += `<p><strong>Image Server:</strong> ${result.images.success ? '✅' : '❌'}</p>`;
                 html += `</div>`;
             }
             
-            // Add packages summary
-            if (packages && packages.length > 0) {
-                const uniqueLines = [...new Set(packages.map(p => p.LINENAME).filter(Boolean))];
-                const statusCount = {};
-                packages.forEach(p => {
-                    statusCount[p.MXSTATUS] = (statusCount[p.MXSTATUS] || 0) + 1;
-                });
-                
-                html += `
-                    <div class="info-card" style="margin-top: 20px; grid-column: 1 / -1;">
-                        <h4>📦 Packages Summary</h4>
-                        <div class="info-item">
-                            <span class="info-label">Total Packages:</span>
-                            <span class="info-value">${packages.length}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Lines:</span>
-                            <span class="info-value">${uniqueLines.join(', ') || 'N/A'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Status:</span>
-                            <span class="info-value">
-                                ${Object.entries(statusCount).map(([status, count]) => 
-                                    `${status}: ${count}`).join(', ')}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
-        
-        function displayPackages(packages) {
-            const container = document.getElementById('packagesResult');
-            
-            if (!packages || packages.length === 0) {
-                container.innerHTML = `<p class="error-box">Không có packages</p>`;
-                return;
-            }
-            
-            let html = `
-                <h2>📦 Packages (${packages.length})</h2>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #f8f9fa;">
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Package</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Line</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Status</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Target</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Completed</th>
-                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Filename</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            
-            packages.slice(0, 20).forEach(pkg => {
-                html += `
-                    <tr style="border-bottom: 1px solid #e9ecef;">
-                        <td style="padding: 12px;">${pkg.MXPACKAGE || 'N/A'}</td>
-                        <td style="padding: 12px;">${pkg.LINENAME || 'N/A'}</td>
-                        <td style="padding: 12px;">
-                            <span class="status-badge ${pkg.MXSTATUS === 'CF' ? 'status-found' : 'status-not-found'}">
-                                ${pkg.MXSTATUS || 'N/A'}
-                            </span>
-                        </td>
-                        <td style="padding: 12px;">${pkg.MXTARGET || 0}</td>
-                        <td style="padding: 12px;">${pkg.COMPLETED || 0}</td>
-                        <td style="padding: 12px;">
-                            ${pkg.FileName ? `
-                                <a href="#" onclick="event.preventDefault(); testSingleImage('${pkg.FileName}')" 
-                                   style="color: #667eea; text-decoration: none;">
-                                    ${pkg.FileName}
-                                </a>
-                            ` : 'N/A'}
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            if (packages.length > 20) {
-                html += `<p style="margin-top: 15px; color: #6c757d;">... và ${packages.length - 20} packages khác</p>`;
-            }
-            
-            container.innerHTML = html;
-        }
-        
-        function displayRawData(data) {
-            const container = document.getElementById('rawResult');
-            container.innerHTML = `
-                <h2>📄 Raw API Response</h2>
-                <div class="api-response">
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
-                </div>
-            `;
-        }
-        
-        function displaySearchResults(query, data) {
-            const container = document.getElementById('imagesResult');
-            
-            if (!data.Result || data.Result.length === 0) {
-                container.innerHTML = `<div class="error-box">Không tìm thấy kết quả cho: "${query}"</div>`;
-                return;
-            }
-            
-            let html = `
-                <h2>🔍 Search Results: "${query}"</h2>
-                <p>Found ${data.TotalRecord || data.Result.length} results</p>
-                <div class="info-grid">
-            `;
-            
-            data.Result.forEach(item => {
-                html += `
-                    <div class="info-card">
-                        <h4>${item.STYLECODE} - ${item.STYLENAME}</h4>
-                        <div class="info-item">
-                            <span class="info-label">Buyer:</span>
-                            <span class="info-value">${item.BUYER || 'N/A'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Buyer Style:</span>
-                            <span class="info-value">${item.BUYERSTYLECODE || 'N/A'}</span>
-                        </div>
-                        ${item.PICTURE ? `
-                        <div class="info-item">
-                            <span class="info-label">Picture:</span>
-                            <span class="info-value">${item.PICTURE}</span>
-                        </div>
-                        ` : ''}
-                        <div class="info-item">
-                            <span class="info-label">Status:</span>
-                            <span class="info-value">
-                                <span class="status-badge ${item.STATUS === 'OK' ? 'status-found' : 'status-not-found'}">
-                                    ${item.STATUS || 'N/A'}
-                                </span>
-                            </span>
-                        </div>
-                        <button onclick="loadStyle('${item.STYLECODE}')" 
-                                class="btn" style="margin-top: 10px; padding: 8px 12px; font-size: 0.9rem;">
-                            🔍 View Images
-                        </button>
-                    </div>
-                `;
-            });
-            
             html += `</div>`;
             container.innerHTML = html;
         }
         
-        function updateTestResults(results) {
-            const grid = document.getElementById('testResultsGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = results.map(img => `
-                <div class="image-card">
-                    <img src="${img.url}" alt="${img.fileName}"
-                         onerror="this.src='https://via.placeholder.com/280x220/eee/999?text=Testing...'">
-                    <div class="image-info">
-                        <div class="image-title">${img.fileName}</div>
-                        <div class="image-meta">
-                            <span class="status-badge ${img.exists ? 'status-found' : 'status-not-found'}">
-                                ${img.exists ? '✅ Found' : '❌ Not found'}
-                            </span>
-                        </div>
-                        <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
-                            Sequence: ${img.sequence}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function displayPackageInfo(packageCode, styleCode) {
-            const container = document.getElementById('infoResult');
-            const existing = container.innerHTML;
-            
+        function displayError(error) {
+            const container = document.getElementById('result');
             container.innerHTML = `
-                <div class="success-box">
-                    <h3>📦 Package Code Analyzed</h3>
-                    <div class="info-item">
-                        <span class="info-label">Package:</span>
-                        <span class="info-value">${packageCode}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Extracted Style:</span>
-                        <span class="info-value">${styleCode}</span>
-                    </div>
+                <div class="error result">
+                    <h3>❌ Test Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Try:</p>
+                    <ol>
+                        <li>Check if backend server is accessible</li>
+                        <li>Try different CORS proxy</li>
+                        <li>Run from local file instead of HTTPS</li>
+                    </ol>
                 </div>
-                ${existing}
             `;
-        }
-        
-        // ==================== HELPER FUNCTIONS ====================
-        
-        function extractStyleCodeFromPackage(packageCode) {
-            const parts = packageCode.split('_');
-            if (parts.length < 4) return null;
-            
-            const stylePart = parts[3];
-            if (stylePart.length >= 7) {
-                return stylePart.substring(0, 7).toUpperCase();
-            }
-            
-            return null;
-        }
-        
-        function formatValue(value) {
-            if (value == null) return 'N/A';
-            if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-            if (typeof value === 'number') {
-                if (value === 0) return '0';
-                return value.toLocaleString();
-            }
-            if (Array.isArray(value)) return value.join(', ') || 'Empty';
-            if (typeof value === 'object') return JSON.stringify(value);
-            return String(value);
-        }
-        
-        function loadStyle(styleCode) {
-            document.getElementById('styleCode').value = styleCode;
-            document.getElementById('searchType').value = 'style';
-            document.getElementById('searchType').dispatchEvent(new Event('change'));
-            performSearch();
-        }
-        
-        async function testSingleImage(fileName) {
-            if (!currentData || !currentData.styleInfo) return;
-            
-            const styleCode = currentData.styleInfo.STYLECODE;
-            const buyer = currentData.styleInfo.BUYER || styleCode.substring(0, 3);
-            const imageBaseUrl = document.getElementById('imageBaseUrl').value.trim();
-            
-            const imageUrl = `${imageBaseUrl}/style/${buyer}/${styleCode}/Images/${fileName}`;
-            const exists = await testImageExists(imageUrl);
-            
-            alert(`Image: ${fileName}\nURL: ${imageUrl}\nStatus: ${exists ? '✅ Found' : '❌ Not found'}`);
-        }
-        
-        async function testAPIConnection() {
-            const result = await callMESAPI('/buyerstylecodes?pagesize=1');
-            
-            if (result.success) {
-                document.getElementById('apiStatus').innerHTML = '● <span style="color: #28a745;">Online</span>';
-            } else {
-                document.getElementById('apiStatus').innerHTML = '● <span style="color: #dc3545;">Offline</span>';
-            }
         }
         
         function showLoading(show) {
             document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
         
-        function showError(message) {
-            const container = document.getElementById('imagesResult');
-            container.innerHTML = `
-                <div class="error-box">
-                    <h3>❌ Error</h3>
-                    <p>${message}</p>
-                    <p style="margin-top: 10px; font-size: 0.9rem;">
-                        Check: API URL, Internet connection, CORS policy
-                    </p>
-                </div>
-            `;
+        function clearResult() {
+            document.getElementById('result').innerHTML = '';
         }
         
-        function clearResults() {
-            ['imagesResult', 'infoResult', 'packagesResult', 'rawResult'].forEach(id => {
-                document.getElementById(id).innerHTML = '';
-            });
-        }
+        // Auto-run on page load
+        window.onload = function() {
+            setTimeout(runTest, 500);
+        };
     </script>
 </body>
 </html>
