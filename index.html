@@ -528,7 +528,7 @@
             container.innerHTML = html;
         }
 
-        async function confirmRemoveDefects() {
+async function confirmRemoveDefects() {
             const count = discoveredDefects.length;
             if(count === 0) return;
             
@@ -536,43 +536,59 @@
             if(!confirm(confirmMsg)) return;
 
             const params = getCommonParams();
-            isProcessing = true; toggleUIState(true);
+            if (!params) return;
+
+            isProcessing = true; 
+            toggleUIState(true);
             log(`🔥 Bắt đầu xóa ${count} defects...`, 'warn');
 
-            // NEW ENDPOINT: /remove-defects (POST)
+            // URL gốc
             const url = `${WORKER_BASE_URL}/remove-defects`;
+            
+            // Xây dựng URL có chứa params (API Key + Token) để tránh lỗi CORS Header
+            let postUrl = `${url}?apikey=${encodeURIComponent(params.apiKey)}`;
+            if (turnstileToken && !isLocalhost) {
+                postUrl += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
+            }
+
             const payload = {
                 mxpackage: params.pkgId,
                 opserial: 0,
                 confirmDelete: true,
-                apikey: params.apiKey // Helper sends in body or url
+                apikey: params.apiKey
             };
-            
-            // Add params to URL for auth check in middleware if needed, or rely on body
-            // Worker code reads headers/url for apikey mostly. Let's put apikey in URL too just in case.
-            const postUrl = `${url}?apikey=${params.apiKey}`;
 
             try {
+                // SỬA: Không gửi header cf-turnstile-response nữa (đã gửi qua URL rồi)
                 const res = await fetch(postUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        ...(turnstileToken && !isLocalhost ? {'cf-turnstile-response': turnstileToken} : {})
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
                 
+                // Kiểm tra status code trước khi parse JSON
+                if (!res.ok) {
+                    throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+                }
+
                 const json = await res.json();
                 
                 if(json.IsSuccess) {
                     log(`✅ ${json.Log}`, 'success');
-                    // Refresh List
+                    // Refresh lại danh sách sau khi xóa
                     discoveredDefects = [];
                     renderDefects();
+                    // Log chi tiết kết quả
+                    if(json.Summary) {
+                        log(`📊 Đã xóa: ${json.Summary.totalDeleted}/${json.Summary.totalDefectsFound} lỗi.`, 'info');
+                    }
                 } else {
                     log(`⚠️ Xóa thất bại: ${json.Log}`, 'error');
                 }
             } catch (e) {
+                console.error(e);
                 log(`❌ Lỗi kết nối: ${e.message}`, 'error');
             } finally {
                 isProcessing = false;
