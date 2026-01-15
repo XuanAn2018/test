@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MES Advanced Remover (Machines & Defects)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Cloudflare Turnstile Script -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         /* === CORE STYLES === */
@@ -18,7 +17,7 @@
         .header h1 { font-size: 26px; margin-bottom: 5px; color: #60a5fa; display: flex; align-items: center; justify-content: center; gap: 15px; }
         .header p { color: #94a3b8; font-size: 14px; }
 
-        /* TAB NAVIGATION */
+        /* TABS */
         .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: rgba(15, 23, 42, 0.6); color: #94a3b8; font-weight: 600; cursor: pointer; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .tab-btn:hover { background: rgba(59, 130, 246, 0.1); color: #fff; }
@@ -28,7 +27,7 @@
         /* MAIN PANEL */
         .main-panel { background: rgba(30, 41, 59, 0.6); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(59, 130, 246, 0.2); position: relative; }
         
-        /* CONFIG AREA */
+        /* CONFIG */
         .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .config-card { background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6; }
         .config-card h3 { color: #60a5fa; margin-bottom: 10px; font-size: 15px; }
@@ -44,32 +43,51 @@
         .meta-tag { background: rgba(15, 23, 42, 0.6); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 5px; }
         .meta-highlight { color: #facc15; font-weight: bold; border-color: rgba(250, 204, 21, 0.3); }
 
-        /* ACTION BUTTONS */
+        /* BUTTONS */
         .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 20px 0; }
         .btn { padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: white; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
         .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(110%); }
-        .btn-primary { background: #2563eb; } /* Blue */
-        .btn-danger { background: #dc2626; } /* Red */
-        .btn-warning { background: #d97706; } /* Orange */
-        .btn-secondary { background: #475569; } /* Slate */
-        .btn-stop { background: #7c3aed; } /* Purple */
+        .btn-primary { background: #2563eb; }
+        .btn-danger { background: #dc2626; }
+        .btn-warning { background: #d97706; }
+        .btn-secondary { background: #475569; }
+        .btn-stop { background: #7c3aed; }
         
-        /* LIST CONTAINERS */
+        /* LIST AREA */
         .list-container { max-height: 500px; overflow-y: auto; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; background: rgba(15, 23, 42, 0.8); margin-top: 15px; }
         .empty-state { padding: 40px; text-align: center; color: #64748b; }
-        
-        /* ITEMS: COMMON */
-        .item-checkbox { width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer; }
-        
-        /* ITEMS: MACHINE */
-        .machine-item { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 12px; align-items: flex-start; }
+        .item-checkbox { width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0; margin-top: 4px;}
+
+        /* --- DETAILED MACHINE ITEM STYLES (RESTORED) --- */
+        .machine-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 15px; align-items: flex-start; }
         .machine-item.selected { background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; }
         .machine-info { flex: 1; font-size: 13px; }
-        .machine-title { color: #e2e8f0; font-weight: 700; }
-        .iot-row { background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; margin-top: 4px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
         
-        /* ITEMS: DEFECT */
+        /* Row 1: Name | Module | Remarks */
+        .m-row-1 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .m-opname { font-weight: 700; color: #e2e8f0; font-size: 14px; }
+        .m-divider { color: #475569; }
+        .m-module { color: #94a3b8; font-style: italic; }
+        .m-remarks { color: #facc15; font-size: 12px; background: rgba(250, 204, 21, 0.1); padding: 1px 6px; border-radius: 4px; }
+
+        /* Row 2: MCID | OP | Badge */
+        .m-row-2 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+        .m-mcid { color: #60a5fa; font-weight: bold; background: rgba(37, 99, 235, 0.2); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(37, 99, 235, 0.3); }
+        .m-opserial { color: #cbd5e1; }
+        .m-badge { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .bg-fa { background: #10b981; color: #fff; } /* Green */
+        .bg-qa { background: #8b5cf6; color: #fff; } /* Purple */
+        .bg-none { background: #64748b; color: #cbd5e1; } /* Gray */
+
+        /* Row 3: IoT Box */
+        .m-iot-box { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(45, 212, 191, 0.15); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .iot-line { display: flex; justify-content: space-between; align-items: center; }
+        .iot-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .iot-val { color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 13px; }
+        .iot-time { color: #e2e8f0; font-family: monospace; font-size: 12px; }
+
+        /* --- DEFECT ITEM STYLES --- */
         .defect-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; align-items: flex-start; border-left: 3px solid transparent; }
         .defect-item.selected { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; }
         .defect-item:hover:not(.selected) { background: rgba(255,255,255,0.02); }
@@ -91,7 +109,7 @@
         .log-time { color: #64748b; min-width: 65px; margin-right: 8px; }
         .log-success { color: #10b981; } .log-error { color: #ef4444; } .log-info { color: #60a5fa; } .log-warn { color: #f59e0b; }
 
-        /* FLOATING WIDGET */
+        /* WIDGET */
         .turnstile-floating { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #3b82f6; width: 300px; transition: 0.3s; overflow: hidden; }
         .turnstile-header { padding: 8px 12px; background: #eff6ff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #bfdbfe; }
         .turnstile-title { font-size: 12px; font-weight: bold; color: #1e40af; }
@@ -100,8 +118,6 @@
         .turnstile-floating.minimized .turnstile-content { display: none; }
         .turnstile-icon { display: none; font-size: 20px; color: #2563eb; width: 100%; height: 100%; align-items: center; justify-content: center; }
         .turnstile-floating.minimized .turnstile-icon { display: flex; }
-
-        /* UTILS */
         .d-none { display: none !important; }
     </style>
 </head>
@@ -115,17 +131,11 @@
         
         <!-- MAIN PANEL -->
         <div class="main-panel">
-            <!-- TABS -->
             <div class="tab-nav">
-                <button class="tab-btn active" onclick="switchTab('machine')">
-                    <i class="fas fa-satellite-dish"></i> Quản Lý Máy (IoT)
-                </button>
-                <button class="tab-btn" id="btn-tab-defect" onclick="switchTab('defect')">
-                    <i class="fas fa-bug"></i> Quản Lý Lỗi (Defects)
-                </button>
+                <button class="tab-btn active" onclick="switchTab('machine')"><i class="fas fa-satellite-dish"></i> Quản Lý Máy (IoT)</button>
+                <button class="tab-btn" id="btn-tab-defect" onclick="switchTab('defect')"><i class="fas fa-bug"></i> Quản Lý Lỗi (Defects)</button>
             </div>
 
-            <!-- SHARED CONFIG -->
             <div class="config-grid">
                 <div class="config-card">
                     <h3><i class="fas fa-key"></i> Xác Thực & Cấu Hình</h3>
@@ -150,12 +160,9 @@
                             <input type="date" id="searchDate" class="form-control">
                             <button class="btn btn-secondary" onclick="loadTodayPackages()" title="Tải danh sách"><i class="fas fa-sync"></i></button>
                         </div>
-                        <select id="packageSelect" class="form-control">
-                            <option value="">-- Chọn Package --</option>
-                        </select>
+                        <select id="packageSelect" class="form-control"><option value="">-- Chọn Package --</option></select>
                         <input type="text" id="mxpackage" class="form-control" placeholder="Hoặc nhập Package ID thủ công..." style="margin-top: 8px;">
                     </div>
-                    
                     <div id="packageInfoBox" class="package-details-box">
                         <div class="package-id-display" id="pkgIdDisplay"></div>
                         <div class="package-meta-display" id="pkgMetaDisplay"></div>
@@ -163,15 +170,11 @@
                 </div>
             </div>
             
-            <!-- PROGRESS BAR (Shared) -->
             <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                    <div class="progress-text" id="progressText">0%</div>
-                </div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div><div class="progress-text" id="progressText">0%</div></div>
             </div>
 
-            <!-- TAB CONTENT: MACHINE -->
+            <!-- TAB: MACHINE -->
             <div id="tab-content-machine">
                 <div class="action-grid">
                     <button class="btn btn-primary" onclick="startFullScanProcess()" id="scanBtn" disabled>🔒 Chờ xác thực</button>
@@ -180,94 +183,59 @@
                     <button class="btn btn-warning" onclick="handleSelection('machine', false)" id="deselectAllBtn" disabled><i class="fas fa-times"></i> Bỏ Chọn</button>
                     <button class="btn btn-danger" onclick="confirmRemoveMachines()" id="removeBtn" disabled><i class="fas fa-trash"></i> Xóa Máy</button>
                 </div>
-                
                 <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">
                     Máy tìm thấy: <strong style="color:#10b981" id="statFound">0</strong> | Đã chọn: <strong style="color:#facc15" id="statSelected">0</strong>
                 </div>
-
                 <div class="list-container" id="machineListContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-search-location" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5;"></i>
-                        <p>Nhập Package ID và nhấn "Quét Chi Tiết" để xem danh sách máy.</p>
-                    </div>
+                    <div class="empty-state"><i class="fas fa-search-location" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5;"></i><p>Nhập Package ID và nhấn "Quét Chi Tiết".</p></div>
                 </div>
             </div>
 
-            <!-- TAB CONTENT: DEFECT -->
+            <!-- TAB: DEFECT -->
             <div id="tab-content-defect" class="d-none">
                 <div class="action-grid">
-                    <button class="btn btn-primary" onclick="scanDefects()" id="scanDefectBtn" disabled>
-                        <i class="fas fa-search-plus"></i> Quét Lỗi
-                    </button>
-                    <!-- New Defect Buttons -->
+                    <button class="btn btn-primary" onclick="scanDefects()" id="scanDefectBtn" disabled><i class="fas fa-search-plus"></i> Quét Lỗi</button>
                     <button class="btn btn-warning" onclick="handleSelection('defect', true)" id="defectSelectAllBtn" disabled><i class="fas fa-check-double"></i> Chọn Hết</button>
                     <button class="btn btn-warning" onclick="handleSelection('defect', false)" id="defectDeselectAllBtn" disabled><i class="fas fa-times"></i> Bỏ Chọn</button>
-                    
-                    <button class="btn btn-danger" onclick="confirmRemoveSelectedDefects()" id="removeSelectedDefectBtn" disabled>
-                        <i class="fas fa-trash-alt"></i> Xóa Đã Chọn
-                    </button>
-                    <button class="btn btn-danger" onclick="confirmRemoveAllDefects()" id="removeAllDefectBtn" disabled style="background: #7f1d1d;">
-                        <i class="fas fa-dumpster-fire"></i> Xóa Tất Cả
-                    </button>
+                    <button class="btn btn-danger" onclick="confirmRemoveSelectedDefects()" id="removeSelectedDefectBtn" disabled><i class="fas fa-trash-alt"></i> Xóa Đã Chọn</button>
+                    <button class="btn btn-danger" onclick="confirmRemoveAllDefects()" id="removeAllDefectBtn" disabled style="background: #7f1d1d;"><i class="fas fa-dumpster-fire"></i> Xóa Tất Cả</button>
                 </div>
-
                 <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">
                     Lỗi tìm thấy: <strong style="color:#f87171" id="statDefectFound">0</strong> | Đã chọn: <strong style="color:#facc15" id="statDefectSelected">0</strong>
                 </div>
-
                 <div class="list-container" id="defectListContainer" style="border-color: rgba(239, 68, 68, 0.3);">
-                    <div class="empty-state">
-                        <i class="fas fa-bug" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5; color: #f87171;"></i>
-                        <p>Nhập Package ID và nhấn "Quét Lỗi" để kiểm tra dữ liệu lỗi.</p>
-                    </div>
+                    <div class="empty-state"><i class="fas fa-bug" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5; color: #f87171;"></i><p>Nhập Package ID và nhấn "Quét Lỗi".</p></div>
                 </div>
             </div>
             
-            <!-- LOGS -->
             <div class="log-console" id="logConsole">
                 <div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-info">Ready. Please verify security widget.</span></div>
             </div>
         </div>
     </div>
 
-    <!-- FLOATING TURNSTILE WIDGET -->
     <div id="turnstileWidget" class="turnstile-floating">
         <div class="turnstile-content">
-            <div class="turnstile-header">
-                <div class="turnstile-title"><i class="fas fa-shield-alt"></i> Bảo Mật Cloudflare</div>
-                <button onclick="toggleWidget(true)" style="background:none;border:none;cursor:pointer;">➖</button>
-            </div>
-            <div class="turnstile-body">
-                <div id="cf-turnstile-widget" class="cf-turnstile" 
-                     data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" 
-                     data-callback="onTurnstileSuccess"
-                     data-error-callback="onTurnstileError"
-                     data-expired-callback="onTurnstileExpired">
-                </div>
-            </div>
+            <div class="turnstile-header"><div class="turnstile-title"><i class="fas fa-shield-alt"></i> Bảo Mật Cloudflare</div><button onclick="toggleWidget(true)" style="background:none;border:none;cursor:pointer;">➖</button></div>
+            <div class="turnstile-body"><div id="cf-turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-expired-callback="onTurnstileExpired"></div></div>
         </div>
         <div class="turnstile-icon" onclick="toggleWidget(false)">🔐</div>
     </div>
 
     <script>
-        // === CONFIGURATION ===
         const WORKER_BASE_URL = "https://remove-machine.chiscoong-cloudflare-com.workers.dev";
         const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
         const MODULE_OPS_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
         const MODULE_DETAIL_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/detail";
 
-        // === STATE VARIABLES ===
         let turnstileToken = null;
         let isLocalhost = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
         let currentTab = 'machine';
         let isProcessing = false;
         let abortController = null;
-        
-        // Data Stores
         let discoveredMachines = [];
         let discoveredDefects = [];
 
-        // === TAB LOGIC ===
         function switchTab(tabName) {
             currentTab = tabName;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'active-danger'));
@@ -283,7 +251,6 @@
             }
         }
 
-        // === TURNSTILE HANDLERS ===
         function toggleWidget(minimize) {
             const el = document.getElementById('turnstileWidget');
             minimize ? el.classList.add('minimized') : el.classList.remove('minimized');
@@ -295,16 +262,14 @@
             toggleWidget(true);
             enableMainButtons(true);
         };
-
         window.onTurnstileError = () => { enableMainButtons(false, "❌ Lỗi xác thực"); };
         window.onTurnstileExpired = () => { enableMainButtons(false, "🔒 Hết hạn - Reset"); toggleWidget(false); };
 
         function enableMainButtons(enable, msg) {
             const btnScan = document.getElementById('scanBtn');
             const btnScanDefect = document.getElementById('scanDefectBtn');
-            
             if(enable) {
-                btnScan.disabled = false; btnScan.innerHTML = '<i class="fas fa-search"></i> Quét Máy Chi Tiết';
+                btnScan.disabled = false; btnScan.innerHTML = '<i class="fas fa-search"></i> Quét Chi Tiết';
                 btnScanDefect.disabled = false; btnScanDefect.innerHTML = '<i class="fas fa-search-plus"></i> Quét Lỗi';
             } else {
                 btnScan.disabled = true; btnScan.innerHTML = msg || '🔒 Chờ xác thực';
@@ -312,7 +277,6 @@
             }
         }
 
-        // === CORE: UTILS ===
         function log(msg, type = 'info') {
             const el = document.getElementById('logConsole');
             const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
@@ -343,7 +307,7 @@
             } catch (e) { return { success: false }; }
         }
 
-        // === FEATURE 1: MACHINE SCANNER ===
+        // === MACHINE SCANNER ===
         async function startFullScanProcess() {
             const params = getCommonParams();
             if(!params) return;
@@ -351,11 +315,9 @@
             isProcessing = true;
             abortController = new AbortController();
             discoveredMachines = [];
-            
             toggleUIState(true);
             document.getElementById('machineListContainer').innerHTML = '';
             document.getElementById('statFound').innerText = '0';
-            
             log(`🚀 Bắt đầu quét MÁY cho package: ${params.pkgId}`, 'info');
 
             try {
@@ -365,7 +327,6 @@
                 const opsData = await opsRes.json();
                 
                 if(!opsData.success || !opsData.data?.operations) throw new Error("Không thể lấy danh sách OP.");
-                
                 const operations = opsData.data.operations;
                 
                 for(let i=0; i<operations.length; i++) {
@@ -386,8 +347,10 @@
                                         opserial: op.opserial,
                                         opname: op.opname,
                                         module: op.modulename,
+                                        remarks: op.remarks || op.REMARKS || '', // Lấy thêm remarks
                                         iotType: (op.iottype || 'NONE').toUpperCase(),
                                         lastIotData: m.LAST_IOT_DATA,
+                                        lastIotTime: m.LAST_IOT_DATA_RECEIVE_TIME, // Lấy thời gian
                                         selected: false
                                     });
                                 }
@@ -395,19 +358,13 @@
                         }
                     } catch (e) {}
                 }
-                
                 renderMachines();
                 log(`✅ Quét xong. Tìm thấy ${discoveredMachines.length} máy.`, 'success');
-
-            } catch (e) {
-                log(`❌ Lỗi quét máy: ${e.message}`, 'error');
-            } finally {
-                isProcessing = false;
-                toggleUIState(false);
-                updateProgress(100, "Sẵn sàng");
-            }
+            } catch (e) { log(`❌ Lỗi quét máy: ${e.message}`, 'error'); } 
+            finally { isProcessing = false; toggleUIState(false); updateProgress(100, "Sẵn sàng"); }
         }
 
+        // --- HÀM RENDER MÁY CHI TIẾT (ĐÃ KHÔI PHỤC) ---
         function renderMachines() {
             const container = document.getElementById('machineListContainer');
             document.getElementById('statFound').innerText = discoveredMachines.length;
@@ -419,15 +376,38 @@
             
             let html = '';
             discoveredMachines.forEach((m, idx) => {
+                const badgeClass = m.iotType === 'FA' ? 'bg-fa' : (m.iotType === 'QA' ? 'bg-qa' : 'bg-none');
+                const remarksHtml = m.remarks ? `<span class="m-remarks">${m.remarks}</span>` : '';
+                const timeDisplay = m.lastIotTime ? new Date(m.lastIotTime).toLocaleString('vi-VN') : 'N/A';
+                
                 html += `
                     <div class="machine-item ${m.selected ? 'selected' : ''}" id="machine-${idx}">
                         <input type="checkbox" class="item-checkbox" onchange="toggleItem('machine', ${idx})" ${m.selected ? 'checked' : ''}>
                         <div class="machine-info">
-                            <div class="machine-title"><span style="color:#60a5fa">${m.mcid}</span> - ${m.opname}</div>
-                            <div style="color:#94a3b8;margin-top:2px;">OP: ${m.opserial} | Module: ${m.module}</div>
-                            <div class="iot-row">
-                                <span>IoT Type: <strong>${m.iotType}</strong></span>
-                                <span>Last Data: <strong style="color:#2dd4bf">${m.lastIotData || 'N/A'}</strong></span>
+                            <!-- Row 1: Name, Module, Remarks -->
+                            <div class="m-row-1">
+                                <span class="m-opname">${m.opname}</span>
+                                <span class="m-divider">|</span>
+                                <span class="m-module">${m.module}</span>
+                                ${remarksHtml}
+                            </div>
+                            <!-- Row 2: MCID, OP, Badge -->
+                            <div class="m-row-2">
+                                <span class="m-mcid">${m.mcid}</span>
+                                <span class="m-divider">•</span>
+                                <span class="m-opserial">OP: ${m.opserial}</span>
+                                <span class="m-badge ${badgeClass}">${m.iotType}</span>
+                            </div>
+                            <!-- Row 3: IoT Data Box -->
+                            <div class="m-iot-box">
+                                <div class="iot-line">
+                                    <span class="iot-label">IoT Data:</span>
+                                    <span class="iot-val">${m.lastIotData || 'N/A'}</span>
+                                </div>
+                                <div class="iot-line">
+                                    <span class="iot-label">Cập nhật lúc:</span>
+                                    <span class="iot-time">${timeDisplay}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -443,7 +423,6 @@
             
             const params = getCommonParams();
             isProcessing = true; toggleUIState(true);
-            
             let success = 0;
             for(let i=0; i<selected.length; i++) {
                 const item = selected[i];
@@ -463,18 +442,15 @@
                     } else throw new Error(json.Log);
                 } catch(e) { log(`⚠️ Lỗi ${item.mcid}: ${e.message}`, 'error'); }
             }
-            
             isProcessing = false; toggleUIState(false);
             log(`🏁 Hoàn tất xóa máy. Thành công: ${success}/${selected.length}`, 'info');
         }
 
-        // === FEATURE 2: DEFECT SCANNER (Updated) ===
+        // === DEFECT SCANNER ===
         async function scanDefects() {
             const params = getCommonParams();
             if(!params) return;
-
-            isProcessing = true;
-            toggleUIState(true);
+            isProcessing = true; toggleUIState(true);
             document.getElementById('defectListContainer').innerHTML = '<div class="empty-state">Đang quét dữ liệu...</div>';
             log(`🔎 Bắt đầu quét DEFECTS cho package: ${params.pkgId}`, 'info');
 
@@ -489,22 +465,16 @@
                     discoveredDefects = (json.FoundDefects || []).map(d => ({...d, selected: false}));
                     renderDefects();
                     log(`✅ Tìm thấy ${discoveredDefects.length} defect items.`, 'success');
-                } else {
-                    throw new Error(json.Log || "Lỗi không xác định");
-                }
+                } else { throw new Error(json.Log || "Lỗi không xác định"); }
             } catch (e) {
                 log(`❌ Lỗi quét defect: ${e.message}`, 'error');
                 document.getElementById('defectListContainer').innerHTML = `<div class="empty-state" style="color:#ef4444">${e.message}</div>`;
-            } finally {
-                isProcessing = false;
-                toggleUIState(false);
-            }
+            } finally { isProcessing = false; toggleUIState(false); }
         }
 
         function renderDefects() {
             const container = document.getElementById('defectListContainer');
             document.getElementById('statDefectFound').innerText = discoveredDefects.length;
-            
             if(discoveredDefects.length === 0) {
                 container.innerHTML = `<div class="empty-state">Không tìm thấy lỗi nào.</div>`;
                 updateDefectStats();
@@ -533,30 +503,23 @@
             updateDefectStats();
         }
 
-        // Xóa từng defect đã chọn (Loop Call)
         async function confirmRemoveSelectedDefects() {
             const selected = discoveredDefects.filter(d => d.selected);
             if(selected.length === 0) return;
-            
-            const confirmMsg = `Bạn có chắc chắn muốn XÓA ${selected.length} lỗi đã chọn không?\nHành động này không thể hoàn tác.`;
-            if(!confirm(confirmMsg)) return;
+            if(!confirm(`Bạn có chắc chắn muốn XÓA ${selected.length} lỗi đã chọn không?\nHành động này không thể hoàn tác.`)) return;
 
             const params = getCommonParams();
             if (!params) return;
-
             isProcessing = true; toggleUIState(true);
             let success = 0;
             
-            // Loop delete using generic remove endpoint with specific ID in body or query
-            // Lưu ý: Backend cần hỗ trợ xử lý xóa theo ID, nếu không nó có thể xóa tất cả hoặc không làm gì.
             for(let i=0; i<selected.length; i++) {
                 const item = selected[i];
                 updateProgress((i/selected.length)*100, `Deleting Defect ID: ${item.id}`);
-
-                // Xây dựng URL an toàn
+                // Gọi API xóa từng cái (đảm bảo Backend hỗ trợ xóa theo ID)
+                // Lưu ý: Đây là giả định Worker đã update để nhận 'defectId' khi mode='single'
+                // Nếu worker chưa update, logic này có thể cần điều chỉnh
                 let url = `${WORKER_BASE_URL}/remove-defects?apikey=${encodeURIComponent(params.apiKey)}&cf-turnstile-response=${encodeURIComponent(turnstileToken || '')}`;
-
-                // Gửi request xóa từng item (Giả định Backend hỗ trợ mode=single hoặc xử lý ID)
                 try {
                     const res = await fetch(url, {
                         method: 'POST',
@@ -564,30 +527,23 @@
                         body: JSON.stringify({
                             mxpackage: params.pkgId,
                             confirmDelete: true,
-                            mode: 'single', // Cờ báo hiệu cho backend (nếu có update)
-                            defectId: item.id, // ID cụ thể cần xóa
+                            mode: 'single', 
+                            defectId: item.id,
                             apikey: params.apiKey
                         })
                     });
-
                     if (res.ok) {
                         success++;
                         log(`🗑️ Đã gửi lệnh xóa Defect ID: ${item.id}`, 'success');
                         const row = document.getElementById(`defect-${discoveredDefects.indexOf(item)}`);
                         if(row) { row.style.opacity = '0.4'; row.style.textDecoration = 'line-through'; }
-                    } else {
-                        log(`⚠️ Lỗi HTTP khi xóa ID ${item.id}`, 'error');
-                    }
-                } catch(e) {
-                    log(`❌ Exception ID ${item.id}: ${e.message}`, 'error');
-                }
+                    } else { log(`⚠️ Lỗi HTTP khi xóa ID ${item.id}`, 'error'); }
+                } catch(e) { log(`❌ Exception ID ${item.id}: ${e.message}`, 'error'); }
             }
-
             isProcessing = false; toggleUIState(false);
             log(`🏁 Hoàn tất xóa lỗi đã chọn. Đã gửi: ${success}/${selected.length}`, 'info');
         }
 
-        // Xóa toàn bộ (Bulk Endpoint)
         async function confirmRemoveAllDefects() {
             const count = discoveredDefects.length;
             if(count === 0) return;
@@ -604,26 +560,19 @@
                 const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        mxpackage: params.pkgId,
-                        confirmDelete: true,
-                        apikey: params.apiKey
-                    })
+                    body: JSON.stringify({ mxpackage: params.pkgId, confirmDelete: true, apikey: params.apiKey })
                 });
                 const json = await res.json();
-                
                 if(json.IsSuccess) {
                     log(`✅ ${json.Log}`, 'success');
                     discoveredDefects = [];
                     renderDefects();
-                } else {
-                    log(`⚠️ Xóa thất bại: ${json.Log}`, 'error');
-                }
+                } else { log(`⚠️ Xóa thất bại: ${json.Log}`, 'error'); }
             } catch (e) { log(`❌ Lỗi kết nối: ${e.message}`, 'error'); } 
             finally { isProcessing = false; toggleUIState(false); }
         }
 
-        // === UTILS: SELECTION & UI ===
+        // === UTILS ===
         function toggleItem(type, idx) {
             if(type === 'machine') {
                 discoveredMachines[idx].selected = !discoveredMachines[idx].selected;
@@ -646,7 +595,7 @@
             } else {
                 discoveredDefects.forEach(d => d.selected = isSelect);
                 renderDefects();
-                updateDefectStats(); // Không cần render lại toàn bộ để giữ vị trí scroll
+                updateDefectStats();
             }
         }
 
@@ -662,13 +611,8 @@
         function toggleUIState(processing) {
             document.getElementById('progressContainer').style.display = processing ? 'block' : 'none';
             document.getElementById('stopBtn').style.display = processing ? 'inline-flex' : 'none';
-            
             const btns = ['scanBtn', 'selectAllBtn', 'deselectAllBtn', 'removeBtn', 'scanDefectBtn', 'removeSelectedDefectBtn', 'removeAllDefectBtn', 'defectSelectAllBtn', 'defectDeselectAllBtn'];
-            btns.forEach(id => {
-                const b = document.getElementById(id);
-                if(b) b.disabled = processing;
-            });
-            
+            btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = processing; });
             if(!processing) {
                 if(currentTab === 'machine') updateStats();
                 if(currentTab === 'defect') updateDefectStats();
@@ -694,7 +638,6 @@
             log('⛔ Đã dừng tiến trình.', 'warn');
         }
 
-        // === INIT & SORTING LOGIC ===
         document.getElementById('factory').value = 'P2C1';
         document.getElementById('searchDate').valueAsDate = new Date();
 
@@ -703,7 +646,6 @@
             const factory = document.getElementById('factory').value;
             const dateInput = document.getElementById('searchDate').value.replace(/-/g, '');
             const select = document.getElementById('packageSelect');
-            
             if(!params.apiKey) { alert("Nhập API Key!"); return; }
             select.innerHTML = '<option>Loading...</option>';
 
@@ -715,21 +657,15 @@
                 select.innerHTML = '<option value="">-- Chọn Package --</option>';
                 let pkgs = (data.data?.packages || data.data || []);
                 
-                // === LOGIC SẮP XẾP MỚI ===
+                // Sorting logic
                 pkgs.sort((a, b) => {
                     const lineA = (a.LINENAME || a.lineName || "").toUpperCase();
                     const lineB = (b.LINENAME || b.lineName || "").toUpperCase();
-                    
-                    // Lấy số từ line (ví dụ: LINE 33 -> 33)
                     const matchA = lineA.match(/(\d+)/);
                     const matchB = lineB.match(/(\d+)/);
-                    const numA = matchA ? parseInt(matchA[0]) : 99999; // Nếu không có số, đẩy xuống cuối
+                    const numA = matchA ? parseInt(matchA[0]) : 99999;
                     const numB = matchB ? parseInt(matchB[0]) : 99999;
-                    
-                    if(numA !== numB) {
-                        return numA - numB; // Sắp xếp theo số
-                    }
-                    return lineA.localeCompare(lineB); // Nếu cùng số hoặc không có số, sắp xếp theo chữ
+                    return numA !== numB ? numA - numB : lineA.localeCompare(lineB);
                 });
 
                 let currentLine = null;
@@ -744,11 +680,8 @@
                     const opt = document.createElement('option');
                     opt.value = p.packageId || p.MXPACKAGE;
                     opt.text = `${line} | ${p.styleText || p.STYLETEXT}`;
-                    // Thêm Target vào meta
                     opt.dataset.meta = JSON.stringify({ 
-                        line, 
-                        style: p.styleText || p.STYLETEXT, 
-                        target: p.target || p.TARGET || '0' 
+                        line, style: p.styleText || p.STYLETEXT, target: p.target || p.TARGET || '0' 
                     });
                     select.add(opt);
                 });
@@ -761,8 +694,6 @@
                 const meta = JSON.parse(this.options[this.selectedIndex].dataset.meta || '{}');
                 document.getElementById('packageInfoBox').style.display = 'block';
                 document.getElementById('pkgIdDisplay').innerText = this.value;
-                
-                // Hiển thị lại Target ở đây
                 document.getElementById('pkgMetaDisplay').innerHTML = `
                     <span class="meta-tag">${document.getElementById('factory').value}</span>
                     <span class="meta-tag">${meta.line}</span>
@@ -772,7 +703,6 @@
             }
         });
 
-        // Localhost bypass
         if (isLocalhost) {
             document.getElementById('turnstileWidget').style.display = 'none';
             enableMainButtons(true);
