@@ -1157,6 +1157,61 @@
         updateBatchActionButtons();
     }
 
+    a    /* ========== MODAL PACKAGE MANAGEMENT ========== */
+    function openPackageManagement() {
+        const apiKey = document.getElementById('apiKey').value;
+        const selectedPackageId = document.getElementById('pkg').value;
+
+        if(!apiKey) return alert("Vui lòng nhập API Key!");
+        if(!selectedPackageId) return alert("Vui lòng nhập hoặc chọn Package ID!");
+
+        currentModalPackage = selectedPackageId;
+        document.getElementById('modalPackageId').textContent = selectedPackageId;
+        document.getElementById('packageModal').classList.add('open');
+        
+        // Reset trạng thái
+        discoveredMachines = [];
+        isScanning = false;
+        
+        // Mặc định hiển thị tab Operations
+        switchModalTab('tab-operations');
+        
+        // Load operations
+        loadOperationsForModal();
+    }
+
+    function closePackageModal() {
+        document.getElementById('packageModal').classList.remove('open');
+        if (scanAbortController) {
+            scanAbortController.abort();
+        }
+    }
+
+    function switchModalTab(tabId) {
+        modalCurrentTab = tabId;
+        
+        // Ẩn tất cả tab
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.modal-tab').forEach(tab => tab.classList.remove('active'));
+        
+        // Hiện tab được chọn
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.modal-tab[data-tab="${tabId}"]`).classList.add('active');
+        
+        // Nếu là tab IoT Scan và chưa có dữ liệu, hiển thị thông báo
+        if (tabId === 'tab-iot' && discoveredMachines.length === 0) {
+            document.getElementById('machineListContainer').innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #64748b;">
+                    <i class="fas fa-search-location" style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;"></i>
+                    <p>Nhấn "Quét Chi Tiết IoT" để hiển thị dữ liệu</p>
+                </div>
+            `;
+        }
+        
+        // Cập nhật nút batch actions dựa trên số máy đã chọn
+        updateBatchActionButtons();
+    }
+
     async function loadOperationsForModal() {
         const apiKey = document.getElementById('apiKey').value;
         const selectedPackageId = currentModalPackage;
@@ -1189,7 +1244,6 @@
                     const isFA = op.iottype === 'FA';
                     const badgeClass = isFA ? 'badge-fa' : (op.iottype === 'QA' ? 'badge-qa' : 'badge-none');
                     
-                    // Tạo HTML cho mỗi operation - SỬA LẠI CẤU TRÚC CỘT
                     html += `<div class="detail-row" id="row-${op.opserial}" style="border-left: 3px solid ${isFA?'#10b981':'#cbd5e1'}">
                         <input type="checkbox" class="serial-checkbox" value="${op.opserial}" data-mcid="" data-name="${op.remarks||op.opname}">
                         <div>
@@ -1206,12 +1260,552 @@
             }
             content.innerHTML = html;
 
-            // Fetch details ngầm - SỬA LẠI ĐỂ LẤY ĐÚNG 3 GIÁ TRỊ
-            fetchMachineDetailsForOperations(apiKey, selectedPackageId, ops);
+            // Fetch details ngầm
+            const styleInfo = parseMxPackage(selectedPackageId);
+            if (styleInfo.success) {
+                fetchMachineDetailsForModal(apiKey, styleInfo, ops);
+            } else {
+                // Nếu không parse được, vẫn thử fetch với packageId gốc
+                fetchMachineDetailsDirect(apiKey, selectedPackageId, ops);
+            }
 
         } catch (e) { 
             content.innerHTML = `<p style="color:red; font-weight:bold; padding:20px;">Lỗi: ${e.message}</p>`; 
         }
+    }
+
+    async function fetchMachineDetailsForModal(apiKey, styleInfo, operations) {
+        for (let op of operations) {
+            try {
+                let url = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.success && json.data?.Result?.MachineList?.length > 0) {
+                    const m = json.data.Result.MachineList[0]; 
+                    
+                    // Cập nhật MCID
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement && m.MCID) {
+                        mcidElement.innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
+                        
+                        // Cập nhật checkbox data
+                        const checkbox = document.querySelector(`#row-${op.opserial} .serial-checkbox`);
+                        if (checkbox) {
+                            checkbox.dataset.mcid = m.MCID;
+                        }
+                    }
+                    
+                    // Cập nhật IoT Data
+                    const iotElement = document.getElementById(`iot-${op.opserial}`);
+                    if (iotElement) {
+                        iotElement.innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
+                    }
+                    
+                    // Cập nhật Time
+                    const timeElement = document.getElementById(`time-${op.opserial}`);
+                    if (timeElement) {
+                        timeElement.innerHTML = `<span class="iot-time">${formatDateTime(m.LAST_IOT_DATA_RECEIVE_TIME)}</span>`;
+                    }
+                } else {
+                    // Nếu không có dữ liệu
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement) mcidElement.innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
+                }
+            } catch (err) { 
+                console.warn("Lỗi fetch detail op:", op.opserial, err);
+                
+                // Hiển thị lỗi nếu có
+                const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                if (mcidElement) mcidElement.innerHTML = `<span style="color:#ef4444; font-size:11px;">Lỗi</span>`;
+            }
+            await new Promise(r => setTimeout(r, 50));
+        }
+    }
+
+    async function fetchMachineDetailsDirect(apiKey, packageId, operations) {
+        for (let op of operations) {
+            try {
+                // Thử fetch trực tiếp với packageId
+                let url = `${MODULE_DETAIL_API}?mxpackage=${encodeURIComponent(packageId)}&opserial=${op.opserial}&apikey=${apiKey}`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.success && json.data?.Result?.MachineList?.length > 0) {
+                    const m = json.data.Result.MachineList[0]; 
+                    
+                    // Cập nhật MCID
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement && m.MCID) {
+                        mcidElement.innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
+                        
+                        // Cập nhật checkbox data
+                        const checkbox = document.querySelector(`#row-${op.opserial} .serial-checkbox`);
+                        if (checkbox) {
+                            checkbox.dataset.mcid = m.MCID;
+                        }
+                    }
+                    
+                    // Cập nhật IoT Data
+                    const iotElement = document.getElementById(`iot-${op.opserial}`);
+                    if (iotElement) {
+                        iotElement.innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
+                    }
+                    
+                    // Cập nhật Time
+                    const timeElement = document.getElementById(`time-${op.opserial}`);
+                    if (timeElement) {
+                        timeElement.innerHTML = `<span class="iot-time">${formatDateTime(m.LAST_IOT_DATA_RECEIVE_TIME)}</span>`;
+                    }
+                } else {
+                    // Nếu không có dữ liệu
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement) mcidElement.innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
+                }
+            } catch (err) { 
+                console.warn("Lỗi fetch detail direct op:", op.opserial, err);
+            }
+            await new Promise(r => setTimeout(r, 50));
+        }
+    }
+
+    /* ========== IOT SCAN FUNCTIONS (Từ remove-machine) ========== */
+    async function startIotScan() {
+        // Kiểm tra token trước khi bắt đầu
+        if (!turnstileToken && !isLocalhost) {
+            alert("Vui lòng hoàn thành xác thực bảo mật trước!");
+            return;
+        }
+
+        // Kiểm tra trạng thái package
+        const packageStatus = currentPackageStatus || await getPackageStatus(currentModalPackage);
+        if (packageStatus === "RO") {
+            modalLog("❌ KHÔNG THỂ QUÉT: Gói đang ở trạng thái RO (Read Only).", "error");
+            modalLog("Vui lòng đi CF (Confirm) gói trước khi quét IoT!", "error");
+            alert("❌ KHÔNG THỂ QUÉT!\nGói đang ở trạng thái RO (Read Only).\nVui lòng đi CF gói trước khi quét IoT!");
+            return;
+        }
+
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const pkgId = currentModalPackage;
+        
+        if(!apiKey || !pkgId) { 
+            modalLog("Thiếu API Key hoặc Package ID!", "error");
+            return; 
+        }
+        
+        isScanning = true;
+        scanAbortController = new AbortController();
+        discoveredMachines = [];
+        
+        // Reset UI
+        document.getElementById('machineListContainer').innerHTML = '<div style="padding:20px;text-align:center;"><div class="loader"></div> Đang quét...</div>';
+        document.getElementById('modalProgressContainer').style.display = 'block';
+        document.getElementById('statFound').innerText = '0';
+        document.getElementById('statSelected').innerText = '0';
+        
+        modalLog(`Bắt đầu quét gói: ${pkgId}`, 'info');
+        
+        // Disable nút quét
+        document.getElementById('btnStartScan').disabled = true;
+        document.getElementById('btnStartScan').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang quét...';
+        
+        try {
+            const styleInfo = parseMxPackage(pkgId);
+            
+            // Thử cả 2 cách: parse và direct
+            let useDirectAPI = false;
+            if(!styleInfo.success) {
+                modalLog("Không thể parse package, sử dụng API trực tiếp...", 'warning');
+                useDirectAPI = true;
+            } else {
+                modalLog(`Parsed: Style ${styleInfo.stylecode} | Size ${styleInfo.stylesize} | Color ${styleInfo.stylecolorserial} | Rev ${styleInfo.revno}`, 'success');
+            }
+
+            const opsUrl = `${MODULE_API}?mxpackage=${encodeURIComponent(pkgId)}&mode=operations&apikey=${apiKey}`;
+            const opsRes = await fetch(opsUrl, { signal: scanAbortController.signal });
+            const opsData = await opsRes.json();
+            
+            if(!opsData.success || !opsData.data?.operations) throw new Error("Lỗi lấy danh sách công đoạn.");
+            
+            const operations = opsData.data.operations;
+            modalLog(`Tìm thấy ${operations.length} công đoạn.`, 'info');
+            
+            for(let i=0; i<operations.length; i++) {
+                // Check Token Age bên trong vòng lặp quét dài
+                if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
+                    await refreshTurnstileToken();
+                }
+
+                const op = operations[i];
+                updateModalProgress((i/operations.length)*100, `Quét OP: ${op.opserial}`);
+                
+                try {
+                    let detailUrl = '';
+                    if (useDirectAPI) {
+                        detailUrl = `${MODULE_DETAIL_API}?mxpackage=${encodeURIComponent(pkgId)}&opserial=${op.opserial}&apikey=${apiKey}`;
+                    } else {
+                        detailUrl = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
+                    }
+                    
+                    // Thêm token vào request nếu cần
+                    if (turnstileToken && !isLocalhost) detailUrl += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
+
+                    const detailRes = await fetch(detailUrl, { signal: scanAbortController.signal });
+                    const detailJson = await detailRes.json();
+                    
+                    if(detailJson.success && detailJson.data?.Result?.MachineList) {
+                        detailJson.data.Result.MachineList.forEach(m => {
+                            if(m.MCID && m.MCID !== 'N/A') {
+                                discoveredMachines.push({
+                                    pkg: pkgId,
+                                    mcid: m.MCID,
+                                    opserial: op.opserial,
+                                    opname: op.opname || 'Unknown',
+                                    module: op.modulename || op.MODULENAME || 'N/A',
+                                    remarks: op.remarks || op.REMARKS || '', 
+                                    iotType: (op.iottype || 'NONE').toUpperCase(),
+                                    lastIotData: m.LAST_IOT_DATA,
+                                    lastIotTime: m.LAST_IOT_DATA_RECEIVE_TIME,
+                                    selected: false
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn(`Lỗi quét OP ${op.opserial}:`, err);
+                    modalLog(`⚠️ Lỗi quét OP ${op.opserial}: ${err.message}`, 'warning');
+                }
+                await new Promise(r => setTimeout(r, 100));
+            }
+            
+            renderMachinesModal();
+            modalLog(`Hoàn tất. Tìm thấy ${discoveredMachines.length} máy.`, 'success');
+            
+        } catch (e) {
+            if(e.name === 'AbortError') modalLog("Đã dừng quét.", 'warning');
+            else modalLog(`Lỗi: ${e.message}`, 'error');
+        } finally {
+            isScanning = false;
+            updateModalProgress(100, "Hoàn tất");
+            document.getElementById('btnStartScan').disabled = false;
+            document.getElementById('btnStartScan').innerHTML = '<i class="fas fa-search"></i> Quét Chi Tiết IoT';
+        }
+    }
+
+    function renderMachinesModal() {
+        const container = document.getElementById('machineListContainer');
+        document.getElementById('statFound').innerText = discoveredMachines.length;
+        
+        if(discoveredMachines.length === 0) {
+            container.innerHTML = `<div style="padding:30px;text-align:center;color:#ef4444">Không tìm thấy máy nào. Vui lòng kiểm tra lại Package ID.</div>`;
+            return;
+        }
+        
+        let html = '';
+        discoveredMachines.forEach((m, idx) => {
+            const badgeClass = m.iotType === 'FA' ? 'iot-fa' : (m.iotType === 'QA' ? 'iot-qa' : 'iot-none');
+            const iotDataDisplay = (m.lastIotData !== null && m.lastIotData !== undefined) ? m.lastIotData : 'N/A';
+            const iotTimeDisplay = formatDateTime(m.lastIotTime);
+            const remarksPart = m.remarks ? ` | <span class="machine-remarks">${m.remarks}</span>` : '';
+            
+            html += `
+                <div class="machine-item" id="modal-machine-${idx}">
+                    <input type="checkbox" class="machine-checkbox" onchange="toggleMachineModal(${idx})" ${m.selected ? 'checked' : ''}>
+                    <div class="machine-info">
+                        <div class="machine-row-1">
+                            <span class="machine-title">${m.opname}</span>
+                            <span style="color:#64748b">|</span>
+                            <span class="machine-module">${m.module}</span>
+                            ${remarksPart}
+                        </div>
+                        <div class="machine-row-2">
+                            <span class="mcid-tag">${m.mcid}</span>
+                            <span style="margin: 0 5px;">•</span>
+                            <span>OP: <strong>${m.opserial}</strong></span>
+                            <span style="margin-left: 10px;" class="iot-badge ${badgeClass}">${m.iotType}</span>
+                        </div>
+                        <div class="machine-iot-row">
+                            <div><span class="iot-time-label">IoT Data:</span> <span class="iot-value">${iotDataDisplay}</span></div>
+                            <div><span class="iot-time-label">THỜI GIAN NHẬN DỮ LIỆU:</span> <span class="iot-time-value">${iotTimeDisplay}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        
+        // Cập nhật nút batch actions
+        updateBatchActionButtons();
+    }
+
+    function toggleMachineModal(idx) {
+        discoveredMachines[idx].selected = !discoveredMachines[idx].selected;
+        const el = document.getElementById(`modal-machine-${idx}`);
+        discoveredMachines[idx].selected ? el.classList.add('selected') : el.classList.remove('selected');
+        updateMachineStats();
+    }
+
+    function toggleAllMachines(isSelect) {
+        discoveredMachines.forEach(m => m.selected = isSelect);
+        document.querySelectorAll('.machine-checkbox').forEach(cb => cb.checked = isSelect);
+        document.querySelectorAll('.machine-item').forEach(el => isSelect ? el.classList.add('selected') : el.classList.remove('selected'));
+        updateMachineStats();
+    }
+
+    function updateMachineStats() {
+        const count = discoveredMachines.filter(m => m.selected).length;
+        document.getElementById('statSelected').innerText = count;
+        updateBatchActionButtons();
+    }
+
+    function updateModalProgress(pct, text) {
+        document.getElementById('modalProgressFill').style.width = `${pct}%`;
+        document.getElementById('modalProgressText').innerText = `${Math.round(pct)}% - ${text}`;
+    }
+
+    function modalLog(msg, type = 'info') {
+        const el = document.getElementById('modalLogConsole');
+        const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
+        let colorClass = 'modal-log-info';
+        if (type === 'error') colorClass = 'modal-log-error';
+        else if (type === 'success') colorClass = 'modal-log-success';
+        else if (type === 'warning') colorClass = 'modal-log-warning';
+        
+        el.innerHTML += `<div class="modal-log-entry"><span class="modal-log-time">[${time}]</span><span class="${colorClass}">${msg}</span></div>`;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    /* ========== BATCH ACTIONS FUNCTIONS ========== */
+    function updateBatchActionButtons() {
+        const selectedCount = discoveredMachines.filter(m => m.selected).length;
+        const hasSelected = selectedCount > 0;
+        
+        document.getElementById('btnBatchRemove').disabled = !hasSelected;
+        document.getElementById('btnBatchFA').disabled = !hasSelected;
+        document.getElementById('btnBatchQA').disabled = !hasSelected;
+    }
+
+    async function processBatchAction(action) {
+        // Kiểm tra trạng thái package
+        const packageStatus = currentPackageStatus || await getPackageStatus(currentModalPackage);
+        if (packageStatus === "RO") {
+            modalLog(`❌ KHÔNG THỂ ${action}: Gói đang ở trạng thái RO (Read Only).`, "error");
+            alert(`❌ KHÔNG THỂ ${action}!\nGói đang ở trạng thái RO (Read Only).\nVui lòng đi CF gói trước!`);
+            return;
+        }
+
+        const selected = discoveredMachines.filter(m => m.selected);
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất một máy!");
+            return;
+        }
+
+        const confirmMsg = action === 'FA' 
+            ? `Gửi lệnh FA đến ${selected.length} máy đã chọn?`
+            : action === 'QA'
+            ? `Gửi lệnh QA đến ${selected.length} máy đã chọn?`
+            : `⚠️ CẢNH BÁO: Xóa ${selected.length} máy khỏi Package?`;
+
+        if(!confirm(confirmMsg)) return;
+
+        const apiKey = document.getElementById('apiKey').value.trim();
+        let success = 0, fail = 0;
+
+        // Hiển thị progress
+        document.getElementById('modalProgressContainer').style.display = 'block';
+        updateModalProgress(0, `Đang ${action}...`);
+
+        for(let i=0; i<selected.length; i++) {
+            // Check token timeout
+            if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
+                await refreshTurnstileToken();
+            }
+
+            const item = selected[i];
+            updateModalProgress((i/selected.length)*100, `${action}: ${item.mcid}`);
+            
+            try {
+                let url = '';
+                if (action === 'FA' || action === 'QA') {
+                    url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}&processtype=${action}`;
+                } else {
+                    url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
+                }
+                
+                // Thêm Token vào request
+                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
+
+                const res = await fetch(url);
+                const json = await res.json();
+                
+                if(json.IsSuccess) {
+                    success++;
+                    modalLog(`✅ ${action} OK: ${item.mcid}`, 'success');
+                    
+                    // Cập nhật UI
+                    const row = document.getElementById(`modal-machine-${discoveredMachines.indexOf(item)}`);
+                    if(action === 'REMOVE') {
+                        row.style.opacity = '0.4'; 
+                        row.style.textDecoration = 'line-through';
+                        row.querySelector('input').disabled = true; 
+                        item.selected = false;
+                    } else {
+                        row.style.background = 'rgba(16, 185, 129, 0.1)';
+                    }
+                } else throw new Error(json.Log || 'Fail');
+            } catch(e) {
+                fail++;
+                modalLog(`❌ Lỗi ${item.mcid}: ${e.message}`, 'error');
+            }
+            await new Promise(r => setTimeout(r, 500));
+        }
+
+        updateModalProgress(100, `Hoàn tất: ${success} OK, ${fail} Lỗi`);
+        updateMachineStats();
+        
+        // Tự động ẩn progress sau 3 giây
+        setTimeout(() => {
+            document.getElementById('modalProgressContainer').style.display = 'none';
+        }, 3000);
+        
+        alert(`Đã xử lý xong!\nThành công: ${success}\nThất bại: ${fail}`);
+    }
+
+    /* ========== UTILITY FUNCTIONS FOR MODAL ========== */
+    function toggleSelectAllModal() {
+        const cbs = document.querySelectorAll('.serial-checkbox');
+        const allChecked = Array.from(cbs).every(c => c.checked);
+        cbs.forEach(c => c.checked = !allChecked);
+    }
+
+    function copySerialsModal() {
+        const checked = document.querySelectorAll('.serial-checkbox:checked');
+        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
+        const txt = Array.from(checked).map(cb => cb.value).join('\n');
+        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Serial!`));
+    }
+
+    function copyRemarksModal() {
+        const checked = document.querySelectorAll('.serial-checkbox:checked');
+        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
+        const txt = Array.from(checked).map(cb => cb.dataset.name).join('\n');
+        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Tên công đoạn!`));
+    }
+
+    async function processSelectedItems(action, btnElement) {
+        const checked = document.querySelectorAll('.serial-checkbox:checked');
+        if(checked.length === 0) return alert("Vui lòng tích chọn máy cần xử lý!");
+        
+        if (!turnstileToken && !isLocalhost) {
+            alert("Vui lòng xác thực bảo mật (Turnstile) ở màn hình chính trước!");
+            return;
+        }
+
+        // Kiểm tra trạng thái package
+        const packageStatus = currentPackageStatus || await getPackageStatus(currentModalPackage);
+        if (packageStatus === "RO") {
+            alert("❌ KHÔNG THỂ XỬ LÝ!\nGói đang ở trạng thái RO (Read Only).\nVui lòng đi CF gói trước!");
+            return;
+        }
+
+        const pkg = currentModalPackage;
+        const apiKey = document.getElementById('apiKey').value;
+        const confirmMsg = action === 'FA' 
+            ? `Gửi lệnh FA cho ${checked.length} máy đã chọn?` 
+            : `⚠️ CẢNH BÁO: Bạn có chắc muốn XÓA ${checked.length} máy khỏi Package?`;
+
+        if(!confirm(confirmMsg)) return;
+
+        let successCount = 0;
+        
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = `<span class="loader" style="width:15px;height:15px;border-width:2px;"></span> Đang chạy...`;
+        btnElement.disabled = true;
+
+        for (const cb of checked) {
+            const opserial = cb.value;
+            const mcid = cb.dataset.mcid || ""; 
+            
+            if (action === 'FA' && !mcid) {
+                console.warn(`Bỏ qua Op ${opserial} vì chưa có MCID`);
+                continue;
+            }
+
+            try {
+                let url = "";
+                if (action === 'FA') {
+                    url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}&processtype=FA`;
+                } else {
+                    url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
+                }
+                
+                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
+
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.IsSuccess) {
+                    successCount++;
+                    const row = document.getElementById(`row-${opserial}`);
+                    if(action === 'REMOVE') {
+                        row.style.opacity = '0.5'; 
+                        row.style.textDecoration = 'line-through';
+                        cb.checked = false;
+                        cb.dataset.mcid = "";
+                        row.querySelector('.mcid-col').innerHTML = '<span style="color:red">Đã xóa</span>';
+                    } else {
+                        row.style.backgroundColor = '#dcfce7'; 
+                    }
+                }
+            } catch (e) {
+                console.error(`Lỗi ${action} ${opserial}:`, e);
+            }
+        }
+        
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+        alert(`Hoàn tất! Thành công: ${successCount}/${checked.length}`);
+    }
+
+    function copySelectedMcids() {
+        const selected = discoveredMachines.filter(m => m.selected);
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
+            return;
+        }
+        
+        const txt = selected.map(m => m.mcid).join('\n');
+        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${selected.length} MCID!`));
+    }
+
+    function copySelectedRemarks() {
+        const selected = discoveredMachines.filter(m => m.selected);
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
+            return;
+        }
+        
+        const txt = selected.map(m => m.opname).join('\n');
+        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${selected.length} tên công đoạn!`));
+    }
+
+    function exportSelectedData() {
+        const selected = discoveredMachines.filter(m => m.selected);
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
+            return;
+        }
+        
+        const csv = "Opserial,MCID,Type,OpName,Module,Remarks,IoTData,IoTTime\n" +
+            selected.map(m => 
+                `${m.opserial},${m.mcid},${m.iotType},"${m.opname}","${m.module}","${m.remarks}",${m.lastIotData||''},${m.lastIotTime||''}`
+            ).join('\n');
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob(["\uFEFF"+csv], {type: 'text/csv'}));
+        a.download = `Package_${currentModalPackage}_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
     }
 
     // Hàm mới: Lấy chi tiết máy cho danh sách operations
