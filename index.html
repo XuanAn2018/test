@@ -1,10 +1,10 @@
-<!-- START OF FILE mes_production_v7.4_enhanced_img.html -->
+<!-- START OF FILE mes_production_v7.6_final.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Production V7.4 (Enhanced + Gallery)</title>
+    <title>MES Production V7.6 (Gallery Mode)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
@@ -59,36 +59,73 @@
         .line-header::before { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-right: 10px; }
         .line-header::after { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-left: 10px; }
         
-        /* ========== PACKAGE LIST (UPDATED WITH IMAGE STYLE) ========== */
+        /* ========== PACKAGE LIST (NEW LAYOUT) ========== */
         .package-list-container { max-height: 550px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 5px; }
-        .package-card { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; border-radius: 6px; margin-bottom: 4px; background: white; border: 1px solid #e0e0e0; }
-        .package-card:hover { background: #f5f5f5; border-color: #ccc; }
-        .package-card.selected { background: #e3f2fd; border: 2px solid #2196F3; }
         
-        /* CSS ẢNH THUMBNAIL */
-        .pkg-left { flex: 1; padding-right: 15px; display: flex; align-items: center; gap: 12px; }
-        .pkg-thumb-box {
-            width: 70px; height: 70px;
-            border-radius: 6px; border: 1px solid #eee; background: #f8f9fa;
-            flex-shrink: 0; padding: 2px; position: relative; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
+        /* Giao diện thẻ Package mới: GRID 3 CỘT (Ảnh - Info - Status) */
+        .package-card { 
+            display: grid; 
+            grid-template-columns: 110px 1fr 100px; /* Cột ảnh 110px cố định */
+            gap: 0;
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px; 
+            margin-bottom: 8px; 
+            background: white; 
+            cursor: pointer; 
+            overflow: hidden; /* Để ảnh bo góc theo thẻ */
+            transition: all 0.2s;
+            min-height: 110px; /* Chiều cao tối thiểu */
         }
-        .pkg-thumb { width: 100%; height: 100%; object-fit: contain; display: block; }
-
-        /* TEXT CONTENT */
-        .pkg-content-text { flex: 1; }
-        .pkg-id { font-weight: 800; color: #1565c0; font-size: 16px; margin-bottom: 5px; word-break: break-all; }
-        .pkg-meta { font-size: 15px; color: #333; display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
-        .pkg-meta-row { display: flex; align-items: center; gap: 8px; }
-        .meta-icon { width: 18px; text-align: center; color: #777; font-size: 13px; }
-        .pkg-right { text-align: right; min-width: 130px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
         
+        .package-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-color: #bbb; }
+        .package-card.selected { border: 2px solid #2196F3; background: #e3f2fd; }
+
+        /* CỘT 1: ẢNH TO */
+        .pkg-img-col {
+            background: #f1f1f1;
+            border-right: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .pkg-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Lấp đầy khung mà không méo */
+            display: block;
+        }
+
+        /* CỘT 2: THÔNG TIN */
+        .pkg-info-col {
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+        .pkg-id { font-weight: 800; color: #1565c0; font-size: 14px; word-break: break-all; margin-bottom: 2px; }
+        .pkg-style { font-weight: bold; font-size: 15px; color: #333; }
+        .pkg-sub { font-size: 13px; color: #666; display: flex; flex-wrap: wrap; gap: 8px; }
+        .pkg-tag { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #eee; font-size: 12px; }
+
+        /* CỘT 3: TRẠNG THÁI (Giữ nguyên) */
+        .pkg-status-col {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(255,255,255,0.5);
+            border-left: 1px dashed #eee;
+        }
+
         /* ========== OT BADGE ========== */
-        .ot-badge { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 4px; margin-right: 5px; vertical-align: middle; box-shadow: 0 2px 4px rgba(123, 31, 162, 0.3); text-transform: uppercase; }
+        .ot-badge { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; font-size: 10px; font-weight: 800; padding: 2px 4px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
         
         /* ========== PACKAGE STATUS ========== */
-        .qty-display { font-size: 20px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
-        .status-text { font-size: 12px; font-weight: 600; opacity: 0.9; }
+        .qty-display { font-size: 18px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
+        .status-text { font-size: 11px; font-weight: 600; opacity: 0.9; }
         .st-done .qty-display { color: #2e7d32; background: #e8f5e9; } .st-done .status-text { color: #2e7d32; }
         .st-over .qty-display { color: #1565c0; background: #e3f2fd; } .st-over .status-text { color: #1565c0; }
         .st-miss .qty-display { color: #e65100; background: #fff3e0; } .st-miss .status-text { color: #e65100; }
@@ -272,8 +309,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-industry"></i> MES Production V7.4</h1>
-            <p>Smart Grouping & Intelligent Split (Enhanced + Gallery)</p>
+            <h1><i class="fas fa-industry"></i> MES Production V7.6</h1>
+            <p>Smart Grouping & Gallery Mode (Strict Logic)</p>
         </div>
         
         <div class="content">
@@ -657,11 +694,11 @@
 
     <script>
         // ========== API ENDPOINTS & CONFIG ==========
-        const WORKER_URL = "https://mes-proxy.vercel.app/api"; // PROXY URL (NEW)
+        const WORKER_URL = "https://mes-proxy.vercel.app/api"; // PROXY URL
         const PROD_API = "https://hourly-target.chiscoong-cloudflare-com.workers.dev/api/production";
         const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
-        const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails"; // API CŨ cho số liệu
-        const OT_API = "https://ot-requests.chiscoong-cloudflare-com.workers.dev/package/slot-summary"; // API MỚI chỉ cho OT
+        const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
+        const OT_API = "https://ot-requests.chiscoong-cloudflare-com.workers.dev/package/slot-summary";
         const SCANNER_API = "https://mes-qr-scanner.chiscoong-cloudflare-com.workers.dev/";
         
         // ========== TURNSTILE CONFIG ==========
@@ -686,9 +723,6 @@
         let faStatus = {};
         let globalFaEnabled = true;
         let manualFaRequested = true;
-        
-        // Cache để lưu tên ảnh của các Style đã tìm thấy, tránh gọi API nhiều lần cho cùng 1 style (NEW)
-        let styleImageCache = {}; 
 
         const timeSlots = [
             "07:15 - 08:15", "08:15 - 09:15", "09:15 - 10:15", "10:15 - 11:15", 
@@ -758,17 +792,6 @@
             const savedKey = localStorage.getItem('mesApiKey');
             if(savedKey) document.getElementById('apiKey').value = savedKey;
             if (isLocalhost) document.getElementById('turnstileWidget').style.display = 'none';
-
-            // ENTER KEY LISTENER FOR CONFIRM MODAL (NEW)
-            document.addEventListener('keydown', function(event) {
-                if (event.key === "Enter") {
-                    const confirmModal = document.getElementById('confirmModal');
-                    if (confirmModal.classList.contains('open')) {
-                        event.preventDefault(); // Prevent accidental form submission
-                        confirmSendToMES();
-                    }
-                }
-            });
         });
 
         // ========== CONFIG FUNCTIONS ==========
@@ -783,83 +806,32 @@
             if(selectedPackageId) recalculateTarget();
         }
 
-        // ========== CORE LOGIC MỚI: TÌM ẢNH TỪ API (NEW) ==========
-        async function fetchStyleImageInfo(styleCode, apiKey) {
-            // Nếu đã có trong cache thì trả về ngay (tiết kiệm request)
-            if (styleImageCache[styleCode]) return styleImageCache[styleCode];
-
+        // ========== HELPER: IMAGE URL GENERATOR (STRICT LOGIC) ==========
+        function generateThumbnailUrl(pkgId, apiFileName) {
+            if (!apiFileName) return 'https://placehold.co/150x200?text=No+Img';
+            
             try {
-                // Gọi API buyerstylecodes
-                const url = `${WORKER_URL}/buyerstylecodes?stylecode=${styleCode}`;
-                const res = await fetch(url, {
-                    headers: { 'x-access-token': apiKey } // API này cần mật khẩu
-                });
-                
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.IsSuccess && json.Result && json.Result.length > 0) {
-                        const info = json.Result[0];
-                        // Lưu vào cache
-                        const data = {
-                            picture: info.PICTURE,
-                            buyer: info.BUYER
-                        };
-                        styleImageCache[styleCode] = data;
-                        return data;
-                    }
-                }
-            } catch (e) {
-                console.warn(`Lỗi lấy ảnh cho style ${styleCode}:`, e);
-            }
-            // Nếu lỗi hoặc không tìm thấy, lưu cache null để không tìm lại nữa
-            styleImageCache[styleCode] = null;
-            return null;
-        }
+                // 1. Phân tách mã Package: M_RUX-0033_1_RUX0064SMA001001_01_01
+                const parts = pkgId.split('_');
+                if (parts.length < 4) return 'https://placehold.co/150x200?text=Invalid';
 
-        // HÀM TẢI ẢNH NGẦM (Fallback thông minh: wsrv -> proxy -> placeholder) (NEW)
-        async function loadImagesForPackages(packages, apiKey) {
-            // Lấy danh sách các Style Code duy nhất cần tìm ảnh
-            const uniqueStyles = [...new Set(packages.map(p => p.styleCodeForImg).filter(s => s))];
+                // Lấy phần Style (Vị trí index 3): RUX0064SMA001001
+                const stylePart = parts[3];
 
-            // Duyệt qua từng style để tìm ảnh
-            for (const styleCode of uniqueStyles) {
-                // Gọi API tìm tên ảnh
-                const imgInfo = await fetchStyleImageInfo(styleCode, apiKey);
-                
-                if (imgInfo && imgInfo.picture) {
-                    // Tạo link gốc và link thumbnail
-                    const originalUrl = `${WORKER_URL}/PKPDM/style/${imgInfo.buyer}/${styleCode}/Images/${imgInfo.picture}`;
-                    const cacheBuster = new Date().getTime(); 
-                    const thumbUrl = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=150&output=webp&q=80&t=${cacheBuster}`;
+                // 2. Logic Cứng: Folder Style = 7 ký tự đầu
+                const styleFolder = stylePart.substring(0, 7).toUpperCase(); 
 
-                    // Cập nhật tất cả thẻ img có class tương ứng trên giao diện
-                    const imgs = document.querySelectorAll(`.img-style-${styleCode}`);
-                    imgs.forEach(img => {
-                        // Lưu link gốc để dùng khi lỗi
-                        img.dataset.original = originalUrl;
-                        
-                        // Xử lý khi lỗi
-                        img.onerror = function() {
-                            if (this.src.includes('wsrv.nl')) {
-                                // Nếu wsrv lỗi -> chuyển sang link gốc
-                                this.src = this.dataset.original;
-                            } else {
-                                // Nếu link gốc cũng lỗi -> hiện placeholder
-                                this.src = "https://placehold.co/150x150?text=No+Img";
-                                this.onerror = null;
-                            }
-                        };
-                        
-                        img.src = thumbUrl;
-                    });
-                } else {
-                    // Nếu không tìm thấy, set ảnh mặc định
-                    const imgs = document.querySelectorAll(`.img-style-${styleCode}`);
-                    imgs.forEach(img => {
-                        img.src = "https://placehold.co/150x150?text=No+Data";
-                        img.style.opacity = 0.5;
-                    });
-                }
+                // 3. Logic Cứng: Buyer = 3 ký tự đầu
+                const buyer = stylePart.substring(0, 3).toUpperCase();
+
+                // 4. Tạo URL Proxy
+                const fullUrl = `${WORKER_URL}/PKPDM/style/${buyer}/${styleFolder}/Images/${apiFileName}`;
+
+                // 5. Tạo URL Thumbnail qua wsrv.nl
+                return `https://wsrv.nl/?url=${encodeURIComponent(fullUrl)}&w=250&output=webp&q=85`;
+            } catch(e) {
+                console.error("Error generating thumb:", e);
+                return 'https://placehold.co/150x200?text=Error';
             }
         }
 
@@ -884,26 +856,25 @@
 
                 allPackages = rawPackages.map(p => {
                     const pid = p.packageId || p.MXPACKAGE;
+                    // Lấy FileName từ API (Đã có nhờ sửa Worker)
+                    const fileName = p.FileName || p.filename || null;
+                    
                     return {
                         id: pid,
                         style: p.styleText || p.STYLETEXT || "N/A",
                         line: p.lineName || (p.remarks?.match(/LINE\s*([A-Za-z0-9]+)/i)?.[1]) || pid.split('_')[1] || "N/A",
                         target: parseInt(p.target || p.MXTARGET || 0),
                         color: p.color || p.COLOR || p.Color || "",
+                        fileName: fileName, 
                         actual: null, 
                         loading: true,
                         hasOT: false,
-                        searchString: `${pid} ${p.styleText} ${p.lineName} ${p.color}`.toLowerCase(),
-                        // Tách Style Code (7 ký tự) từ MXPACKAGE để tìm ảnh (NEW)
-                        styleCodeForImg: pid.split('_')[3]?.substring(0, 7) || ""
+                        searchString: `${pid} ${p.styleText} ${p.lineName} ${p.color}`.toLowerCase()
                     };
                 });
                 
                 renderPackageList(allPackages);
                 syncProductionStatus(allPackages, apiKey);
-                
-                // Gọi load ảnh ngầm sau khi render xong (NEW)
-                loadImagesForPackages(allPackages, apiKey);
 
             } catch (e) { 
                 listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:red;">Lỗi tải: ${e.message}</div>`;
@@ -932,7 +903,6 @@
                 activeRequests++;
                 
                 try {
-                    // SỬ DỤNG API CŨ để lấy số liệu thực tế (đảm bảo "Đủ Target")
                     const oldApiUrl = `${MODULE_API}?mxpackage=${p.id}&mode=summary&apikey=${apiKey}`;
                     const oldRes = await fetch(oldApiUrl);
                     const oldJson = await oldRes.json();
@@ -942,7 +912,6 @@
                         totalEntered = oldJson.data.summary.total_manual_input || 0;
                     }
                     
-                    // SỬ DỤNG API MỚI CHỈ để kiểm tra OT
                     let hasOT = false;
                     try {
                         const otUrl = `${OT_API}?mxpackage=${p.id}&apikey=${apiKey}`;
@@ -980,14 +949,13 @@
             const statusDiv = document.getElementById(`status-${p.id}`);
             if (!statusDiv) return;
             
-            statusDiv.className = 'pkg-right';
+            statusDiv.className = 'pkg-status-col';
             statusDiv.classList.remove('st-done', 'st-over', 'st-miss', 'st-pend');
 
-            // Thêm badge OT nếu có
             const otBadge = p.hasOT ? '<span class="ot-badge">OT</span>' : '';
 
             if (p.loading) {
-                statusDiv.innerHTML = `<span class="status-loading"><span class="mini-loader"></span> Kiểm tra...</span>`;
+                statusDiv.innerHTML = `<span class="status-loading"><span class="mini-loader"></span></span>`;
             } else if (p.actual === 0 || p.actual === null) {
                 statusDiv.classList.add('st-pend');
                 statusDiv.innerHTML = `<span class="qty-display"><i class="far fa-circle"></i></span><span class="status-text">Chưa nhập</span>`;
@@ -998,7 +966,7 @@
                     statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Vượt ${diff}</span>`;
                 } else if (p.actual === p.target) {
                     statusDiv.classList.add('st-done');
-                    statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Đủ Target</span>`;
+                    statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Đủ</span>`;
                 } else {
                     statusDiv.classList.add('st-miss');
                     statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Thiếu ${Math.abs(diff)}</span>`;
@@ -1053,35 +1021,28 @@
                     container.appendChild(header);
                 }
                 
-                // Class ảnh để lazy load sau này (NEW)
-                const imgClass = `img-style-${p.styleCodeForImg}`;
+                // TẠO URL ẢNH (Logic mới)
+                const thumbUrl = generateThumbnailUrl(p.id, p.fileName);
 
                 const card = document.createElement('div');
                 card.className = 'package-card';
-                // HTML ĐÃ CẬP NHẬT ĐỂ HIỆN ẢNH (NEW)
                 card.innerHTML = `
-                    <div class="pkg-left">
-                        <div class="pkg-thumb-box">
-                             <img src="https://placehold.co/150x150?text=..." class="pkg-thumb ${imgClass}" data-style="${p.styleCodeForImg}">
-                        </div>
-                        <div class="pkg-content-text">
-                            <div class="pkg-id">${p.id}</div>
-                            <div class="pkg-meta">
-                                <div class="pkg-meta-row">
-                                    <i class="fas fa-tshirt meta-icon"></i> ${p.style}
-                                </div>
-                                <div class="pkg-meta-row">
-                                    <i class="fas fa-project-diagram meta-icon"></i> LINE ${p.line}
-                                </div>
-                                <div class="pkg-meta-row" style="color:#e65100">
-                                    <i class="fas fa-bullseye meta-icon"></i> Target: ${p.target}
-                                </div>
-                                ${p.color ? `<div class="pkg-meta-row"><i class="fas fa-palette meta-icon"></i> ${p.color}</div>` : ''}
-                            </div>
+                    <div class="pkg-img-col">
+                        <img src="${thumbUrl}" class="pkg-img" onerror="this.src='https://placehold.co/150x200?text=No+Img'">
+                    </div>
+                    
+                    <div class="pkg-info-col">
+                        <div class="pkg-id">${p.id}</div>
+                        <div class="pkg-style">${p.style}</div>
+                        <div class="pkg-sub">
+                            <span class="pkg-tag"><i class="fas fa-industry"></i> Line ${p.line}</span>
+                            <span class="pkg-tag" style="color:#e65100; font-weight:bold"><i class="fas fa-bullseye"></i> ${p.target}</span>
+                            ${p.color ? `<span class="pkg-tag"><i class="fas fa-palette"></i> ${p.color}</span>` : ''}
                         </div>
                     </div>
-                    <div class="pkg-right" id="status-${p.id}">
-                        <span class="status-loading"><span class="mini-loader"></span> Đang tải...</span>
+
+                    <div class="pkg-status-col" id="status-${p.id}">
+                        <span class="status-loading"><span class="mini-loader"></span></span>
                     </div>`;
                 card.onclick = () => selectPackageFromCard(p, card);
                 container.appendChild(card);
@@ -1094,8 +1055,6 @@
             const term = document.getElementById('packageSearch').value.toLowerCase();
             const textFiltered = allPackages.filter(p => p.searchString.includes(term));
             renderPackageList(textFiltered);
-            // Gọi lại load ảnh cho các item đã filter (NEW)
-            loadImagesForPackages(textFiltered, document.getElementById('apiKey').value);
         }
 
         function selectPackageFromCard(p, cardElem) {
@@ -2014,4 +1973,4 @@
     </script>
 </body>
 </html>
-<!-- END OF FILE mes_production_v7.4_enhanced_img.html -->
+<!-- END OF FILE mes_production_v7.6_final.html -->
