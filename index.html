@@ -1,712 +1,2017 @@
+<!-- START OF FILE mes_production_v7.4_enhanced_img.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Advanced Remover (Machines & Defects)</title>
+    <title>MES Production V7.4 (Enhanced + Gallery)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <style>
-        /* === CORE STYLES === */
+        /* ========== CSS CHUNG ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; padding: 20px; padding-bottom: 80px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 25px 40px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; display: flex; flex-direction: column; gap: 30px; }
         
-        /* HEADER */
-        .header { text-align: center; margin-bottom: 20px; padding: 20px; background: rgba(30, 41, 59, 0.8); border-radius: 15px; border: 1px solid #3b82f6; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .header h1 { font-size: 26px; margin-bottom: 5px; color: #60a5fa; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .header p { color: #94a3b8; font-size: 14px; }
-
-        /* TABS */
-        .tab-nav { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: rgba(15, 23, 42, 0.6); color: #94a3b8; font-weight: 600; cursor: pointer; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .tab-btn:hover { background: rgba(59, 130, 246, 0.1); color: #fff; }
-        .tab-btn.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.1); }
-        .tab-btn.active-danger { background: rgba(220, 38, 38, 0.2); color: #f87171; border-color: #ef4444; }
-
-        /* MAIN PANEL */
-        .main-panel { background: rgba(30, 41, 59, 0.6); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(59, 130, 246, 0.2); position: relative; }
+        /* ========== STEP INDICATOR ========== */
+        .step-indicator { display: flex; justify-content: center; margin: 20px 0 40px; gap: 10px; }
+        .step-dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; transition: 0.3s; }
+        .step-dot.active { background: #2196F3; transform: scale(1.2); }
         
-        /* CONFIG */
-        .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .config-card { background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 10px; border-left: 4px solid #3b82f6; }
-        .config-card h3 { color: #60a5fa; margin-bottom: 10px; font-size: 15px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 12px; }
-        .form-control { width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid #475569; border-radius: 6px; color: #fff; font-size: 13px; transition: 0.2s; }
-        .form-control:focus { border-color: #60a5fa; outline: none; background: rgba(255, 255, 255, 0.12); }
+        /* ========== STEP CONTAINERS ========== */
+        .step-container { display: none; background: white; border: 2px solid #e0e0e0; border-radius: 10px; padding: 25px; animation: fadeIn 0.5s; }
+        .step-container.active { display: block; border-color: #2196F3; box-shadow: 0 5px 20px rgba(33, 150, 243, 0.1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* PACKAGE INFO */
-        .package-details-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px; margin-top: 10px; display: none; }
-        .package-id-display { font-size: 13px; color: #10b981; font-weight: bold; word-break: break-all; margin-bottom: 5px; }
-        .package-meta-display { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; }
-        .meta-tag { background: rgba(15, 23, 42, 0.6); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 5px; }
-        .meta-highlight { color: #facc15; font-weight: bold; border-color: rgba(250, 204, 21, 0.3); }
-
-        /* BUTTONS */
-        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 20px 0; }
-        .btn { padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: white; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(110%); }
-        .btn-primary { background: #2563eb; }
-        .btn-danger { background: #dc2626; }
-        .btn-warning { background: #d97706; }
-        .btn-secondary { background: #475569; }
-        .btn-stop { background: #7c3aed; }
+        .step-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .step-title { font-size: 18px; color: #1e3c72; font-weight: bold; display: flex; gap: 10px; align-items: center; }
+        .step-number { background: #2196F3; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         
-        /* LIST AREA */
-        .list-container { max-height: 500px; overflow-y: auto; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; background: rgba(15, 23, 42, 0.8); margin-top: 15px; }
-        .empty-state { padding: 40px; text-align: center; color: #64748b; }
-        .item-checkbox { width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0; margin-top: 4px;}
-
-        /* --- DETAILED MACHINE ITEM STYLES (RESTORED) --- */
-        .machine-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 15px; align-items: flex-start; }
-        .machine-item.selected { background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; }
-        .machine-info { flex: 1; font-size: 13px; }
+        /* ========== FORM & INPUTS ========== */
+        .config-section { background: #f8f9fa; padding: 25px; border-radius: 10px; border-left: 5px solid #2196F3; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
+        .form-control { width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; transition: all 0.3s; }
         
-        /* Row 1: Name | Module | Remarks */
-        .m-row-1 { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
-        .m-opname { font-weight: 700; color: #e2e8f0; font-size: 14px; }
-        .m-divider { color: #475569; }
-        .m-module { color: #94a3b8; font-style: italic; }
-        .m-remarks { color: #facc15; font-size: 12px; background: rgba(250, 204, 21, 0.1); padding: 1px 6px; border-radius: 4px; }
-
-        /* Row 2: MCID | OP | Badge */
-        .m-row-2 { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
-        .m-mcid { color: #60a5fa; font-weight: bold; background: rgba(37, 99, 235, 0.2); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(37, 99, 235, 0.3); }
-        .m-opserial { color: #cbd5e1; }
-        .m-badge { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-        .bg-fa { background: #10b981; color: #fff; } /* Green */
-        .bg-qa { background: #8b5cf6; color: #fff; } /* Purple */
-        .bg-none { background: #64748b; color: #cbd5e1; } /* Gray */
-
-        /* Row 3: IoT Box */
-        .m-iot-box { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(45, 212, 191, 0.15); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .iot-line { display: flex; justify-content: space-between; align-items: center; }
-        .iot-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .iot-val { color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 13px; }
-        .iot-time { color: #e2e8f0; font-family: monospace; font-size: 12px; }
-
-        /* --- DEFECT ITEM STYLES --- */
-        .defect-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; align-items: flex-start; border-left: 3px solid transparent; }
-        .defect-item.selected { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; }
-        .defect-item:hover:not(.selected) { background: rgba(255,255,255,0.02); }
-        .defect-icon { width: 36px; height: 36px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
-        .defect-info { flex: 1; }
-        .defect-name { color: #f87171; font-weight: 700; font-size: 14px; margin-bottom: 4px; line-height: 1.4; }
-        .defect-meta { font-size: 12px; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .defect-tag { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+        /* ========== WORK MODE SELECTION ========== */
+        .work-mode-container { display: flex; gap: 20px; margin-top: 10px; }
+        .work-mode-card { flex: 1; border: 2px solid #ddd; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: white; position: relative; overflow: hidden; }
+        .work-mode-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .work-mode-card.selected { border-color: #2196F3; background: #e3f2fd; box-shadow: 0 8px 20px rgba(33, 150, 243, 0.25); }
+        .work-mode-card.selected::after { content: "\f00c"; font-family: "Font Awesome 5 Free"; font-weight: 900; position: absolute; top: 10px; right: 10px; color: #2196F3; font-size: 20px; }
+        .mode-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+        .mode-title { font-weight: bold; font-size: 18px; display: block; margin-bottom: 5px; }
         
-        /* PROGRESS BAR */
-        .progress-container { margin: 15px 0; display: none; }
-        .progress-bar { height: 18px; background: rgba(255, 255, 255, 0.1); border-radius: 9px; overflow: hidden; position: relative; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); width: 0%; transition: width 0.3s; }
-        .progress-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        /* ========== SEARCH & FILTER ========== */
+        .search-row { display: flex; gap: 10px; align-items: center; }
+        .search-box-wrapper { position: relative; flex: 1; }
+        .search-box-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        .search-input { padding-left: 40px; }
+        .filter-select { padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: bold; color: #555; cursor: pointer; background: white; min-width: 140px; }
         
-        /* LOG CONSOLE */
-        .log-console { background: #0f172a; border-radius: 8px; padding: 10px; margin-top: 15px; max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; border: 1px solid #334155; }
-        .log-entry { margin-bottom: 3px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; display: flex; }
-        .log-time { color: #64748b; min-width: 65px; margin-right: 8px; }
-        .log-success { color: #10b981; } .log-error { color: #ef4444; } .log-info { color: #60a5fa; } .log-warn { color: #f59e0b; }
+        /* ========== LINE GROUP HEADER ========== */
+        .line-header { background: #fff3e0; color: #e65100; padding: 10px 15px; font-weight: 800; border-left: 5px solid #ff9800; margin-top: 15px; margin-bottom: 5px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-size: 16px; }
+        .line-header::before { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-right: 10px; }
+        .line-header::after { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-left: 10px; }
+        
+        /* ========== PACKAGE LIST (UPDATED WITH IMAGE STYLE) ========== */
+        .package-list-container { max-height: 550px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 5px; }
+        .package-card { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; border-radius: 6px; margin-bottom: 4px; background: white; border: 1px solid #e0e0e0; }
+        .package-card:hover { background: #f5f5f5; border-color: #ccc; }
+        .package-card.selected { background: #e3f2fd; border: 2px solid #2196F3; }
+        
+        /* CSS ẢNH THUMBNAIL */
+        .pkg-left { flex: 1; padding-right: 15px; display: flex; align-items: center; gap: 12px; }
+        .pkg-thumb-box {
+            width: 70px; height: 70px;
+            border-radius: 6px; border: 1px solid #eee; background: #f8f9fa;
+            flex-shrink: 0; padding: 2px; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pkg-thumb { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-        /* WIDGET */
-        .turnstile-floating { position: fixed; bottom: 20px; right: 20px; z-index: 999; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #3b82f6; width: 300px; transition: 0.3s; overflow: hidden; }
-        .turnstile-header { padding: 8px 12px; background: #eff6ff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #bfdbfe; }
-        .turnstile-title { font-size: 12px; font-weight: bold; color: #1e40af; }
-        .turnstile-body { padding: 12px; display: flex; justify-content: center; }
-        .turnstile-floating.minimized { width: 48px; height: 48px; border-radius: 50%; bottom: 30px; right: 30px; cursor: pointer; }
+        /* TEXT CONTENT */
+        .pkg-content-text { flex: 1; }
+        .pkg-id { font-weight: 800; color: #1565c0; font-size: 16px; margin-bottom: 5px; word-break: break-all; }
+        .pkg-meta { font-size: 15px; color: #333; display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+        .pkg-meta-row { display: flex; align-items: center; gap: 8px; }
+        .meta-icon { width: 18px; text-align: center; color: #777; font-size: 13px; }
+        .pkg-right { text-align: right; min-width: 130px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+        
+        /* ========== OT BADGE ========== */
+        .ot-badge { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; font-size: 11px; font-weight: 800; padding: 3px 6px; border-radius: 4px; margin-right: 5px; vertical-align: middle; box-shadow: 0 2px 4px rgba(123, 31, 162, 0.3); text-transform: uppercase; }
+        
+        /* ========== PACKAGE STATUS ========== */
+        .qty-display { font-size: 20px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
+        .status-text { font-size: 12px; font-weight: 600; opacity: 0.9; }
+        .st-done .qty-display { color: #2e7d32; background: #e8f5e9; } .st-done .status-text { color: #2e7d32; }
+        .st-over .qty-display { color: #1565c0; background: #e3f2fd; } .st-over .status-text { color: #1565c0; }
+        .st-miss .qty-display { color: #e65100; background: #fff3e0; } .st-miss .status-text { color: #e65100; }
+        .st-pend .qty-display { color: #757575; background: #f5f5f5; font-size: 16px; } .st-pend .status-text { color: #757575; }
+        .status-loading { color: #2196F3; font-size: 12px; font-style: italic; }
+        .mini-loader { width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #2196F3; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        
+        /* ========== SUMMARY BANNER ========== */
+        .summary-banner { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
+        .summary-val { font-size: 18px; font-weight: bold; }
+        
+        /* ========== SPLIT TOOLBAR (FIXED LAYOUT) ========== */
+        .split-toolbar { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .split-toolbar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .split-toolbar-header h4 { margin: 0; color: #e65100; font-size: 16px; }
+        .split-toolbar-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .custom-hour-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-weight: bold; }
+        .btn-separator { width: 2px; height: 30px; background: #ddd; margin: 0 5px; }
+        
+        /* ========== MANUAL INPUT SECTION ========== */
+        .manual-summary { margin-top: 20px; padding: 20px; background: #263238; color: white; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; transition: background 0.3s; }
+        .manual-summary-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        .summary-block { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
+        .summary-num { font-size: 32px; font-weight: bold; line-height: 1; }
+        .summary-label { font-size: 14px; color: #aaa; font-weight: normal; }
+        .remaining-badge { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* ========== TIME SLOT GRID ========== */
+        .manual-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
+        .slot-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; background: white; transition: 0.3s; min-height: 120px; }
+        .slot-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .slot-lunch-special { grid-column: span 4; background: #fff3e0 !important; border-color: #ffb74d !important; margin-top: 10px; margin-bottom: 10px; opacity: 0.8; }
+        .slot-lunch { background: #fff3e0; border-color: #ffb74d; }
+        .slot-ot { background: #f3e5f5; border-color: #e1bee7; }
+        .slot-badge { position: absolute; top: 0; right: 0; padding: 2px 8px; font-size: 11px; font-weight: bold; border-bottom-left-radius: 8px; }
+        .badge-lunch { background: #FF9800; color: white; }
+        .badge-ot { background: #9C27B0; color: white; }
+        .badge-break { background: #607D8B; color: white; }
+        .slot-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 600; color: #555; }
+        .slot-input-wrapper { position: relative; }
+        .slot-input { font-size: 24px; font-weight: bold; text-align: center; height: 50px; }
+        .slot-input:disabled { background: #eee; color: #aaa; cursor: not-allowed; }
+        .target-indicator { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #999; font-size: 14px; }
+        .status-success { background-color: #e8f5e9 !important; border-color: #4CAF50 !important; }
+        .status-warning { background-color: #fffde7 !important; border-color: #FBC02D !important; }
+        .status-error { background-color: #ffebee !important; border-color: #e53935 !important; }
+        
+        /* ========== BUTTONS ========== */
+        .btn { padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-primary { background: linear-gradient(90deg, #2196F3 0%, #21CBF3 100%); color: white; }
+        .btn-success { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); color: white; }
+        .btn-warning { background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%); color: white; }
+        .btn-info { background: linear-gradient(90deg, #00BCD4 0%, #00acc1 100%); color: white; }
+        .btn-purple { background: linear-gradient(90deg, #9C27B0 0%, #E040FB 100%); color: white; }
+        .btn-dark { background: #34495e; color: white; }
+        .btn-secondary { background: #7f8c8d; color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        
+        /* ========== PACKAGE INFO ========== */
+        .package-info-card { background: #f0f7ff; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .package-info-row { display: flex; margin-bottom: 8px; }
+        .package-info-label { font-weight: 600; min-width: 140px; color: #1565c0; }
+        
+        /* ========== HIDDEN UTILITY ========== */
+        .hidden { display: none !important; }
+        
+        /* ========== STEP 3: MACHINE SELECTION ========== */
+        .context-header { background: #fff3e0; border-left: 5px solid #ff9800; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .context-title { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .context-value { font-size: 16px; font-weight: bold; color: #e65100; margin-top: 5px; line-height: 1.4; word-break: break-all; }
+        .context-line { font-size: 15px; color: #1565c0; margin-top: 5px; font-weight: 600; border-top: 1px dashed #ffb74d; padding-top: 5px; }
+        
+        .auto-select-banner { margin: 15px 0; padding: 12px 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #4CAF50; }
+        .auto-select-text { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #2e7d32; margin-bottom: 5px; }
+        .auto-select-details { font-size: 13px; color: #666; margin-left: 28px; }
+        
+        .fa-control-panel { margin: 15px 0; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 1px solid #4CAF50; }
+        .fa-toggle-label { display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; }
+        
+        .selection-info { margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 5px solid #2196F3; }
+        
+        /* ========== MACHINE LIST ========== */
+        .machine-list { list-style: none; margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+        .machine-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; position: relative; }
+        .machine-item:hover { background: #f5f5f5; }
+        .machine-item.selected { background: #e3f2fd; border-left: 4px solid #2196F3; }
+        .machine-item.auto-selected { background: #e8f5e9; border-left: 4px solid #4CAF50; }
+        .type-badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; color: white; font-weight: bold; margin-left: 8px; }
+        .badge-fa { background: #4CAF50; }
+        .badge-non-fa { background: #FF9800; }
+        .fa-toggle-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; border-radius: 50%; transition: all 0.2s; background: transparent; border: none; color: #4CAF50; }
+        .machine-one-badge { background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 8px; }
+        
+        /* ========== PREVIEW TABLE ========== */
+        .preview-container { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-top: 20px; border: 2px solid #e3f2fd; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+        .preview-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e3f2fd; }
+        .preview-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .preview-table thead { background: linear-gradient(90deg, #2196F3 0%, #21CBF3 100%); color: white; }
+        .preview-table th { padding: 15px 12px; text-align: center; font-weight: 600; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.1); }
+        .preview-table th:last-child { border-right: none; }
+        .preview-table tbody tr { transition: all 0.2s; }
+        .preview-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        .preview-table tbody tr:nth-child(odd) { background-color: white; }
+        .preview-table td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px; }
+        .preview-table .total-row { background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%) !important; font-weight: bold; border-top: 2px solid #4CAF50; }
+        
+        /* ========== MODALS ========== */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal-box { background: white; width: 95%; max-width: 900px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; transform: translateY(-20px); transition: transform 0.3s ease-out; }
+        .modal-overlay.open .modal-box { transform: translateY(0); }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px 15px 0 0; }
+        .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 20px 25px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; background: #f8f9fa; border-radius: 0 0 15px 15px; flex-wrap: wrap; }
+        
+        /* ========== DETAIL MODAL (IMPROVED) ========== */
+        .detail-module { margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
+        .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 18px; font-weight: bold; color: #1565c0; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+        .detail-module-count { background: #2196F3; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .detail-rows-container { max-height: 300px; overflow-y: auto; }
+        .detail-row { padding: 10px 18px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: background 0.2s; }
+        .detail-row:hover { background: #f9f9f9; }
+        .detail-row:last-child { border-bottom: none; }
+        .serial-tag { background: #e0e0e0; padding: 4px 10px; border-radius: 20px; font-family: monospace; color: #333; font-weight: 600; font-size: 13px; }
+        .detail-checkbox { cursor: pointer; }
+        
+        /* ========== CONFIRM MODAL ========== */
+        .confirm-modal { max-width: 600px !important; }
+        .confirm-modal .modal-header { background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%); }
+        .confirm-details { margin: 20px 0; }
+        .confirm-item { display: flex; margin-bottom: 12px; padding: 10px 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #2196F3; }
+        .confirm-label { font-weight: 600; color: #555; min-width: 120px; }
+        .confirm-value { flex: 1; font-weight: bold; color: #1565c0; }
+        .confirm-highlight { color: #e65100; font-size: 18px; }
+        .confirm-warning { background: #fff3e0; border-left-color: #FF9800; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; align-items: flex-start; gap: 10px; }
+        
+        /* ========== RESULT PAGE ========== */
+        .result-success-animation { display: flex; justify-content: center; margin: 20px 0 30px; }
+        .checkmark-circle { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6); } 100% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } }
+        .checkmark { color: white; font-size: 40px; }
+        .result-box { border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); animation: slideInUp 0.5s ease-out; }
+        .result-success { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4CAF50; }
+        .result-error { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border: 2px solid #f44336; }
+        .detail-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .detail-item { display: flex; align-items: center; padding: 10px 15px; background: rgba(255,255,255,0.7); border-radius: 8px; transition: all 0.2s; }
+        .detail-label { font-weight: 600; color: #555; min-width: 140px; display: flex; align-items: center; gap: 8px; }
+        .detail-value { flex: 1; font-weight: bold; color: #1565c0; font-size: 16px; }
+        .status-pill { padding: 8px 18px; border-radius: 30px; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+        .pill-success { background: #4CAF50; color: white; }
+        .pill-error { background: #f44336; color: white; }
+        .pill-gray { background: #607D8B; color: white; }
+        .pill-info { background: #2196F3; color: white; }
+        
+        /* ========== LOADER ========== */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* ========== TURNSTILE WIDGET ========== */
+        .turnstile-floating { position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); border: 1px solid rgba(59, 130, 246, 0.4); width: 320px; overflow: hidden; transition: all 0.4s; }
+        .turnstile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: linear-gradient(to right, #eff6ff, #fff); border-bottom: 1px solid rgba(59, 130, 246, 0.1); }
+        .turnstile-title { font-size: 0.85rem; font-weight: 700; color: #2563eb; }
+        .turnstile-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
+        .status-pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .status-success { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+        .turnstile-body { padding: 16px; display: flex; flex-direction: column; align-items: center; }
+        .turnstile-floating.minimized { width: 56px; height: 56px; border-radius: 50%; bottom: 30px; right: 30px; cursor: pointer; }
         .turnstile-floating.minimized .turnstile-content { display: none; }
-        .turnstile-icon { display: none; font-size: 20px; color: #2563eb; width: 100%; height: 100%; align-items: center; justify-content: center; }
-        .turnstile-floating.minimized .turnstile-icon { display: flex; }
-        .d-none { display: none !important; }
+        .turnstile-minimized-icon { display: none; font-size: 1.5rem; justify-content: center; align-items: center; height: 100%; color: white; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); }
+        .turnstile-floating.minimized .turnstile-minimized-icon { display: flex; }
+        
+        /* ========== SCROLLBAR ========== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- HEADER -->
         <div class="header">
-            <h1><i class="fas fa-tools"></i> MES Advanced Remover</h1>
-            <p>Công cụ xử lý dữ liệu Sản xuất (Machines & Defects)</p>
+            <h1><i class="fas fa-industry"></i> MES Production V7.4</h1>
+            <p>Smart Grouping & Intelligent Split (Enhanced + Gallery)</p>
         </div>
         
-        <!-- MAIN PANEL -->
-        <div class="main-panel">
-            <div class="tab-nav">
-                <button class="tab-btn active" onclick="switchTab('machine')"><i class="fas fa-satellite-dish"></i> Quản Lý Máy (IoT)</button>
-                <button class="tab-btn" id="btn-tab-defect" onclick="switchTab('defect')"><i class="fas fa-bug"></i> Quản Lý Lỗi (Defects)</button>
+        <div class="content">
+            <!-- STEP INDICATOR -->
+            <div class="step-indicator">
+                <div class="step-dot active" id="stepDot1"></div>
+                <div class="step-dot" id="stepDot2"></div>
+                <div class="step-dot" id="stepDot3"></div>
+                <div class="step-dot" id="stepDot4"></div>
+            </div>
+            
+            <!-- STEP 1: CONFIG & SELECT PACKAGE -->
+            <div class="step-container active" id="step1">
+                <div class="step-header">
+                    <div class="step-title"><span class="step-number">1</span> Cấu hình & Chọn Package</div>
+                </div>
+
+                <div class="config-section">
+                    <div class="form-group">
+                        <label>API Key:</label>
+                        <input type="password" id="apiKey" class="form-control" placeholder="Nhập API Key quản trị" onchange="saveConfig()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Factory & Date:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="factory" class="form-control" style="flex:1" onchange="loadPackages()">
+                                <option value="P2C1">P2C1</option>
+                                <option value="P2A1">P2A1</option>
+                                <option value="P2B1">P2B1</option>
+                                <option value="P2D1">P2D1</option>
+                            </select>
+                            <input type="date" id="dateSelect" class="form-control" style="flex:1" onchange="loadPackages()">
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons" style="margin-bottom: 20px;">
+                        <button class="btn btn-primary" onclick="loadPackages()">
+                            <i class="fas fa-sync"></i> Tải Danh Sách
+                        </button>
+                    </div>
+
+                    <!-- LOADING SUMMARY -->
+                    <div id="loadingSummary" class="hidden" style="background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c8e6c9;"></div>
+                    
+                    <!-- PACKAGE SELECTION -->
+                    <div class="form-group">
+                        <label>Chọn Package:</label>
+                        <div class="search-row">
+                            <div class="search-box-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="packageSearch" class="form-control search-input" placeholder="Tìm Package, Style, Line..." oninput="filterPackages()">
+                            </div>
+                            <select id="statusFilter" class="filter-select" onchange="filterPackages()">
+                                <option value="all">⚡ Tất cả</option>
+                                <option value="pending">⚪ Chưa nhập</option>
+                                <option value="done">🟢 Đã nhập</option>
+                            </select>
+                        </div>
+                        <div id="packageListContainer" class="package-list-container">
+                            <div style="text-align:center; padding:20px; color:#999;">Vui lòng tải danh sách...</div>
+                        </div>
+                    </div>
+
+                    <!-- WORK HOURS SELECTION -->
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label><i class="fas fa-clock"></i> Chọn chế độ làm việc:</label>
+                        <div class="work-mode-container">
+                            <div class="work-mode-card selected" id="mode-7.5" onclick="selectWorkMode(7.5)">
+                                <span class="mode-icon" style="color:#FF9800"><i class="fas fa-sun"></i></span>
+                                <span class="mode-title">7.5 Giờ</span>
+                                <span class="mode-desc">Giờ Hành Chính</span>
+                            </div>
+                            <div class="work-mode-card" id="mode-11" onclick="selectWorkMode(11)">
+                                <span class="mode-icon" style="color:#9C27B0"><i class="fas fa-moon"></i></span>
+                                <span class="mode-title">11 Giờ</span>
+                                <span class="mode-desc">Có Tăng Ca</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="workHoursInput" value="7.5">
+                    </div>
+
+                    <!-- SELECTED PACKAGE INFO -->
+                    <div id="packageInfo" class="package-info-card hidden">
+                        <div class="package-info-row">
+                            <span class="package-info-label">Package ID:</span>
+                            <span class="package-info-value" id="infoPackageId"></span>
+                        </div>
+                        <div class="package-info-row">
+                            <span class="package-info-label">Style:</span>
+                            <span class="package-info-value" id="infoStyle"></span>
+                        </div>
+                        <div class="package-info-row hidden" id="infoColorRow">
+                            <span class="package-info-label">Color:</span>
+                            <span class="package-info-value" id="infoColor" style="font-weight:bold;"></span>
+                        </div>
+                        <div class="package-info-row">
+                            <span class="package-info-label">Line:</span>
+                            <span class="package-info-value" id="infoLine"></span>
+                        </div>
+                        <div class="package-info-row">
+                            <span class="package-info-label">Target (Ngày):</span>
+                            <span class="package-info-value" id="infoDailyTarget" style="font-weight:bold; color:#e65100;">0</span>
+                        </div>
+                        <div class="package-info-row">
+                            <span class="package-info-label">Target/Giờ (TB):</span>
+                            <span class="package-info-value" id="infoHourlyTarget" style="font-weight:bold; color:red; font-size: 1.2em;">0</span>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="action-buttons">
+                        <button class="btn btn-info hidden" id="viewDetailsBtn" onclick="viewPackageDetails()">
+                            <i class="fas fa-eye"></i> Xem & Copy
+                        </button>
+                        <button class="btn btn-success" onclick="goToStep(2)" id="nextToStep2Btn" disabled>
+                            Tiếp tục <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- STEP 2: INPUT DATA -->
+            <div class="step-container" id="step2">
+                <div class="step-header">
+                    <div class="step-title"><span class="step-number">2</span> Nhập Số Liệu</div>
+                </div>
+                
+                <div class="simple-input-area">
+                    <!-- SPLIT TOOLBAR (FIXED LAYOUT) -->
+                    <div class="split-toolbar">
+                        <div class="split-toolbar-header">
+                            <h4><i class="fas fa-magic"></i> Công cụ chia:</h4>
+                        </div>
+                        <div class="split-toolbar-buttons">
+                            <button class="btn btn-sm btn-purple" onclick="autoDistribute(null)">
+                                <i class="fas fa-bolt"></i> Auto Chia (Chuẩn)
+                            </button>
+                            <div class="btn-separator"></div>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" id="customSplitHours" class="custom-hour-input" placeholder="Số giờ" min="0.5" max="13" step="0.5">
+                                <button class="btn btn-sm btn-info" onclick="autoDistributeCustom()">
+                                    <i class="fas fa-sliders-h"></i> Chia tùy chỉnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PROGRESS SUMMARY -->
+                    <div class="manual-summary">
+                        <div class="manual-summary-header">
+                            <h3 style="margin: 0; font-size: 16px;"><i class="fas fa-chart-pie"></i> Tiến độ:</h3>
+                            <div class="remaining-badge">
+                                <span style="color: #bbb; font-size: 13px;">Còn lại:</span>
+                                <span id="manualRemainingDisplay" style="color: #4CAF50; font-weight: bold; font-size: 16px; margin-left: 5px;">0</span>
+                            </div>
+                        </div>
+                        <div class="summary-block">
+                            <span id="manualTotalDisplay" class="summary-num" style="color: #ffffff;">0</span>
+                            <span class="summary-label">/</span>
+                            <span id="manualTargetDisplay" class="summary-num" style="color:#ffb74d;">0</span>
+                            <span class="summary-label">(Target)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- TIME SLOT GRID -->
+                    <div class="manual-grid" id="manualGrid"></div>
+                    
+                    <!-- ACTION BUTTONS -->
+                    <div class="action-buttons" style="margin-top: 20px;">
+                        <button class="btn btn-warning" onclick="resetManualInputs()">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button class="btn btn-success" onclick="processManualData()">
+                            <i class="fas fa-check"></i> Xác nhận & Tiếp tục
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="config-grid">
-                <div class="config-card">
-                    <h3><i class="fas fa-key"></i> Xác Thực & Cấu Hình</h3>
-                    <div class="form-group">
-                        <label>API Key (Required):</label>
-                        <input type="password" id="apiKey" class="form-control" placeholder="Nhập API Key quản trị...">
+            <!-- STEP 3: SELECT MACHINE -->
+            <div class="step-container" id="step3">
+                <div class="step-header">
+                    <div class="step-title"><span class="step-number">3</span> Chọn Máy & Gửi</div>
+                </div>
+                
+                <!-- CONTEXT INFO -->
+                <div class="context-header">
+                    <div class="context-title">Đang thao tác trên Package:</div>
+                    <div class="context-value" id="contextPackageInfo">Loading...</div>
+                    <div class="context-line" id="contextLineInfo"></div>
+                </div>
+
+                <!-- AUTO SELECT BANNER -->
+                <div id="autoSelectBanner" class="auto-select-banner hidden">
+                    <div class="auto-select-text">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Đã tự động chọn máy số 1</span>
                     </div>
-                    <div class="form-group">
-                        <label>Nhà máy:</label>
-                        <select id="factory" class="form-control">
-                            <option value="P2C1">P2C1</option>
-                            <option value="P2A1">P2A1</option>
-                            <option value="P2B1">P2B1</option>
-                        </select>
+                    <div class="auto-select-details">
+                        <span id="autoSelectMachineName">N/A</span> - OPSERIAL: <b id="autoSelectMachineSerial">N/A</b>
+                    </div>
+                </div>
+
+                <!-- FA CONTROL PANEL -->
+                <div class="fa-control-panel" id="faControlPanel" style="display: none;">
+                    <label class="fa-toggle-label">
+                        <input type="checkbox" id="globalFaToggle" checked onchange="toggleGlobalFA()">
+                        <i class="fas fa-robot" style="color:#4CAF50;"></i>
+                        <span>Gửi lệnh FA cùng lúc (Mặc định BẬT)</span>
+                    </label>
+                    <p style="font-size:12px; color:#666; margin-top:5px;">
+                        <i class="fas fa-info-circle"></i> Tắt nếu bạn chỉ muốn gửi sản lượng, không gửi FA
+                    </p>
+                </div>
+
+                <!-- MACHINE SELECTION -->
+                <div id="faSelectionSection">
+                    <div style="display:flex; gap:10px; margin-bottom:15px">
+                        <button class="btn btn-primary" onclick="scanFAMachines()" id="scanBtn" style="flex:2">
+                            <i class="fas fa-qrcode"></i> 🔍 Scan Machine FA
+                        </button>
+                        <button class="btn btn-secondary" onclick="toggleManualInput()" id="manualBtn" style="flex:1">
+                            <i class="fas fa-pen"></i> ✍️ Nhập Mã Máy
+                        </button>
+                    </div>
+                    
+                    <div id="scanResult" class="hidden"></div>
+                    
+                    <div id="manualSerialInput" class="manual-input-box hidden">
+                        <h4><i class="fas fa-keyboard"></i> Nhập OPSERIAL thủ công:</h4>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <input type="number" id="manualOpserial" class="form-control" placeholder="Ví dụ: 30">
+                            <button class="btn btn-success" onclick="confirmManualSerial()">OK</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SELECTED MACHINE INFO -->
+                <div id="selectionInfo" class="selection-info hidden">
+                    <h4><i class="fas fa-check-circle"></i> Đã chọn máy:</h4>
+                    <p style="margin-top:5px; font-size:16px;">
+                        <b id="selectedMachineName">N/A</b>
+                        <br>
+                        <span style="color:#1565c0;">OPSERIAL: <b id="selectedMachineSerial">N/A</b></span>
+                        <br>
+                        <span id="faStatusText" style="color:#4CAF50; font-weight:bold;">
+                            <i class="fas fa-robot"></i> SẼ GỬI LỆNH FA
+                        </span>
+                    </p>
+                </div>
+                
+                <!-- PREVIEW TABLE -->
+                <div class="preview-container">
+                    <div class="preview-header">
+                        <i class="fas fa-eye" style="color:#2196F3;"></i>
+                        <h4>Xem trước dữ liệu sản lượng:</h4>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Slot</th>
+                                    <th>Thời gian</th>
+                                    <th>Sản lượng</th>
+                                    <th>Target</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons" style="margin-top: 20px;">
+                    <button class="btn btn-warning" onclick="goToStep(2)">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </button>
+                    <button class="btn btn-dark hidden" onclick="clearMachineSelection()" id="unselectBtn">
+                        <i class="fas fa-times"></i> Hủy chọn máy
+                    </button>
+                    <button class="btn btn-success" onclick="showConfirmModal()" id="sendBtn">
+                        🚀 Gửi Hệ thống
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 4: RESULT -->
+            <div class="step-container" id="step4">
+                <div class="step-header">
+                    <div class="step-title"><span class="step-number">4</span> Kết quả</div>
+                </div>
+                
+                <!-- SUCCESS ANIMATION -->
+                <div class="result-success-animation" id="successAnimation" style="display: none;">
+                    <div class="checkmark-circle">
+                        <i class="fas fa-check checkmark"></i>
                     </div>
                 </div>
                 
-                <div class="config-card">
-                    <h3><i class="fas fa-box"></i> Chọn Package</h3>
-                    <div class="form-group">
-                        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                            <input type="date" id="searchDate" class="form-control">
-                            <button class="btn btn-secondary" onclick="loadTodayPackages()" title="Tải danh sách"><i class="fas fa-sync"></i></button>
-                        </div>
-                        <select id="packageSelect" class="form-control"><option value="">-- Chọn Package --</option></select>
-                        <input type="text" id="mxpackage" class="form-control" placeholder="Hoặc nhập Package ID thủ công..." style="margin-top: 8px;">
-                    </div>
-                    <div id="packageInfoBox" class="package-details-box">
-                        <div class="package-id-display" id="pkgIdDisplay"></div>
-                        <div class="package-meta-display" id="pkgMetaDisplay"></div>
-                    </div>
+                <!-- RESULT MESSAGE -->
+                <div id="resultMessage"></div>
+                
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons" style="justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="location.reload()" style="padding: 12px 30px;">
+                        <i class="fas fa-redo"></i> Làm mới toàn bộ
+                    </button>
                 </div>
-            </div>
-            
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div><div class="progress-text" id="progressText">0%</div></div>
-            </div>
-
-            <!-- TAB: MACHINE -->
-            <div id="tab-content-machine">
-                <div class="action-grid">
-                    <button class="btn btn-primary" onclick="startFullScanProcess()" id="scanBtn" disabled>🔒 Chờ xác thực</button>
-                    <button class="btn btn-stop" onclick="stopProcess()" id="stopBtn" style="display: none;"><i class="fas fa-stop"></i> Dừng</button>
-                    <button class="btn btn-warning" onclick="handleSelection('machine', true)" id="selectAllBtn" disabled><i class="fas fa-check-double"></i> Chọn Hết</button>
-                    <button class="btn btn-warning" onclick="handleSelection('machine', false)" id="deselectAllBtn" disabled><i class="fas fa-times"></i> Bỏ Chọn</button>
-                    <button class="btn btn-danger" onclick="confirmRemoveMachines()" id="removeBtn" disabled><i class="fas fa-trash"></i> Xóa Máy</button>
-                </div>
-                <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">
-                    Máy tìm thấy: <strong style="color:#10b981" id="statFound">0</strong> | Đã chọn: <strong style="color:#facc15" id="statSelected">0</strong>
-                </div>
-                <div class="list-container" id="machineListContainer">
-                    <div class="empty-state"><i class="fas fa-search-location" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5;"></i><p>Nhập Package ID và nhấn "Quét Chi Tiết".</p></div>
-                </div>
-            </div>
-
-            <!-- TAB: DEFECT -->
-            <div id="tab-content-defect" class="d-none">
-                <div class="action-grid">
-                    <button class="btn btn-primary" onclick="scanDefects()" id="scanDefectBtn" disabled><i class="fas fa-search-plus"></i> Quét Lỗi</button>
-                    <button class="btn btn-warning" onclick="handleSelection('defect', true)" id="defectSelectAllBtn" disabled><i class="fas fa-check-double"></i> Chọn Hết</button>
-                    <button class="btn btn-warning" onclick="handleSelection('defect', false)" id="defectDeselectAllBtn" disabled><i class="fas fa-times"></i> Bỏ Chọn</button>
-                    <button class="btn btn-danger" onclick="confirmRemoveSelectedDefects()" id="removeSelectedDefectBtn" disabled><i class="fas fa-trash-alt"></i> Xóa Đã Chọn</button>
-                    <button class="btn btn-danger" onclick="confirmRemoveAllDefects()" id="removeAllDefectBtn" disabled style="background: #7f1d1d;"><i class="fas fa-dumpster-fire"></i> Xóa Tất Cả</button>
-                </div>
-                <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 5px;">
-                    Lỗi tìm thấy: <strong style="color:#f87171" id="statDefectFound">0</strong> | Đã chọn: <strong style="color:#facc15" id="statDefectSelected">0</strong>
-                </div>
-                <div class="list-container" id="defectListContainer" style="border-color: rgba(239, 68, 68, 0.3);">
-                    <div class="empty-state"><i class="fas fa-bug" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5; color: #f87171;"></i><p>Nhập Package ID và nhấn "Quét Lỗi".</p></div>
-                </div>
-            </div>
-            
-            <div class="log-console" id="logConsole">
-                <div class="log-entry"><span class="log-time">[SYSTEM]</span><span class="log-info">Ready. Please verify security widget.</span></div>
             </div>
         </div>
     </div>
 
+    <!-- TURNSTILE WIDGET -->
     <div id="turnstileWidget" class="turnstile-floating">
         <div class="turnstile-content">
-            <div class="turnstile-header"><div class="turnstile-title"><i class="fas fa-shield-alt"></i> Bảo Mật Cloudflare</div><button onclick="toggleWidget(true)" style="background:none;border:none;cursor:pointer;">➖</button></div>
-            <div class="turnstile-body"><div id="cf-turnstile-widget" class="cf-turnstile" data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" data-callback="onTurnstileSuccess" data-error-callback="onTurnstileError" data-expired-callback="onTurnstileExpired"></div></div>
+            <div class="turnstile-header">
+                <div class="turnstile-title"><i class="fas fa-shield-alt"></i> Bảo Mật Hệ Thống</div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                   <span id="turnstileStatus" class="turnstile-badge status-pending">Đang chờ</span>
+                   <button id="btnMinimize" style="background:none;border:none;cursor:pointer;">─</button>
+                </div>
+            </div>
+            <div class="turnstile-body">
+                <div id="cf-turnstile-widget" class="cf-turnstile" 
+                     data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" 
+                     data-callback="onTurnstileSuccess"
+                     data-error-callback="onTurnstileError"
+                     data-expired-callback="onTurnstileExpired"
+                     data-theme="light">
+                </div>
+                <div style="font-size:0.7rem;color:#666;margin-top:5px;">Tự động ẩn sau khi xác thực.</div>
+            </div>
         </div>
-        <div class="turnstile-icon" onclick="toggleWidget(false)">🔐</div>
+        <div class="turnstile-minimized-icon" title="Mở xác thực">
+            <span id="minimizedIconChar">🔐</span>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL (IMPROVED) -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Chi tiết Package</h3>
+                <button class="btn btn-sm btn-danger" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <div class="loader"></div> Đang tải...
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="copyRemarks()">
+                    <i class="fas fa-quote-right"></i> Copy Remarks
+                </button>
+                <button class="btn btn-warning" onclick="copySerials('all')">
+                    <i class="fas fa-copy"></i> Copy Serial
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box confirm-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> XÁC NHẬN GỬI</h3>
+                <button class="btn btn-sm btn-danger" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="confirmContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Hủy bỏ</button>
+                <button class="btn btn-success" onclick="confirmSendToMES()">Xác nhận & Gửi</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const WORKER_BASE_URL = "https://remove-machine.chiscoong-cloudflare-com.workers.dev";
+        // ========== API ENDPOINTS & CONFIG ==========
+        const WORKER_URL = "https://mes-proxy.vercel.app/api"; // PROXY URL (NEW)
+        const PROD_API = "https://hourly-target.chiscoong-cloudflare-com.workers.dev/api/production";
         const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
-        const MODULE_OPS_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
-        const MODULE_DETAIL_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/detail";
-
+        const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails"; // API CŨ cho số liệu
+        const OT_API = "https://ot-requests.chiscoong-cloudflare-com.workers.dev/package/slot-summary"; // API MỚI chỉ cho OT
+        const SCANNER_API = "https://mes-qr-scanner.chiscoong-cloudflare-com.workers.dev/";
+        
+        // ========== TURNSTILE CONFIG ==========
+        const TOKEN_MAX_AGE = 270 * 1000;
         let turnstileToken = null;
-        let isLocalhost = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1');
-        let currentTab = 'machine';
-        let isProcessing = false;
-        let abortController = null;
-        let discoveredMachines = [];
-        let discoveredDefects = [];
+        let tokenTimestamp = 0;
+        let tokenRefreshResolver = null;
+        let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-        function switchTab(tabName) {
-            currentTab = tabName;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'active-danger'));
-            document.getElementById('tab-content-machine').classList.add('d-none');
-            document.getElementById('tab-content-defect').classList.add('d-none');
+        // ========== GLOBAL VARIABLES ==========
+        let allPackages = []; 
+        let productionData = {};
+        let dailyTarget = 0; 
+        let hourlyTarget = 36; 
+        let selectedOpserial = null;
+        let selectedPackageId = null;
+        let selectedStyle = "";
+        let selectedMachineName = "";
+        let selectedColor = "";
+        let selectedLine = "";
+        let hasFaOption = false; 
+        let faStatus = {};
+        let globalFaEnabled = true;
+        let manualFaRequested = true;
+        
+        // Cache để lưu tên ảnh của các Style đã tìm thấy, tránh gọi API nhiều lần cho cùng 1 style (NEW)
+        let styleImageCache = {}; 
 
-            if(tabName === 'machine') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('tab-content-machine').classList.remove('d-none');
-            } else {
-                document.getElementById('btn-tab-defect').classList.add('active', 'active-danger');
-                document.getElementById('tab-content-defect').classList.remove('d-none');
-            }
+        const timeSlots = [
+            "07:15 - 08:15", "08:15 - 09:15", "09:15 - 10:15", "10:15 - 11:15", 
+            "11:15 - 12:15", "12:15 - 13:15", "13:15 - 14:15", "14:15 - 15:15", 
+            "15:15 - 16:15", "16:15 - 17:15", "17:15 - 18:15", "18:15 - 19:15", "19:15 - 20:15"
+        ];
+        const OT_INDEX_START = 9; // 16:15 bắt đầu OT
+
+        // ========== TURNSTILE LOGIC ==========
+        const widgetEl = document.getElementById('turnstileWidget');
+        const btnMinimize = document.getElementById('btnMinimize');
+        
+        function toggleWidgetState(forceMinimize = false) {
+            if (forceMinimize) widgetEl.classList.add('minimized');
+            else widgetEl.classList.toggle('minimized');
         }
-
-        function toggleWidget(minimize) {
-            const el = document.getElementById('turnstileWidget');
-            minimize ? el.classList.add('minimized') : el.classList.remove('minimized');
-        }
-
+        
+        btnMinimize.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            toggleWidgetState(true); 
+        });
+        
+        widgetEl.addEventListener('click', () => { 
+            if (widgetEl.classList.contains('minimized')) toggleWidgetState(false); 
+        });
+        
         window.onTurnstileSuccess = function(token) {
-            turnstileToken = token;
-            log("✅ Xác thực bảo mật thành công.", "success");
-            toggleWidget(true);
-            enableMainButtons(true);
+            turnstileToken = token; 
+            tokenTimestamp = Date.now();
+            document.getElementById('turnstileStatus').textContent = "Đã xác thực";
+            document.getElementById('turnstileStatus').className = "turnstile-badge status-success";
+            document.getElementById('minimizedIconChar').textContent = "✅";
+            
+            if (tokenRefreshResolver) { 
+                tokenRefreshResolver(true); 
+                tokenRefreshResolver = null; 
+                setTimeout(() => toggleWidgetState(true), 1000); 
+            } else { 
+                setTimeout(() => toggleWidgetState(true), 1500); 
+            }
         };
-        window.onTurnstileError = () => { enableMainButtons(false, "❌ Lỗi xác thực"); };
-        window.onTurnstileExpired = () => { enableMainButtons(false, "🔒 Hết hạn - Reset"); toggleWidget(false); };
-
-        function enableMainButtons(enable, msg) {
-            const btnScan = document.getElementById('scanBtn');
-            const btnScanDefect = document.getElementById('scanDefectBtn');
-            if(enable) {
-                btnScan.disabled = false; btnScan.innerHTML = '<i class="fas fa-search"></i> Quét Chi Tiết';
-                btnScanDefect.disabled = false; btnScanDefect.innerHTML = '<i class="fas fa-search-plus"></i> Quét Lỗi';
-            } else {
-                btnScan.disabled = true; btnScan.innerHTML = msg || '🔒 Chờ xác thực';
-                btnScanDefect.disabled = true; btnScanDefect.innerHTML = msg || '🔒 Chờ xác thực';
-            }
-        }
-
-        function log(msg, type = 'info') {
-            const el = document.getElementById('logConsole');
-            const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
-            el.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span><span class="log-${type}">${msg}</span></div>`;
-            el.scrollTop = el.scrollHeight;
-        }
-
-        function getCommonParams() {
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const pkgId = document.getElementById('mxpackage').value.trim();
-            if(!apiKey || !pkgId) { alert("Vui lòng nhập API Key và Package ID!"); return null; }
-            return { apiKey, pkgId };
-        }
-
-        function parseMxPackage(mxpackage) {
-            try {
-                const match = mxpackage.match(/([A-Z0-9]+)(\d{6})(?=_|$)/);
-                if (!match) return { success: false };
-                const fullStr = match[0];
-                const len = fullStr.length;
-                return {
-                    stylecode: fullStr.substring(0, len - 6).slice(0, -3),
-                    stylesize: fullStr.substring(0, len - 6).slice(-3),
-                    stylecolorserial: fullStr.substring(len - 6, len - 3),
-                    revno: fullStr.substring(len - 3),
-                    success: true
-                };
-            } catch (e) { return { success: false }; }
-        }
-
-        // === MACHINE SCANNER ===
-        async function startFullScanProcess() {
-            const params = getCommonParams();
-            if(!params) return;
-            
-            isProcessing = true;
-            abortController = new AbortController();
-            discoveredMachines = [];
-            toggleUIState(true);
-            document.getElementById('machineListContainer').innerHTML = '';
-            document.getElementById('statFound').innerText = '0';
-            log(`🚀 Bắt đầu quét MÁY cho package: ${params.pkgId}`, 'info');
-
-            try {
-                const styleInfo = parseMxPackage(params.pkgId);
-                const opsUrl = `${MODULE_OPS_API}?mxpackage=${encodeURIComponent(params.pkgId)}&mode=operations&apikey=${params.apiKey}`;
-                const opsRes = await fetch(opsUrl, { signal: abortController.signal });
-                const opsData = await opsRes.json();
-                
-                if(!opsData.success || !opsData.data?.operations) throw new Error("Không thể lấy danh sách OP.");
-                const operations = opsData.data.operations;
-                
-                for(let i=0; i<operations.length; i++) {
-                    const op = operations[i];
-                    updateProgress((i/operations.length)*100, `Scanning OP: ${op.opserial}`);
-                    
-                    try {
-                        let detailUrl = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode || ''}&stylesize=${styleInfo.stylesize || ''}&stylecolorserial=${styleInfo.stylecolorserial || ''}&revno=${styleInfo.revno || ''}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${params.apiKey}`;
-                        const detailRes = await fetch(detailUrl, { signal: abortController.signal });
-                        const detailJson = await detailRes.json();
-                        
-                        if(detailJson.success && detailJson.data?.Result?.MachineList) {
-                            detailJson.data.Result.MachineList.forEach(m => {
-                                if(m.MCID && m.MCID !== 'N/A') {
-                                    discoveredMachines.push({
-                                        pkg: params.pkgId,
-                                        mcid: m.MCID,
-                                        opserial: op.opserial,
-                                        opname: op.opname,
-                                        module: op.modulename,
-                                        remarks: op.remarks || op.REMARKS || '', // Lấy thêm remarks
-                                        iotType: (op.iottype || 'NONE').toUpperCase(),
-                                        lastIotData: m.LAST_IOT_DATA,
-                                        lastIotTime: m.LAST_IOT_DATA_RECEIVE_TIME, // Lấy thời gian
-                                        selected: false
-                                    });
-                                }
-                            });
-                        }
-                    } catch (e) {}
-                }
-                renderMachines();
-                log(`✅ Quét xong. Tìm thấy ${discoveredMachines.length} máy.`, 'success');
-            } catch (e) { log(`❌ Lỗi quét máy: ${e.message}`, 'error'); } 
-            finally { isProcessing = false; toggleUIState(false); updateProgress(100, "Sẵn sàng"); }
-        }
-
-        // --- HÀM RENDER MÁY CHI TIẾT (ĐÃ KHÔI PHỤC) ---
-        function renderMachines() {
-            const container = document.getElementById('machineListContainer');
-            document.getElementById('statFound').innerText = discoveredMachines.length;
-            
-            if(discoveredMachines.length === 0) {
-                container.innerHTML = `<div class="empty-state">Không tìm thấy máy nào.</div>`;
-                return;
-            }
-            
-            let html = '';
-            discoveredMachines.forEach((m, idx) => {
-                const badgeClass = m.iotType === 'FA' ? 'bg-fa' : (m.iotType === 'QA' ? 'bg-qa' : 'bg-none');
-                const remarksHtml = m.remarks ? `<span class="m-remarks">${m.remarks}</span>` : '';
-                const timeDisplay = m.lastIotTime ? new Date(m.lastIotTime).toLocaleString('vi-VN') : 'N/A';
-                
-                html += `
-                    <div class="machine-item ${m.selected ? 'selected' : ''}" id="machine-${idx}">
-                        <input type="checkbox" class="item-checkbox" onchange="toggleItem('machine', ${idx})" ${m.selected ? 'checked' : ''}>
-                        <div class="machine-info">
-                            <!-- Row 1: Name, Module, Remarks -->
-                            <div class="m-row-1">
-                                <span class="m-opname">${m.opname}</span>
-                                <span class="m-divider">|</span>
-                                <span class="m-module">${m.module}</span>
-                                ${remarksHtml}
-                            </div>
-                            <!-- Row 2: MCID, OP, Badge -->
-                            <div class="m-row-2">
-                                <span class="m-mcid">${m.mcid}</span>
-                                <span class="m-divider">•</span>
-                                <span class="m-opserial">OP: ${m.opserial}</span>
-                                <span class="m-badge ${badgeClass}">${m.iotType}</span>
-                            </div>
-                            <!-- Row 3: IoT Data Box -->
-                            <div class="m-iot-box">
-                                <div class="iot-line">
-                                    <span class="iot-label">IoT Data:</span>
-                                    <span class="iot-val">${m.lastIotData || 'N/A'}</span>
-                                </div>
-                                <div class="iot-line">
-                                    <span class="iot-label">Cập nhật lúc:</span>
-                                    <span class="iot-time">${timeDisplay}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        async function confirmRemoveMachines() {
-            const selected = discoveredMachines.filter(m => m.selected);
-            if(selected.length === 0) return;
-            if(!confirm(`Xóa ${selected.length} máy đã chọn?`)) return;
-            
-            const params = getCommonParams();
-            isProcessing = true; toggleUIState(true);
-            let success = 0;
-            for(let i=0; i<selected.length; i++) {
-                const item = selected[i];
-                updateProgress((i/selected.length)*100, `Removing: ${item.mcid}`);
-                
-                let url = `${WORKER_BASE_URL}/remove-machine?apikey=${params.apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                try {
-                    const res = await fetch(url);
-                    const json = await res.json();
-                    if(json.IsSuccess) {
-                        success++;
-                        log(`🗑️ Đã xóa máy: ${item.mcid}`, 'success');
-                        const row = document.getElementById(`machine-${discoveredMachines.indexOf(item)}`);
-                        row.style.opacity = '0.4'; row.style.textDecoration = 'line-through';
-                    } else throw new Error(json.Log);
-                } catch(e) { log(`⚠️ Lỗi ${item.mcid}: ${e.message}`, 'error'); }
-            }
-            isProcessing = false; toggleUIState(false);
-            log(`🏁 Hoàn tất xóa máy. Thành công: ${success}/${selected.length}`, 'info');
-        }
-
-        // === DEFECT SCANNER ===
-        async function scanDefects() {
-            const params = getCommonParams();
-            if(!params) return;
-            isProcessing = true; toggleUIState(true);
-            document.getElementById('defectListContainer').innerHTML = '<div class="empty-state">Đang quét dữ liệu...</div>';
-            log(`🔎 Bắt đầu quét DEFECTS cho package: ${params.pkgId}`, 'info');
-
-            try {
-                let url = `${WORKER_BASE_URL}/scan-defects?apikey=${params.apiKey}&mxpackage=${encodeURIComponent(params.pkgId)}&opserial=0`;
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                const res = await fetch(url);
-                const json = await res.json();
-
-                if(json.IsSuccess) {
-                    discoveredDefects = (json.FoundDefects || []).map(d => ({...d, selected: false}));
-                    renderDefects();
-                    log(`✅ Tìm thấy ${discoveredDefects.length} defect items.`, 'success');
-                } else { throw new Error(json.Log || "Lỗi không xác định"); }
-            } catch (e) {
-                log(`❌ Lỗi quét defect: ${e.message}`, 'error');
-                document.getElementById('defectListContainer').innerHTML = `<div class="empty-state" style="color:#ef4444">${e.message}</div>`;
-            } finally { isProcessing = false; toggleUIState(false); }
-        }
-
-        function renderDefects() {
-            const container = document.getElementById('defectListContainer');
-            document.getElementById('statDefectFound').innerText = discoveredDefects.length;
-            if(discoveredDefects.length === 0) {
-                container.innerHTML = `<div class="empty-state">Không tìm thấy lỗi nào.</div>`;
-                updateDefectStats();
-                return;
-            }
-
-            let html = '';
-            discoveredDefects.forEach((d, idx) => {
-                html += `
-                    <div class="defect-item ${d.selected ? 'selected' : ''}" id="defect-${idx}">
-                        <input type="checkbox" class="item-checkbox" onchange="toggleItem('defect', ${idx})" ${d.selected ? 'checked' : ''} style="margin-top:5px; margin-right:5px;">
-                        <div class="defect-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                        <div class="defect-info">
-                            <div class="defect-name">${d.defectNameVi || d.defectName}</div>
-                            <div class="defect-meta">
-                                <span class="defect-tag"><i class="fas fa-barcode"></i> ID: ${d.id}</span>
-                                <span class="defect-tag"><i class="fas fa-user"></i> ${d.createdUser}</span>
-                                <span class="defect-tag"><i class="far fa-clock"></i> ${new Date(d.createdDate).toLocaleDateString()}</span>
-                                <span class="defect-tag"><i class="fas fa-tag"></i> ${d.defectCode}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            updateDefectStats();
-        }
-
-        async function confirmRemoveSelectedDefects() {
-            const selected = discoveredDefects.filter(d => d.selected);
-            if(selected.length === 0) return;
-            if(!confirm(`Bạn có chắc chắn muốn XÓA ${selected.length} lỗi đã chọn không?\nHành động này không thể hoàn tác.`)) return;
-
-            const params = getCommonParams();
-            if (!params) return;
-            isProcessing = true; toggleUIState(true);
-            let success = 0;
-            
-            for(let i=0; i<selected.length; i++) {
-                const item = selected[i];
-                updateProgress((i/selected.length)*100, `Deleting Defect ID: ${item.id}`);
-                // Gọi API xóa từng cái (đảm bảo Backend hỗ trợ xóa theo ID)
-                // Lưu ý: Đây là giả định Worker đã update để nhận 'defectId' khi mode='single'
-                // Nếu worker chưa update, logic này có thể cần điều chỉnh
-                let url = `${WORKER_BASE_URL}/remove-defects?apikey=${encodeURIComponent(params.apiKey)}&cf-turnstile-response=${encodeURIComponent(turnstileToken || '')}`;
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            mxpackage: params.pkgId,
-                            confirmDelete: true,
-                            mode: 'single', 
-                            defectId: item.id,
-                            apikey: params.apiKey
-                        })
-                    });
-                    if (res.ok) {
-                        success++;
-                        log(`🗑️ Đã gửi lệnh xóa Defect ID: ${item.id}`, 'success');
-                        const row = document.getElementById(`defect-${discoveredDefects.indexOf(item)}`);
-                        if(row) { row.style.opacity = '0.4'; row.style.textDecoration = 'line-through'; }
-                    } else { log(`⚠️ Lỗi HTTP khi xóa ID ${item.id}`, 'error'); }
-                } catch(e) { log(`❌ Exception ID ${item.id}: ${e.message}`, 'error'); }
-            }
-            isProcessing = false; toggleUIState(false);
-            log(`🏁 Hoàn tất xóa lỗi đã chọn. Đã gửi: ${success}/${selected.length}`, 'info');
-        }
-
-        async function confirmRemoveAllDefects() {
-            const count = discoveredDefects.length;
-            if(count === 0) return;
-            if(!confirm(`CẢNH BÁO: XÓA TOÀN BỘ ${count} lỗi trong package này?\nHành động này cực kỳ nguy hiểm!`)) return;
-
-            const params = getCommonParams();
-            isProcessing = true; toggleUIState(true);
-            log(`🔥 Đang xóa tất cả lỗi...`, 'warn');
-
-            let url = `${WORKER_BASE_URL}/remove-defects?apikey=${encodeURIComponent(params.apiKey)}`;
-            if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mxpackage: params.pkgId, confirmDelete: true, apikey: params.apiKey })
-                });
-                const json = await res.json();
-                if(json.IsSuccess) {
-                    log(`✅ ${json.Log}`, 'success');
-                    discoveredDefects = [];
-                    renderDefects();
-                } else { log(`⚠️ Xóa thất bại: ${json.Log}`, 'error'); }
-            } catch (e) { log(`❌ Lỗi kết nối: ${e.message}`, 'error'); } 
-            finally { isProcessing = false; toggleUIState(false); }
-        }
-
-        // === UTILS ===
-        function toggleItem(type, idx) {
-            if(type === 'machine') {
-                discoveredMachines[idx].selected = !discoveredMachines[idx].selected;
-                const el = document.getElementById(`machine-${idx}`);
-                discoveredMachines[idx].selected ? el.classList.add('selected') : el.classList.remove('selected');
-                updateStats();
-            } else {
-                discoveredDefects[idx].selected = !discoveredDefects[idx].selected;
-                const el = document.getElementById(`defect-${idx}`);
-                discoveredDefects[idx].selected ? el.classList.add('selected') : el.classList.remove('selected');
-                updateDefectStats();
-            }
-        }
-
-        function handleSelection(type, isSelect) {
-            if(type === 'machine') {
-                discoveredMachines.forEach(m => m.selected = isSelect);
-                renderMachines();
-                updateStats();
-            } else {
-                discoveredDefects.forEach(d => d.selected = isSelect);
-                renderDefects();
-                updateDefectStats();
-            }
-        }
-
-        function updateDefectStats() {
-            const count = discoveredDefects.filter(d => d.selected).length;
-            document.getElementById('statDefectSelected').innerText = count;
-            document.getElementById('removeSelectedDefectBtn').disabled = count === 0;
-            document.getElementById('removeAllDefectBtn').disabled = discoveredDefects.length === 0;
-            document.getElementById('defectSelectAllBtn').disabled = discoveredDefects.length === 0;
-            document.getElementById('defectDeselectAllBtn').disabled = discoveredDefects.length === 0;
-        }
-
-        function toggleUIState(processing) {
-            document.getElementById('progressContainer').style.display = processing ? 'block' : 'none';
-            document.getElementById('stopBtn').style.display = processing ? 'inline-flex' : 'none';
-            const btns = ['scanBtn', 'selectAllBtn', 'deselectAllBtn', 'removeBtn', 'scanDefectBtn', 'removeSelectedDefectBtn', 'removeAllDefectBtn', 'defectSelectAllBtn', 'defectDeselectAllBtn'];
-            btns.forEach(id => { const b = document.getElementById(id); if(b) b.disabled = processing; });
-            if(!processing) {
-                if(currentTab === 'machine') updateStats();
-                if(currentTab === 'defect') updateDefectStats();
-            }
-        }
         
-        function updateStats() {
-            const count = discoveredMachines.filter(m => m.selected).length;
-            document.getElementById('statSelected').innerText = count;
-            document.getElementById('removeBtn').disabled = count === 0;
-            document.getElementById('selectAllBtn').disabled = discoveredMachines.length === 0;
-            document.getElementById('deselectAllBtn').disabled = discoveredMachines.length === 0;
-        }
+        window.onTurnstileError = function() { 
+            turnstileToken = null; 
+            document.getElementById('minimizedIconChar').textContent = "⚠️"; 
+        };
         
-        function updateProgress(pct, text) {
-            document.getElementById('progressFill').style.width = `${pct}%`;
-            document.getElementById('progressText').innerText = `${Math.round(pct)}% - ${text}`;
-        }
+        window.onTurnstileExpired = function() { 
+            turnstileToken = null; 
+            if (!tokenRefreshResolver) { 
+                document.getElementById('minimizedIconChar').textContent = "🔐"; 
+                toggleWidgetState(false); 
+            } 
+        };
         
-        function stopProcess() {
-            if(abortController) abortController.abort();
-            isProcessing = false;
-            log('⛔ Đã dừng tiến trình.', 'warn');
+        async function refreshTurnstileToken() { 
+            toggleWidgetState(false); 
+            document.getElementById('turnstileStatus').textContent = "Cần gia hạn";
+            document.getElementById('turnstileStatus').className = "turnstile-badge status-pending";
+            if(window.turnstile) window.turnstile.reset('#cf-turnstile-widget'); 
+            await new Promise(resolve => { tokenRefreshResolver = resolve; });
         }
 
-        document.getElementById('factory').value = 'P2C1';
-        document.getElementById('searchDate').valueAsDate = new Date();
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('dateSelect').value = new Date().toISOString().split('T')[0];
+            const savedKey = localStorage.getItem('mesApiKey');
+            if(savedKey) document.getElementById('apiKey').value = savedKey;
+            if (isLocalhost) document.getElementById('turnstileWidget').style.display = 'none';
 
-        async function loadTodayPackages() {
-            const params = { apiKey: document.getElementById('apiKey').value.trim() };
-            const factory = document.getElementById('factory').value;
-            const dateInput = document.getElementById('searchDate').value.replace(/-/g, '');
-            const select = document.getElementById('packageSelect');
-            if(!params.apiKey) { alert("Nhập API Key!"); return; }
-            select.innerHTML = '<option>Loading...</option>';
-
-            try {
-                const url = `${PACKAGE_API}?factory=${factory}&fromDate=${dateInput}&withDetails=true&apikey=${encodeURIComponent(params.apiKey)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                select.innerHTML = '<option value="">-- Chọn Package --</option>';
-                let pkgs = (data.data?.packages || data.data || []);
-                
-                // Sorting logic
-                pkgs.sort((a, b) => {
-                    const lineA = (a.LINENAME || a.lineName || "").toUpperCase();
-                    const lineB = (b.LINENAME || b.lineName || "").toUpperCase();
-                    const matchA = lineA.match(/(\d+)/);
-                    const matchB = lineB.match(/(\d+)/);
-                    const numA = matchA ? parseInt(matchA[0]) : 99999;
-                    const numB = matchB ? parseInt(matchB[0]) : 99999;
-                    return numA !== numB ? numA - numB : lineA.localeCompare(lineB);
-                });
-
-                let currentLine = null;
-                pkgs.forEach(p => {
-                    const line = p.lineName || p.LINENAME || "Unknown";
-                    if(line !== currentLine) {
-                        currentLine = line;
-                        const sep = document.createElement('option');
-                        sep.text = `─── ${line} ───`; sep.disabled = true;
-                        select.add(sep);
+            // ENTER KEY LISTENER FOR CONFIRM MODAL (NEW)
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Enter") {
+                    const confirmModal = document.getElementById('confirmModal');
+                    if (confirmModal.classList.contains('open')) {
+                        event.preventDefault(); // Prevent accidental form submission
+                        confirmSendToMES();
                     }
-                    const opt = document.createElement('option');
-                    opt.value = p.packageId || p.MXPACKAGE;
-                    opt.text = `${line} | ${p.styleText || p.STYLETEXT}`;
-                    opt.dataset.meta = JSON.stringify({ 
-                        line, style: p.styleText || p.STYLETEXT, target: p.target || p.TARGET || '0' 
-                    });
-                    select.add(opt);
-                });
-            } catch(e) { select.innerHTML = '<option>Lỗi tải data</option>'; }
-        }
-
-        document.getElementById('packageSelect').addEventListener('change', function() {
-            if(this.value) {
-                document.getElementById('mxpackage').value = this.value;
-                const meta = JSON.parse(this.options[this.selectedIndex].dataset.meta || '{}');
-                document.getElementById('packageInfoBox').style.display = 'block';
-                document.getElementById('pkgIdDisplay').innerText = this.value;
-                document.getElementById('pkgMetaDisplay').innerHTML = `
-                    <span class="meta-tag">${document.getElementById('factory').value}</span>
-                    <span class="meta-tag">${meta.line}</span>
-                    <span class="meta-tag meta-highlight">${meta.style}</span>
-                    <span class="meta-tag" style="border-color: #60a5fa; color: #60a5fa; font-weight: bold;">Target: ${meta.target}</span>
-                `;
-            }
+                }
+            });
         });
 
-        if (isLocalhost) {
-            document.getElementById('turnstileWidget').style.display = 'none';
-            enableMainButtons(true);
+        // ========== CONFIG FUNCTIONS ==========
+        function saveConfig() { 
+            localStorage.setItem('mesApiKey', document.getElementById('apiKey').value); 
+        }
+
+        function selectWorkMode(mode) {
+            document.querySelectorAll('.work-mode-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`mode-${mode}`).classList.add('selected');
+            document.getElementById('workHoursInput').value = mode;
+            if(selectedPackageId) recalculateTarget();
+        }
+
+        // ========== CORE LOGIC MỚI: TÌM ẢNH TỪ API (NEW) ==========
+        async function fetchStyleImageInfo(styleCode, apiKey) {
+            // Nếu đã có trong cache thì trả về ngay (tiết kiệm request)
+            if (styleImageCache[styleCode]) return styleImageCache[styleCode];
+
+            try {
+                // Gọi API buyerstylecodes
+                const url = `${WORKER_URL}/buyerstylecodes?stylecode=${styleCode}`;
+                const res = await fetch(url, {
+                    headers: { 'x-access-token': apiKey } // API này cần mật khẩu
+                });
+                
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.IsSuccess && json.Result && json.Result.length > 0) {
+                        const info = json.Result[0];
+                        // Lưu vào cache
+                        const data = {
+                            picture: info.PICTURE,
+                            buyer: info.BUYER
+                        };
+                        styleImageCache[styleCode] = data;
+                        return data;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Lỗi lấy ảnh cho style ${styleCode}:`, e);
+            }
+            // Nếu lỗi hoặc không tìm thấy, lưu cache null để không tìm lại nữa
+            styleImageCache[styleCode] = null;
+            return null;
+        }
+
+        // HÀM TẢI ẢNH NGẦM (Fallback thông minh: wsrv -> proxy -> placeholder) (NEW)
+        async function loadImagesForPackages(packages, apiKey) {
+            // Lấy danh sách các Style Code duy nhất cần tìm ảnh
+            const uniqueStyles = [...new Set(packages.map(p => p.styleCodeForImg).filter(s => s))];
+
+            // Duyệt qua từng style để tìm ảnh
+            for (const styleCode of uniqueStyles) {
+                // Gọi API tìm tên ảnh
+                const imgInfo = await fetchStyleImageInfo(styleCode, apiKey);
+                
+                if (imgInfo && imgInfo.picture) {
+                    // Tạo link gốc và link thumbnail
+                    const originalUrl = `${WORKER_URL}/PKPDM/style/${imgInfo.buyer}/${styleCode}/Images/${imgInfo.picture}`;
+                    const cacheBuster = new Date().getTime(); 
+                    const thumbUrl = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=150&output=webp&q=80&t=${cacheBuster}`;
+
+                    // Cập nhật tất cả thẻ img có class tương ứng trên giao diện
+                    const imgs = document.querySelectorAll(`.img-style-${styleCode}`);
+                    imgs.forEach(img => {
+                        // Lưu link gốc để dùng khi lỗi
+                        img.dataset.original = originalUrl;
+                        
+                        // Xử lý khi lỗi
+                        img.onerror = function() {
+                            if (this.src.includes('wsrv.nl')) {
+                                // Nếu wsrv lỗi -> chuyển sang link gốc
+                                this.src = this.dataset.original;
+                            } else {
+                                // Nếu link gốc cũng lỗi -> hiện placeholder
+                                this.src = "https://placehold.co/150x150?text=No+Img";
+                                this.onerror = null;
+                            }
+                        };
+                        
+                        img.src = thumbUrl;
+                    });
+                } else {
+                    // Nếu không tìm thấy, set ảnh mặc định
+                    const imgs = document.querySelectorAll(`.img-style-${styleCode}`);
+                    imgs.forEach(img => {
+                        img.src = "https://placehold.co/150x150?text=No+Data";
+                        img.style.opacity = 0.5;
+                    });
+                }
+            }
+        }
+
+        // ========== PACKAGE MANAGEMENT ==========
+        async function loadPackages() {
+            const apiKey = document.getElementById('apiKey').value;
+            const factory = document.getElementById('factory').value;
+            const dateValForPkg = document.getElementById('dateSelect').value.replace(/-/g, '');
+            const listContainer = document.getElementById('packageListContainer');
+            const summaryDiv = document.getElementById('loadingSummary');
+            
+            if(!apiKey) return alert("Vui lòng nhập API Key để tiếp tục!");
+            saveConfig();
+            
+            listContainer.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loader"></div> Đang tải danh sách...</div>';
+            summaryDiv.classList.add('hidden');
+
+            try {
+                const pkgRes = await fetch(`${PACKAGE_API}?factory=${factory}&fromDate=${dateValForPkg}&apikey=${apiKey}`);
+                const pkgJson = await pkgRes.json();
+                let rawPackages = pkgJson.data?.packages || pkgJson.data || [];
+
+                allPackages = rawPackages.map(p => {
+                    const pid = p.packageId || p.MXPACKAGE;
+                    return {
+                        id: pid,
+                        style: p.styleText || p.STYLETEXT || "N/A",
+                        line: p.lineName || (p.remarks?.match(/LINE\s*([A-Za-z0-9]+)/i)?.[1]) || pid.split('_')[1] || "N/A",
+                        target: parseInt(p.target || p.MXTARGET || 0),
+                        color: p.color || p.COLOR || p.Color || "",
+                        actual: null, 
+                        loading: true,
+                        hasOT: false,
+                        searchString: `${pid} ${p.styleText} ${p.lineName} ${p.color}`.toLowerCase(),
+                        // Tách Style Code (7 ký tự) từ MXPACKAGE để tìm ảnh (NEW)
+                        styleCodeForImg: pid.split('_')[3]?.substring(0, 7) || ""
+                    };
+                });
+                
+                renderPackageList(allPackages);
+                syncProductionStatus(allPackages, apiKey);
+                
+                // Gọi load ảnh ngầm sau khi render xong (NEW)
+                loadImagesForPackages(allPackages, apiKey);
+
+            } catch (e) { 
+                listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:red;">Lỗi tải: ${e.message}</div>`;
+            } 
+        }
+
+        // ========== HYBRID SYNC LOGIC ==========
+        async function syncProductionStatus(packages, apiKey) {
+            const summaryDiv = document.getElementById('loadingSummary');
+            let grandTotalActual = 0;
+            let grandTotalTarget = 0;
+            const concurrencyLimit = 5; 
+            let activeRequests = 0;
+            let index = 0;
+
+            const updateSummary = () => {
+                const totalPkg = packages.length;
+                grandTotalTarget = packages.reduce((sum, p) => sum + p.target, 0);
+                const loadedActual = packages.reduce((sum, p) => sum + (p.actual || 0), 0);
+                updateSummaryDiv(summaryDiv, totalPkg, grandTotalTarget, loadedActual);
+            };
+
+            const processNext = async () => {
+                if (index >= packages.length) return;
+                const p = packages[index++];
+                activeRequests++;
+                
+                try {
+                    // SỬ DỤNG API CŨ để lấy số liệu thực tế (đảm bảo "Đủ Target")
+                    const oldApiUrl = `${MODULE_API}?mxpackage=${p.id}&mode=summary&apikey=${apiKey}`;
+                    const oldRes = await fetch(oldApiUrl);
+                    const oldJson = await oldRes.json();
+                    
+                    let totalEntered = 0;
+                    if (oldJson.success && oldJson.data && oldJson.data.summary) {
+                        totalEntered = oldJson.data.summary.total_manual_input || 0;
+                    }
+                    
+                    // SỬ DỤNG API MỚI CHỈ để kiểm tra OT
+                    let hasOT = false;
+                    try {
+                        const otUrl = `${OT_API}?mxpackage=${p.id}&apikey=${apiKey}`;
+                        const otRes = await fetch(otUrl);
+                        const otJson = await otRes.json();
+                        if (otJson.success && otJson.data && otJson.data.slot_analysis) {
+                            hasOT = otJson.data.slot_analysis.has_ot || false;
+                        }
+                    } catch (otErr) {
+                        console.warn(`Không thể kiểm tra OT cho ${p.id}:`, otErr);
+                    }
+                    
+                    p.actual = totalEntered;
+                    p.hasOT = hasOT;
+                    p.loading = false;
+                    
+                    updateCardStatus(p);
+                    updateSummary();
+                } catch (err) {
+                    console.warn(`Lỗi sync gói ${p.id}:`, err);
+                    p.loading = false;
+                    updateCardStatus(p);
+                } finally {
+                    activeRequests--;
+                    processNext(); 
+                }
+            };
+            
+            for (let i = 0; i < concurrencyLimit && i < packages.length; i++) {
+                processNext();
+            }
+        }
+
+        function updateCardStatus(p) {
+            const statusDiv = document.getElementById(`status-${p.id}`);
+            if (!statusDiv) return;
+            
+            statusDiv.className = 'pkg-right';
+            statusDiv.classList.remove('st-done', 'st-over', 'st-miss', 'st-pend');
+
+            // Thêm badge OT nếu có
+            const otBadge = p.hasOT ? '<span class="ot-badge">OT</span>' : '';
+
+            if (p.loading) {
+                statusDiv.innerHTML = `<span class="status-loading"><span class="mini-loader"></span> Kiểm tra...</span>`;
+            } else if (p.actual === 0 || p.actual === null) {
+                statusDiv.classList.add('st-pend');
+                statusDiv.innerHTML = `<span class="qty-display"><i class="far fa-circle"></i></span><span class="status-text">Chưa nhập</span>`;
+            } else {
+                let diff = p.actual - p.target;
+                if (p.actual > p.target) {
+                    statusDiv.classList.add('st-over');
+                    statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Vượt ${diff}</span>`;
+                } else if (p.actual === p.target) {
+                    statusDiv.classList.add('st-done');
+                    statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Đủ Target</span>`;
+                } else {
+                    statusDiv.classList.add('st-miss');
+                    statusDiv.innerHTML = `${otBadge}<span class="qty-display">${p.actual}</span><span class="status-text">Thiếu ${Math.abs(diff)}</span>`;
+                }
+            }
+        }
+
+        function updateSummaryDiv(div, totalPkg, totalTarget, totalActual) {
+            const percent = totalTarget > 0 ? Math.floor((totalActual/totalTarget)*100) : 0;
+            div.innerHTML = `
+                <div class="summary-banner">
+                    <span><i class="fas fa-cubes"></i> Gói: <b>${totalPkg}</b></span>
+                    <span class="summary-val"><i class="fas fa-bullseye"></i> Target: <b>${totalTarget.toLocaleString()}</b></span>
+                    <span class="summary-val" style="color:${percent >= 100 ? '#2e7d32' : '#e65100'}">
+                        <i class="fas fa-check"></i> Thực tế: <b>${totalActual.toLocaleString()}</b> (${percent}%)
+                    </span>
+                </div>`;
+            div.classList.remove('hidden');
+        }
+
+        function compareLines(a, b) {
+            const lineA = a.line.toUpperCase(); 
+            const lineB = b.line.toUpperCase();
+            const numA = (lineA.match(/(\d+)/)||[])[0] ? parseInt((lineA.match(/(\d+)/)||[])[0]) : 9999;
+            const numB = (lineB.match(/(\d+)/)||[])[0] ? parseInt((lineB.match(/(\d+)/)||[])[0]) : 9999;
+            return numA !== numB ? numA - numB : lineA.localeCompare(lineB);
+        }
+
+        function renderPackageList(list) {
+            const container = document.getElementById('packageListContainer');
+            container.innerHTML = '';
+            
+            if(list.length === 0) { 
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Không tìm thấy Package nào.</div>'; 
+                return; 
+            }
+            
+            const statusFilter = document.getElementById('statusFilter').value;
+            let filteredList = list;
+            if (statusFilter === 'pending') filteredList = list.filter(p => p.actual === null || p.actual === 0);
+            else if (statusFilter === 'done') filteredList = list.filter(p => p.actual > 0);
+            
+            filteredList.sort(compareLines);
+            let currentLine = null;
+            
+            filteredList.forEach(p => {
+                if (p.line !== currentLine) {
+                    currentLine = p.line;
+                    const header = document.createElement('div');
+                    header.className = 'line-header'; 
+                    header.innerText = `- LINE ${currentLine} -`;
+                    container.appendChild(header);
+                }
+                
+                // Class ảnh để lazy load sau này (NEW)
+                const imgClass = `img-style-${p.styleCodeForImg}`;
+
+                const card = document.createElement('div');
+                card.className = 'package-card';
+                // HTML ĐÃ CẬP NHẬT ĐỂ HIỆN ẢNH (NEW)
+                card.innerHTML = `
+                    <div class="pkg-left">
+                        <div class="pkg-thumb-box">
+                             <img src="https://placehold.co/150x150?text=..." class="pkg-thumb ${imgClass}" data-style="${p.styleCodeForImg}">
+                        </div>
+                        <div class="pkg-content-text">
+                            <div class="pkg-id">${p.id}</div>
+                            <div class="pkg-meta">
+                                <div class="pkg-meta-row">
+                                    <i class="fas fa-tshirt meta-icon"></i> ${p.style}
+                                </div>
+                                <div class="pkg-meta-row">
+                                    <i class="fas fa-project-diagram meta-icon"></i> LINE ${p.line}
+                                </div>
+                                <div class="pkg-meta-row" style="color:#e65100">
+                                    <i class="fas fa-bullseye meta-icon"></i> Target: ${p.target}
+                                </div>
+                                ${p.color ? `<div class="pkg-meta-row"><i class="fas fa-palette meta-icon"></i> ${p.color}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pkg-right" id="status-${p.id}">
+                        <span class="status-loading"><span class="mini-loader"></span> Đang tải...</span>
+                    </div>`;
+                card.onclick = () => selectPackageFromCard(p, card);
+                container.appendChild(card);
+            });
+            
+            filteredList.forEach(p => updateCardStatus(p));
+        }
+
+        function filterPackages() {
+            const term = document.getElementById('packageSearch').value.toLowerCase();
+            const textFiltered = allPackages.filter(p => p.searchString.includes(term));
+            renderPackageList(textFiltered);
+            // Gọi lại load ảnh cho các item đã filter (NEW)
+            loadImagesForPackages(textFiltered, document.getElementById('apiKey').value);
+        }
+
+        function selectPackageFromCard(p, cardElem) {
+            document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+            cardElem.classList.add('selected');
+            
+            selectedPackageId = p.id; 
+            selectedStyle = p.style; 
+            selectedLine = p.line; 
+            selectedColor = p.color; 
+            dailyTarget = parseInt(p.target) || 0;
+            
+            document.getElementById('infoPackageId').innerText = selectedPackageId;
+            document.getElementById('infoStyle').innerText = selectedStyle;
+            document.getElementById('infoLine').innerText = `LINE ${selectedLine}`;
+            document.getElementById('infoDailyTarget').innerText = dailyTarget;
+            
+            const colorRow = document.getElementById('infoColorRow');
+            if(selectedColor) { 
+                document.getElementById('infoColor').innerText = selectedColor; 
+                colorRow.classList.remove('hidden'); 
+            } else { 
+                colorRow.classList.add('hidden'); 
+            }
+            
+            document.getElementById('packageInfo').classList.remove('hidden');
+            document.getElementById('nextToStep2Btn').disabled = false;
+            document.getElementById('viewDetailsBtn').classList.remove('hidden');
+            recalculateTarget();
+        }
+
+        // ========== INPUT MANAGEMENT ==========
+        function recalculateTarget() {
+            const hours = parseFloat(document.getElementById('workHoursInput').value);
+            hourlyTarget = dailyTarget > 0 ? Math.ceil(dailyTarget / hours) : 36;
+            document.getElementById('infoHourlyTarget').innerText = hourlyTarget;
+            generateManualGrid(); 
+        }
+
+        function generateManualGrid() {
+            const container = document.getElementById('manualGrid');
+            container.innerHTML = '';
+            const hours = parseFloat(document.getElementById('workHoursInput').value);
+            const slotCount = hours > 8 ? 13 : 9;
+            
+            resetManualInputs();
+            
+            for(let i = 0; i < slotCount; i++) {
+                const isLunch = i === 4; 
+                const isDinner = i === 12; 
+                const isOT = i >= 9 && !isDinner;
+                
+                let badge = '';
+                if(isLunch) badge = '<span class="slot-badge badge-lunch">Lunch</span>';
+                else if(isDinner) badge = '<span class="slot-badge badge-break">Dinner</span>';
+                else if(isOT) badge = '<span class="slot-badge badge-ot">Tăng ca</span>';
+                
+                let cardClass = '';
+                if(isLunch) cardClass = 'slot-lunch-special slot-lunch';
+                else if(isOT) cardClass = 'slot-ot';
+                else if(isDinner) cardClass = 'slot-lunch-special slot-lunch';
+
+                const isDisabled = isLunch || (hours > 8 && isDinner);
+                
+                container.innerHTML += `
+                    <div class="slot-card ${cardClass}" id="card-${i}">
+                        ${badge}
+                        <div class="slot-header">
+                            <span>${timeSlots[i]}</span>
+                            <span>#${i+1}</span>
+                        </div>
+                        <div class="slot-input-wrapper">
+                            <input type="number" class="form-control slot-input" id="input-${i}" 
+                                   placeholder="${isDisabled ? '---' : '0'}" 
+                                   oninput="checkPerf(this,${i})" 
+                                   ${isDisabled ? 'disabled' : ''}>
+                            <span class="target-indicator">/${hourlyTarget}</span>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function checkPerf(inp, idx) {
+            const val = parseInt(inp.value) || 0;
+            const card = document.getElementById(`card-${idx}`);
+            card.classList.remove('status-success', 'status-warning', 'status-error');
+            
+            if(inp.value !== '' && !inp.disabled) {
+                card.classList.add(val >= hourlyTarget ? 'status-success' : (val >= hourlyTarget*0.7 ? 'status-warning' : 'status-error'));
+            }
+            
+            // REAL-TIME OT DETECTION
+            let total = 0;
+            let hasOT = false;
+
+            document.querySelectorAll('.slot-input').forEach((inputEl, i) => {
+                const inputVal = parseInt(inputEl.value) || 0;
+                if(!inputEl.disabled) {
+                    total += inputVal;
+                    // Kiểm tra OT (từ slot 9 trở đi)
+                    if (i >= OT_INDEX_START && inputVal > 0) hasOT = true;
+                }
+            });
+            
+            const totalDisplay = document.getElementById('manualTotalDisplay');
+            const manualSummary = document.querySelector('.manual-summary');
+            
+            if (hasOT) {
+                totalDisplay.innerHTML = `${total} <sup class="ot-badge"><i class="fas fa-bolt"></i> OT</sup>`;
+                manualSummary.style.background = 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%)';
+            } else {
+                totalDisplay.innerText = total;
+                manualSummary.style.background = '#263238';
+            }
+            
+            totalDisplay.style.color = total > dailyTarget ? '#ff5252' : '#ffffff';
+
+            const remaining = dailyTarget - total;
+            const remainingDisplay = document.getElementById('manualRemainingDisplay');
+            const remainingLabel = remainingDisplay.previousElementSibling;
+
+            if(remaining >= 0) {
+                remainingLabel.innerText = "Còn lại:"; 
+                remainingDisplay.innerText = remaining; 
+                remainingDisplay.style.color = '#4CAF50'; 
+            } else {
+                remainingLabel.innerText = "Vượt:"; 
+                remainingDisplay.innerText = Math.abs(remaining); 
+                remainingDisplay.style.color = '#ff9800'; 
+            }
+        }
+
+        function resetManualInputs() {
+            document.querySelectorAll('.slot-input').forEach(inp => { 
+                if(!inp.disabled) inp.value = ''; 
+            });
+            
+            document.getElementById('manualTotalDisplay').innerText = '0';
+            document.querySelector('.manual-summary').style.background = '#263238';
+            document.querySelectorAll('.slot-card').forEach(card => {
+                card.classList.remove('status-success', 'status-warning', 'status-error');
+            });
+            
+            document.getElementById('manualRemainingDisplay').innerText = dailyTarget;
+            document.getElementById('manualRemainingDisplay').style.color = '#4CAF50';
+            document.getElementById('manualRemainingDisplay').previousElementSibling.innerText = "Còn lại:";
+            
+            // Reset target display
+            document.getElementById('manualTargetDisplay').innerText = dailyTarget;
+        }
+
+        // ========== AUTO DISTRIBUTION ==========
+        function autoDistributeCustom() {
+            const h = parseFloat(document.getElementById('customSplitHours').value);
+            const mode = parseFloat(document.getElementById('workHoursInput').value);
+            const availableSlots = mode > 8 ? 11 : 8; 
+            
+            if(!h || h <= 0) return alert("Vui lòng nhập số giờ hợp lệ!");
+            if(h > availableSlots) return alert(`Số giờ không được vượt quá số slot khả dụng (${availableSlots} giờ)!`);
+            
+            resetManualInputs();
+            const inputs = document.querySelectorAll('.slot-input');
+            const target = dailyTarget;
+            
+            const hourlyRate = Math.floor(target / h);
+            const fullSlots = Math.floor(h);
+            const partialSlotRatio = h - fullSlots;
+            
+            let distributedValues = [];
+            let currentSum = 0;
+            
+            for(let i=0; i<fullSlots; i++) { 
+                distributedValues.push(hourlyRate); 
+                currentSum += hourlyRate; 
+            }
+            
+            if (partialSlotRatio > 0) { 
+                distributedValues.push(target - currentSum); 
+            } else { 
+                if(distributedValues.length > 0) { 
+                    distributedValues[distributedValues.length - 1] += (target - currentSum); 
+                } 
+            }
+            
+            let valIndex = 0;
+            inputs.forEach((inp, idx) => {
+                if (valIndex < distributedValues.length && !inp.disabled) {
+                    if (idx === 4 || idx === 12) return; 
+                    inp.value = distributedValues[valIndex];
+                    checkPerf(inp, idx);
+                    valIndex++;
+                }
+            });
+        }
+
+        function autoDistribute(customHours) {
+            resetManualInputs();
+            const mode = parseFloat(document.getElementById('workHoursInput').value);
+            const inputs = document.querySelectorAll('.slot-input');
+            const target = dailyTarget;
+            
+            let weights = [];
+            let totalWeight = 0;
+            
+            if (mode === 7.5) {
+                for(let i=0; i<9; i++) {
+                    if (i === 4) { weights.push(0); continue; }
+                    if (i === 8) { weights.push(0.5); totalWeight += 0.5; } 
+                    else { weights.push(1); totalWeight += 1; }
+                }
+            } else {
+                for(let i=0; i<13; i++) {
+                    if (i === 4 || i === 12) { weights.push(0); continue; }
+                    weights.push(1); totalWeight += 1;
+                }
+            }
+            
+            let currentTotal = 0;
+            let distributedValues = weights.map(w => { 
+                if(w === 0) return 0; 
+                return Math.floor(target * w / totalWeight); 
+            });
+            
+            currentTotal = distributedValues.reduce((a,b) => a+b, 0);
+            let remainder = target - currentTotal;
+            
+            for(let i = distributedValues.length - 1; i >= 0; i--) { 
+                if (weights[i] > 0) { 
+                    distributedValues[i] += remainder; 
+                    break; 
+                } 
+            }
+            
+            inputs.forEach((inp, idx) => {
+                if (distributedValues[idx] !== undefined && !inp.disabled) {
+                    if(distributedValues[idx] > 0) { 
+                        inp.value = distributedValues[idx]; 
+                        checkPerf(inp, idx); 
+                    }
+                }
+            });
+        }
+
+        function processManualData() {
+            let total = 0;
+            productionData = {};
+            
+            document.querySelectorAll('.slot-input').forEach((inp, i) => { 
+                const val = parseInt(inp.value);
+                if(inp.value && !inp.disabled) { 
+                    productionData[timeSlots[i]] = val; 
+                    total += val; 
+                }
+            });
+            
+            if (total > dailyTarget) { 
+                if (!confirm(`CẢNH BÁO SẢN LƯỢNG!\n\nTổng nhập: ${total}\nTarget ngày: ${dailyTarget}\n\nBạn đang nhập VƯỢT quá Target quy định.\nXác nhận đây là số liệu đúng (vượt sản lượng)?`)) 
+                    return; 
+            }
+            
+            updatePreviewTable();
+            goToStep(3);
+        }
+
+        function updatePreviewTable() {
+            const tbody = document.getElementById('previewTableBody'); 
+            tbody.innerHTML = '';
+            let total = 0; 
+            let rowCount = 0;
+            
+            timeSlots.forEach((slot, i) => {
+                if (productionData.hasOwnProperty(slot)) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td>${slot}</td>
+                            <td><b>${productionData[slot]}</b></td>
+                            <td>${hourlyTarget}</td>
+                        </tr>`;
+                    total += productionData[slot];
+                    rowCount++;
+                }
+            });
+            
+            tbody.innerHTML += `
+                <tr class="total-row">
+                    <td colspan="2"><b>TỔNG</b></td>
+                    <td colspan="2"><b>${total}</b></td>
+                </tr>`;
+        }
+
+        // ========== MACHINE SELECTION ==========
+        async function sendFaCommand(apiKey, packageId, opserial) {
+            try {
+                const url = `${SCANNER_API}?apikey=${encodeURIComponent(apiKey)}&mxpackage=${encodeURIComponent(packageId)}&mcid=&opserial=${opserial}&processtype=FA`;
+                const response = await fetch(url);
+                const isSent = response.ok; 
+                return { 
+                    success: isSent, 
+                    message: isSent ? "Server received command" : "Server Error: " + response.status, 
+                    simpleMessage: isSent ? "✅ Đã gửi lệnh" : "❌ Lỗi mạng/Server" 
+                };
+            } catch (error) { 
+                return { 
+                    success: false, 
+                    message: error.message || "Connection Error", 
+                    simpleMessage: "❌ Lỗi kết nối" 
+                }; 
+            }
+        }
+
+        function toggleGlobalFA() { 
+            globalFaEnabled = document.getElementById('globalFaToggle').checked; 
+            updateFAStatusText(); 
+        }
+
+        function updateFAStatusText() { 
+            const faStatusText = document.getElementById('faStatusText'); 
+            if (faStatusText) { 
+                if (globalFaEnabled) { 
+                    faStatusText.innerHTML = '<i class="fas fa-robot"></i> SẼ GỬI LỆNH FA'; 
+                    faStatusText.style.color = '#4CAF50'; 
+                } else { 
+                    faStatusText.innerHTML = '<i class="fas fa-ban"></i> KHÔNG gửi lệnh FA'; 
+                    faStatusText.style.color = '#F44336'; 
+                } 
+            } 
+        }
+
+        async function scanFAMachines() {
+            const apiKey = document.getElementById('apiKey').value;
+            const btn = document.getElementById('scanBtn');
+            const resDiv = document.getElementById('scanResult');
+            const manualDiv = document.getElementById('manualSerialInput');
+            const faPanel = document.getElementById('faControlPanel');
+            const autoBanner = document.getElementById('autoSelectBanner');
+            
+            btn.innerHTML = '<div class="loader"></div> Đang tìm máy...'; 
+            btn.disabled = true;
+            resDiv.innerHTML = ''; 
+            resDiv.className = 'hidden'; 
+            manualDiv.classList.add('hidden'); 
+            autoBanner.classList.add('hidden');
+            
+            hasFaOption = false; 
+            faStatus = {};
+
+            try {
+                const url = `${MODULE_API}?mxpackage=${selectedPackageId}&mode=operations&apikey=${apiKey}`;
+                const res = await fetch(url);
+                const json = await res.json();
+                
+                if (!json.success || !json.data || !json.data.operations) {
+                    throw new Error("Không tìm thấy operation.");
+                }
+                
+                const allOps = json.data.operations
+                    .filter(op => op.opserial != null)
+                    .map(op => ({ 
+                        ...op, 
+                        opserial: op.opserial, 
+                        opnum: op.opnum || "N/A" 
+                    }));
+
+                let faCandidates = allOps.filter(op => op.iottype === 'FA');
+                let nonFaCandidates = allOps.filter(op => op.iottype !== 'FA');
+                
+                if (faCandidates.length === 0 && nonFaCandidates.length === 0) {
+                    throw new Error("Không tìm thấy máy có Serial hợp lệ.");
+                }
+                
+                hasFaOption = true;
+                resDiv.className = 'result-box result-info';
+                resDiv.innerHTML = `<h4><i class="fas fa-robot"></i> Danh sách máy (${allOps.length})</h4>`;
+                
+                faPanel.style.display = 'block'; 
+                document.getElementById('globalFaToggle').checked = true; 
+                globalFaEnabled = true;
+                
+                let html = '';
+                const renderItem = (op, isFaGroup) => {
+                    const opserial = String(op.opserial);
+                    faStatus[opserial] = { 
+                        displayName: op.remarks || op.opname, 
+                        isFA: isFaGroup, 
+                        opnum: op.opnum, 
+                        iottype: op.iottype 
+                    };
+                    
+                    const faToggle = !isFaGroup ? 
+                        `<button class="fa-toggle-btn" id="fa-toggle-${opserial}" onclick="toggleMachineFA(event, '${opserial}')">
+                            <i class="fas fa-robot"></i>
+                        </button>` : '';
+                    
+                    return `
+                        <li class="machine-item ${isFaGroup ? '' : 'non-fa'}" 
+                            id="machine-${opserial}" 
+                            onclick="selectMachine('${opserial}', '${(op.remarks || op.opname).replace(/'/g, "\\'").replace(/"/g, '&quot;')}', ${isFaGroup})">
+                            <input type="radio" name="machineSelect" value="${opserial}" 
+                                   class="machine-radio" ${selectedOpserial === opserial ? 'checked' : ''}>
+                            <div class="machine-info-container" style="flex: 1;">
+                                <h4>${op.remarks || op.opname} 
+                                    <span class="type-badge ${isFaGroup?'badge-fa':'badge-non-fa'}">
+                                        ${isFaGroup?'FA':'NON-FA'}
+                                    </span>
+                                </h4>
+                                <p>OPSERIAL: <b>${opserial}</b> | OPNUM: <b>${op.opnum || 'N/A'}</b></p>
+                            </div>
+                            ${faToggle}
+                        </li>`;
+                };
+
+                if (faCandidates.length > 0) {
+                    html += '<ul class="machine-list">' + faCandidates.map(op => renderItem(op, true)).join('') + '</ul>';
+                }
+                
+                if (nonFaCandidates.length > 0) { 
+                    if (faCandidates.length > 0) html += '<div class="section-divider"><span>Máy khác</span></div>'; 
+                    html += '<ul class="machine-list">' + nonFaCandidates.map(op => renderItem(op, false)).join('') + '</ul>'; 
+                }
+                
+                resDiv.innerHTML += html;
+                const foundMachineOne = findAndSelectMachineOne(allOps);
+                
+                if (!foundMachineOne && allOps.length === 1) { 
+                    const machine = allOps[0]; 
+                    selectMachine(String(machine.opserial), machine.remarks || machine.opname, machine.iottype === 'FA'); 
+                }
+            } catch (e) {
+                console.error("❌ Error in scanFAMachines:", e);
+                resDiv.className = "result-box result-warning"; 
+                resDiv.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> ${e.message}</p>`; 
+                document.getElementById('manualSerialInput').classList.remove('hidden');
+            } finally { 
+                resDiv.classList.remove('hidden'); 
+                btn.innerHTML = '<i class="fas fa-qrcode"></i> 🔍 Scan Machine FA'; 
+                btn.disabled = false; 
+            }
+        }
+
+        function findAndSelectMachineOne(allOps) {
+            for (let op of allOps) {
+                if (op.opserial != null) {
+                    const serialStr = String(op.opserial); 
+                    const serialNum = parseInt(serialStr);
+                    
+                    if (!isNaN(serialNum) && serialNum === 1) {
+                        document.getElementById('autoSelectMachineName').textContent = op.remarks || op.opname; 
+                        document.getElementById('autoSelectMachineSerial').textContent = serialStr; 
+                        document.getElementById('autoSelectBanner').classList.remove('hidden');
+                        
+                        selectMachine(serialStr, op.remarks || op.opname, op.iottype === 'FA');
+                        
+                        const element = document.getElementById(`machine-${serialStr}`); 
+                        if (element) { 
+                            element.classList.add('auto-selected'); 
+                            const badge = document.createElement('span'); 
+                            badge.className = 'machine-one-badge'; 
+                            badge.textContent = 'Máy 1'; 
+                            const titleElement = element.querySelector('.machine-info-container h4'); 
+                            if (titleElement) titleElement.appendChild(badge); 
+                        }
+                        return true;
+                    }
+                }
+            } 
+            return false;
+        }
+
+        function toggleMachineFA(event, serial) {
+            event.stopPropagation(); 
+            serial = String(serial);
+            if (!faStatus[serial]) return;
+            
+            faStatus[serial].faRequested = !faStatus[serial].faRequested;
+            const toggleBtn = document.getElementById(`fa-toggle-${serial}`); 
+            const toggleIcon = toggleBtn.querySelector('i');
+            
+            if (faStatus[serial].faRequested) { 
+                toggleBtn.style.color = '#4CAF50'; 
+                toggleIcon.className = 'fas fa-robot'; 
+            } else { 
+                toggleBtn.style.color = '#ccc'; 
+                toggleIcon.className = 'fas fa-ban'; 
+            }
+        }
+
+        function selectMachine(serial, name, isFA = false) {
+            const serialStr = String(serial);
+            
+            if (selectedOpserial && selectedOpserial !== serialStr) { 
+                const old = document.getElementById(`machine-${selectedOpserial}`); 
+                if (old) { 
+                    old.classList.remove('selected'); 
+                    old.classList.remove('auto-selected'); 
+                    old.querySelector('.machine-radio').checked = false; 
+                } 
+            }
+            
+            selectedOpserial = serialStr; 
+            selectedMachineName = name;
+            
+            const element = document.getElementById(`machine-${serialStr}`); 
+            if (element) { 
+                element.classList.add('selected'); 
+                element.querySelector('.machine-radio').checked = true; 
+            }
+            
+            if (faStatus[serialStr]) faStatus[serialStr].faRequested = globalFaEnabled;
+            
+            document.getElementById('selectedMachineName').innerText = name; 
+            document.getElementById('selectedMachineSerial').innerText = serialStr; 
+            document.getElementById('selectionInfo').classList.remove('hidden'); 
+            document.getElementById('unselectBtn').classList.remove('hidden'); 
+            updateFAStatusText();
+        }
+
+        function clearMachineSelection() {
+            if (!selectedOpserial) return;
+            
+            const old = document.getElementById(`machine-${selectedOpserial}`); 
+            if (old) { 
+                old.classList.remove('selected'); 
+                old.classList.remove('auto-selected'); 
+                old.querySelector('.machine-radio').checked = false; 
+            }
+            
+            selectedOpserial = null; 
+            selectedMachineName = ""; 
+            document.getElementById('selectionInfo').classList.add('hidden'); 
+            document.getElementById('unselectBtn').classList.add('hidden');
+        }
+
+        function toggleManualInput() { 
+            const el = document.getElementById('manualSerialInput'); 
+            el.classList.toggle('hidden'); 
+            if(!el.classList.contains('hidden')) document.getElementById('manualOpserial').focus(); 
+        }
+
+        function confirmManualSerial() {
+            const val = String(document.getElementById('manualOpserial').value); 
+            manualFaRequested = globalFaEnabled; 
+            
+            if(val) {
+                selectedOpserial = val; 
+                selectedMachineName = "Manual: " + val;
+                
+                document.getElementById('selectedMachineName').innerText = selectedMachineName; 
+                document.getElementById('selectedMachineSerial').innerText = val; 
+                document.getElementById('selectionInfo').classList.remove('hidden');
+                
+                document.getElementById('scanResult').innerHTML = `
+                    <div class="result-box result-success">
+                        <p><i class="fas fa-check"></i> Chọn thủ công: <b>${val}</b></p>
+                    </div>`;
+                
+                document.getElementById('scanResult').classList.remove('hidden'); 
+                document.getElementById('manualSerialInput').classList.add('hidden'); 
+                document.getElementById('unselectBtn').classList.remove('hidden'); 
+                document.getElementById('faControlPanel').style.display = 'block'; 
+                updateFAStatusText();
+            } else { 
+                alert("Vui lòng nhập mã OPSERIAL!"); 
+            }
+        }
+
+        // ========== DETAIL MODAL (IMPROVED) ==========
+        async function viewPackageDetails() {
+            const apiKey = document.getElementById('apiKey').value; 
+            document.getElementById('detailModal').classList.add('open'); 
+            const content = document.getElementById('modalContent'); 
+            content.innerHTML = '<div class="loader"></div> Loading...';
+            
+            try { 
+                const res = await fetch(`${MODULE_API}?mxpackage=${selectedPackageId}&mode=full&apikey=${apiKey}`); 
+                const json = await res.json(); 
+                
+                if (!json.success || !json.data.modules.length) {
+                    throw new Error("Không tìm thấy module nào");
+                }
+                
+                let html = '';
+                json.data.modules.forEach((mod, modIndex) => {
+                    const operations = mod.operations || [];
+                    const faCount = operations.filter(op => op.iottype === 'FA').length;
+                    const totalCount = operations.length;
+                    
+                    html += `
+                        <div class="detail-module">
+                            <div class="detail-module-header">
+                                <span>${mod.name || `Module ${modIndex + 1}`}</span>
+                                <span class="detail-module-count">${totalCount} máy (${faCount} FA)</span>
+                            </div>
+                            <div class="detail-rows-container">
+                    `;
+                    
+                    // Sắp xếp operations: FA trước, sau đó sắp xếp theo OPSERIAL
+                    const sortedOps = operations.sort((a, b) => {
+                        // Ưu tiên FA
+                        if (a.iottype === 'FA' && b.iottype !== 'FA') return -1;
+                        if (a.iottype !== 'FA' && b.iottype === 'FA') return 1;
+                        // Sau đó sắp xếp theo OPSERIAL
+                        return (a.opserial || 9999) - (b.opserial || 9999);
+                    });
+                    
+                    sortedOps.forEach(op => {
+                        const isFA = op.iottype === 'FA';
+                        const opSerial = op.opserial || 'N/A';
+                        const opName = op.remarks || op.opname || 'N/A';
+                        const opNum = op.opnum || 'N/A';
+                        const iotType = op.iottype || 'N/A';
+                        
+                        html += `
+                            <label class="detail-row" style="border-left: 3px solid ${isFA?'#4CAF50':'#9E9E9E'}">
+                                <input type="checkbox" class="detail-checkbox serial-checkbox" 
+                                       value="${opSerial}" 
+                                       data-remark="${opName.replace(/"/g, '&quot;')}"
+                                       data-opnum="${opNum}"
+                                       data-iottype="${iotType}">
+                                <div style="flex:1">
+                                    <div style="font-weight:bold; margin-bottom:2px;">${opName}</div>
+                                    <div style="font-size:12px; color:#666;">
+                                        <span>OPNUM: ${opNum}</span> | 
+                                        <span>TYPE: ${iotType}</span>
+                                    </div>
+                                </div>
+                                <span class="type-badge ${isFA?'badge-fa':''}">${iotType}</span>
+                                <span class="serial-tag">Serial: ${opSerial}</span>
+                            </label>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = html;
+                
+            } catch (e) { 
+                content.innerHTML = `<p class="result-box result-error">Lỗi: ${e.message}</p>`; 
+            }
+        }
+
+        function copySerials(mode) { 
+            const checkboxes = document.querySelectorAll('.serial-checkbox:checked');
+            const txt = Array.from(checkboxes).map(cb => cb.value).join('\n'); 
+            if (txt) {
+                navigator.clipboard.writeText(txt).then(() => {
+                    alert(`Đã copy ${checkboxes.length} Serial vào bộ nhớ đệm!`);
+                });
+            } else {
+                alert("Vui lòng chọn ít nhất một máy để copy!");
+            }
+        }
+
+        function copyRemarks() { 
+            const checkboxes = document.querySelectorAll('.serial-checkbox:checked');
+            const txt = Array.from(checkboxes).map(cb => cb.dataset.remark).join('\n'); 
+            if (txt) {
+                navigator.clipboard.writeText(txt).then(() => {
+                    alert(`Đã copy ${checkboxes.length} Remarks vào bộ nhớ đệm!`);
+                });
+            } else {
+                alert("Vui lòng chọn ít nhất một máy để copy!");
+            }
+        }
+
+        function closeModal() { 
+            document.getElementById('detailModal').classList.remove('open'); 
+        }
+
+        // ========== CONFIRM MODAL ==========
+        function showConfirmModal() {
+            const currentSerial = String(selectedOpserial || ''); 
+            if(!currentSerial) return alert("Vui lòng CHỌN MÁY trước khi gửi!");
+            
+            const hasData = Object.keys(productionData).length > 0; 
+            if(!hasData) { 
+                if(!confirm("CẢNH BÁO: Không có dữ liệu sản lượng!\nBạn có chắc chắn muốn gửi để XÓA dữ liệu cũ không?")) 
+                    return; 
+            }
+            
+            let sendFa = false; 
+            if (hasFaOption) { 
+                if (faStatus[currentSerial]) sendFa = globalFaEnabled && faStatus[currentSerial].faRequested !== false; 
+            } else { 
+                sendFa = manualFaRequested; 
+            }
+            
+            const slotsCount = Object.keys(productionData).length; 
+            const totalQty = Object.values(productionData).reduce((a,b) => a+b, 0); 
+            const currentTime = new Date().toLocaleString('vi-VN');
+            
+            let warningHtml = ''; 
+            if (totalQty > dailyTarget) { 
+                warningHtml = `
+                    <div class="confirm-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>CẢNH BÁO SẢN LƯỢNG!</strong><br>
+                            Tổng nhập: <b style="color:#e65100">${totalQty}</b> | Target ngày: <b>${dailyTarget}</b><br>
+                            Bạn đang nhập <b>VƯỢT</b> quá Target quy định.
+                        </div>
+                    </div>`; 
+            }
+            
+            document.getElementById('confirmContent').innerHTML = `
+                <div class="confirm-details">
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-cube"></i> Package:</span>
+                        <span class="confirm-value">${selectedPackageId}</span>
+                    </div>
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-robot"></i> Máy:</span>
+                        <span class="confirm-value">${selectedMachineName}</span>
+                    </div>
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-hashtag"></i> OPSERIAL:</span>
+                        <span class="confirm-value">${currentSerial}</span>
+                    </div>
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-boxes"></i> Tổng SL:</span>
+                        <span class="confirm-value confirm-highlight">${totalQty} cái</span>
+                    </div>
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-clock"></i> Thời gian:</span>
+                        <span class="confirm-value">${currentTime}</span>
+                    </div>
+                    <div class="confirm-item">
+                        <span class="confirm-label"><i class="fas fa-bolt"></i> Gửi FA:</span>
+                        <span class="confirm-value" style="color:${sendFa ? '#4CAF50' : '#F44336'}">
+                            ${sendFa ? 'CÓ gửi lệnh FA' : 'KHÔNG gửi lệnh FA'}
+                        </span>
+                    </div>
+                </div>
+                ${warningHtml}
+                <div style="margin-top:20px; padding:15px; background:#f5f5f5; border-radius:8px; border-left:4px solid #2196F3;">
+                    <strong><i class="fas fa-info-circle"></i> Bạn có chắc chắn muốn gửi dữ liệu này lên hệ thống?</strong>
+                </div>`;
+            
+            document.getElementById('confirmModal').classList.add('open');
+        }
+
+        function closeConfirmModal() { 
+            document.getElementById('confirmModal').classList.remove('open'); 
+        }
+
+        function confirmSendToMES() { 
+            closeConfirmModal(); 
+            sendToMES(); 
+        }
+
+        // ========== SEND DATA ==========
+        async function sendToMES() {
+            // CHECK TURNSTILE
+            if (!isLocalhost && (!turnstileToken || Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) { 
+                await refreshTurnstileToken(); 
+            }
+            
+            const currentSerial = String(selectedOpserial || ''); 
+            const hasData = Object.keys(productionData).length > 0;
+            let sendFa = false; 
+            
+            if (hasFaOption) { 
+                if (faStatus[currentSerial]) sendFa = globalFaEnabled && faStatus[currentSerial].faRequested !== false; 
+            } else { 
+                sendFa = manualFaRequested; 
+            }
+            
+            const slotsCount = Object.keys(productionData).length; 
+            const totalQty = Object.values(productionData).reduce((a,b) => a+b, 0);
+            const btn = document.getElementById('sendBtn'); 
+            const originalBtnText = btn.innerHTML; 
+            
+            btn.innerHTML = '<div class="loader"></div> Đang gửi...'; 
+            btn.disabled = true;
+
+            try {
+                const apiKey = document.getElementById('apiKey').value; 
+                const currentTime = new Date().toLocaleString('vi-VN');
+                
+                const payload = { 
+                    mxpackage: selectedPackageId, 
+                    opserial: currentSerial, 
+                    production_data: productionData, 
+                    action: 'update' 
+                };
+                
+                if(turnstileToken && !isLocalhost) payload.cf_turnstile_response = turnstileToken;
+                
+                const prodPromise = fetch(PROD_API, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey }, 
+                    body: JSON.stringify(payload) 
+                }).then(res => res.ok ? res.json() : Promise.reject(`Server Error: ${res.status}`));
+                
+                let faPromise = Promise.resolve(null); 
+                if (sendFa) faPromise = sendFaCommand(apiKey, selectedPackageId, currentSerial);
+                
+                const [prodResult, faResult] = await Promise.allSettled([prodPromise, faPromise]);
+                
+                if (prodResult.status === 'rejected') throw new Error(prodResult.reason?.message || "Lỗi gửi sản lượng");
+                const prodJson = prodResult.value; 
+                if (!prodJson.success) throw new Error(prodJson.message || "Lỗi Server không xác định");
+                
+                const faSuccess = faResult.status === 'fulfilled' ? faResult.value?.success : false;
+                document.getElementById('successAnimation').style.display = 'flex';
+                
+                let faStatusHtml = ''; 
+                if(sendFa) { 
+                    faStatusHtml = `
+                        <span class="status-pill ${faSuccess ? 'pill-success' : 'pill-error'}">
+                            <i class="fas ${faSuccess ? 'fa-check' : 'fa-times'}"></i> FA: ${faSuccess ? 'ĐÃ GỬI' : 'THẤT BẠI'}
+                        </span>`; 
+                } else { 
+                    faStatusHtml = `
+                        <span class="status-pill pill-gray">
+                            <i class="fas fa-ban"></i> FA: KHÔNG GỬI
+                        </span>`; 
+                }
+                
+                document.getElementById('resultMessage').innerHTML = `
+                    <div class="result-box result-success">
+                        <h3><i class="fas fa-check-circle"></i> GỬI THÀNH CÔNG</h3>
+                        <div class="detail-list">
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-cube"></i> Package:</span>
+                                <span class="detail-value">${selectedPackageId}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-robot"></i> Máy:</span>
+                                <span class="detail-value">${selectedMachineName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-hashtag"></i> OPSERIAL:</span>
+                                <span class="detail-value">${currentSerial}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-boxes"></i> Tổng SL:</span>
+                                <span class="detail-value" style="color:#e65100; font-size:18px">${totalQty} cái</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-clock"></i> Thời gian:</span>
+                                <span class="detail-value">${currentTime}</span>
+                            </div>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-pill pill-success">
+                                <i class="fas fa-database"></i> DB: ĐÃ LƯU
+                            </span>
+                            ${faStatusHtml}
+                            <span class="status-pill pill-info">
+                                <i class="fas fa-slots"></i> SLOT: ${slotsCount}
+                            </span>
+                        </div>
+                    </div>`;
+                    
+                goToStep(4); 
+                setTimeout(() => { 
+                    btn.innerHTML = originalBtnText; 
+                    btn.disabled = false; 
+                }, 1000);
+                
+            } catch(e) {
+                document.getElementById('resultMessage').innerHTML = `
+                    <div class="result-box result-error">
+                        <h3><i class="fas fa-exclamation-circle"></i> LỖI GỬI DỮ LIỆU</h3>
+                        <div class="detail-list">
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-cube"></i> Package:</span>
+                                <span class="detail-value">${selectedPackageId}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-robot"></i> Máy:</span>
+                                <span class="detail-value">${selectedMachineName}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label"><i class="fas fa-exclamation-triangle"></i> Lỗi:</span>
+                                <span class="detail-value" style="color:#c62828">${e.message || "Không xác định"}</span>
+                            </div>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-pill pill-error">
+                                <i class="fas fa-times"></i> THẤT BẠI
+                            </span>
+                        </div>
+                    </div>`;
+                    
+                goToStep(4); 
+                btn.innerHTML = originalBtnText; 
+                btn.disabled = false;
+            }
+        }
+
+        // ========== NAVIGATION ==========
+        function goToStep(step) {
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active')); 
+            document.querySelectorAll('.step-dot').forEach(el => el.classList.remove('active')); 
+            document.getElementById(`step${step}`).classList.add('active'); 
+            document.getElementById(`stepDot${step}`).classList.add('active');
+            
+            if(step === 3) { 
+                document.getElementById('contextPackageInfo').innerHTML = `
+                    ${selectedPackageId}<br>
+                    <small>${selectedStyle} | Target: ${dailyTarget}</small>`; 
+                document.getElementById('contextLineInfo').innerHTML = `LINE: ${selectedLine}`; 
+                globalFaEnabled = true; 
+                if (document.getElementById('globalFaToggle')) 
+                    document.getElementById('globalFaToggle').checked = true; 
+                updateFAStatusText(); 
+                document.getElementById('autoSelectBanner').classList.add('hidden'); 
+            }
         }
     </script>
 </body>
 </html>
+<!-- END OF FILE mes_production_v7.4_enhanced_img.html -->
