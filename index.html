@@ -1189,62 +1189,89 @@
                     const isFA = op.iottype === 'FA';
                     const badgeClass = isFA ? 'badge-fa' : (op.iottype === 'QA' ? 'badge-qa' : 'badge-none');
                     
-                    html += `<label class="detail-row" id="row-${op.opserial}" style="border-left: 3px solid ${isFA?'#10b981':'#cbd5e1'}">
+                    // Tạo HTML cho mỗi operation - SỬA LẠI CẤU TRÚC CỘT
+                    html += `<div class="detail-row" id="row-${op.opserial}" style="border-left: 3px solid ${isFA?'#10b981':'#cbd5e1'}">
                         <input type="checkbox" class="serial-checkbox" value="${op.opserial}" data-mcid="" data-name="${op.remarks||op.opname}">
                         <div>
                             <div class="op-name">${op.remarks||op.opname}</div>
                             <span class="serial-tag">${op.opserial}</span>
                             <span class="type-badge ${badgeClass}">${op.iottype||'NONE'}</span>
                         </div>
-                        <div class="mcid-col"><span class="loader" style="width:12px;height:12px;border-width:2px;"></span></div>
-                        <div class="iot-col">-</div>
-                        <div class="time-col">-</div>
-                    </label>`;
+                        <div class="mcid-col" id="mcid-${op.opserial}"><span class="loader" style="width:12px;height:12px;border-width:2px;"></span></div>
+                        <div class="iot-col" id="iot-${op.opserial}">-</div>
+                        <div class="time-col" id="time-${op.opserial}">-</div>
+                    </div>`;
                 });
                 html += `</div>`;
             }
             content.innerHTML = html;
 
-            // Fetch details ngầm
-            const styleInfo = parseMxPackage(selectedPackageId);
-            if (styleInfo.success) {
-                fetchMachineDetailsBackground(apiKey, styleInfo, ops);
-            }
+            // Fetch details ngầm - SỬA LẠI ĐỂ LẤY ĐÚNG 3 GIÁ TRỊ
+            fetchMachineDetailsForOperations(apiKey, selectedPackageId, ops);
 
         } catch (e) { 
             content.innerHTML = `<p style="color:red; font-weight:bold; padding:20px;">Lỗi: ${e.message}</p>`; 
         }
     }
 
-    async function fetchMachineDetailsBackground(apiKey, styleInfo, operations) {
+    // Hàm mới: Lấy chi tiết máy cho danh sách operations
+    async function fetchMachineDetailsForOperations(apiKey, packageId, operations) {
+        const styleInfo = parseMxPackage(packageId);
+        if (!styleInfo.success) {
+            console.error("Không thể parse package:", packageId);
+            return;
+        }
+
+        // Fetch dữ liệu chi tiết cho từng operation
         for (let op of operations) {
             try {
-                let url = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
+                const url = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
                 const res = await fetch(url);
                 const json = await res.json();
 
                 if (json.success && json.data?.Result?.MachineList?.length > 0) {
                     const m = json.data.Result.MachineList[0]; 
-                    const row = document.getElementById(`row-${op.opserial}`);
-                    if (row && m.MCID) {
-                        const checkbox = row.querySelector('.serial-checkbox');
-                        checkbox.dataset.mcid = m.MCID; 
+                    
+                    // Cập nhật MCID
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement && m.MCID) {
+                        mcidElement.innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
                         
-                        row.querySelector('.mcid-col').innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
-                        row.querySelector('.iot-col').innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
-                        row.querySelector('.time-col').innerHTML = `<span class="iot-time">${formatDateTime(m.LAST_IOT_DATA_RECEIVE_TIME)}</span>`;
-                    } else if (row) {
-                         row.querySelector('.mcid-col').innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
+                        // Cập nhật checkbox data
+                        const checkbox = document.querySelector(`#row-${op.opserial} .serial-checkbox`);
+                        if (checkbox) {
+                            checkbox.dataset.mcid = m.MCID;
+                        }
+                    }
+                    
+                    // Cập nhật IoT Data
+                    const iotElement = document.getElementById(`iot-${op.opserial}`);
+                    if (iotElement) {
+                        iotElement.innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
+                    }
+                    
+                    // Cập nhật Time
+                    const timeElement = document.getElementById(`time-${op.opserial}`);
+                    if (timeElement) {
+                        timeElement.innerHTML = `<span class="iot-time">${formatDateTime(m.LAST_IOT_DATA_RECEIVE_TIME)}</span>`;
                     }
                 } else {
-                    const row = document.getElementById(`row-${op.opserial}`);
-                    if (row) row.querySelector('.mcid-col').innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
+                    // Nếu không có dữ liệu
+                    const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                    if (mcidElement) mcidElement.innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
                 }
-            } catch (err) { console.warn("Lỗi fetch detail op:", op.opserial); }
-            await new Promise(r => setTimeout(r, 50)); 
+            } catch (err) { 
+                console.warn("Lỗi fetch detail op:", op.opserial, err);
+                
+                // Hiển thị lỗi nếu có
+                const mcidElement = document.getElementById(`mcid-${op.opserial}`);
+                if (mcidElement) mcidElement.innerHTML = `<span style="color:#ef4444; font-size:11px;">Lỗi</span>`;
+            }
+            await new Promise(r => setTimeout(r, 50)); // Delay để tránh rate limit
         }
     }
 
+    /* ========== IOT SCAN FUNCTIONS (Từ remove-machine) ========== */
     /* ========== IOT SCAN FUNCTIONS (Từ remove-machine) ========== */
     async function startIotScan() {
         // Kiểm tra token trước khi bắt đầu
@@ -1338,6 +1365,7 @@
                     }
                 } catch (err) {
                     console.warn(`Lỗi quét OP ${op.opserial}:`, err);
+                    modalLog(`⚠️ Lỗi quét OP ${op.opserial}: ${err.message}`, 'warning');
                 }
                 await new Promise(r => setTimeout(r, 100));
             }
