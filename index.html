@@ -632,8 +632,8 @@
               <button class="modal-tab" data-tab="tab-iot" onclick="switchModalTab('tab-iot')">
                   <i class="fas fa-satellite-dish"></i> Quét IoT & Xóa máy
               </button>
-              <button class="modal-tab" data-tab="tab-batch" onclick="switchModalTab('tab-batch')">
-                  <i class="fas fa-tasks"></i> Xử lý hàng loạt
+              <button class="modal-tab" data-tab="tab-batch" onclick="switchModalTab('tab-batch')" style="display: none;">
+                  <i class="fas fa-tasks"></i> Xử lý hàng loạt (Ẩn)
               </button>
           </div>
           
@@ -666,6 +666,9 @@
                           <button class="btn btn-warning btn-sm" onclick="toggleAllMachines(false)" id="btnDeselectAll">
                               <i class="fas fa-times"></i> Bỏ Chọn
                           </button>
+                          <button class="btn btn-danger btn-sm" onclick="processBatchAction('REMOVE')" id="btnRemoveSelected" style="display: none;">
+                              <i class="fas fa-trash"></i> Xóa Máy Đã Chọn
+                          </button>
                       </div>
                       
                       <div class="scan-stats">
@@ -697,63 +700,30 @@
                   </div>
               </div>
               
-              <!-- Tab 3: Batch Actions -->
-              <div class="tab-content" id="tab-batch">
-                  <div style="padding: 20px; text-align: center;">
-                      <h4 style="color: #1e293b; margin-bottom: 20px;"><i class="fas fa-tasks"></i> Xử lý hàng loạt</h4>
-                      
-                      <div class="modal-actions-grid">
-                          <button class="btn btn-danger" onclick="processBatchAction('REMOVE')" id="btnBatchRemove" disabled>
-                              <i class="fas fa-trash"></i> Xóa Máy Đã Chọn
-                          </button>
-                          <button class="btn btn-success" onclick="processBatchAction('FA')" id="btnBatchFA" disabled>
-                              <i class="fas fa-robot"></i> Gửi FA Đã Chọn
-                          </button>
-                          <button class="btn btn-primary" onclick="processBatchAction('QA')" id="btnBatchQA" disabled>
-                              <i class="fas fa-check-circle"></i> Gửi QA Đã Chọn
-                          </button>
-                          <button class="btn btn-purple" onclick="copySelectedMcids()" id="btnCopyMCIDs">
-                              <i class="fas fa-copy"></i> Copy MCID
-                          </button>
-                          <button class="btn btn-cyan" onclick="copySelectedRemarks()" id="btnCopyRemarks">
-                              <i class="fas fa-quote-right"></i> Copy Tên
-                          </button>
-                          <button class="btn btn-warning" onclick="exportSelectedData()" id="btnExportData">
-                              <i class="fas fa-file-export"></i> Xuất CSV
-                          </button>
-                      </div>
-                      
-                      <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                          <h5 style="margin-top: 0; color: #475569;"><i class="fas fa-info-circle"></i> Hướng dẫn</h5>
-                          <ul style="text-align: left; font-size: 13px; color: #64748b; padding-left: 20px;">
-                              <li>Chuyển sang tab <strong>IoT Scan</strong> để quét và chọn máy</li>
-                              <li>Sau khi chọn máy, quay lại tab này để xử lý hàng loạt</li>
-                              <li>Chức năng <strong>Xóa Máy</strong> sẽ xóa máy khỏi package</li>
-                              <li>Chức năng <strong>Gửi FA/QA</strong> sẽ gửi lệnh đến máy đã chọn</li>
-                          </ul>
-                      </div>
-                  </div>
+              <!-- Tab 3: Batch Actions (Đã ẩn) -->
+              <div class="tab-content" id="tab-batch" style="display: none;">
+                  <!-- Nội dung đã được tích hợp vào tab IoT Scan -->
               </div>
           </div>
           
           <div class="modal-footer">
               <div class="modal-actions-left">
-                  <button class="btn btn-warning btn-sm" onclick="toggleSelectAllModal()" id="btnToggleSelect">
-                      <i class="fas fa-check-double"></i> Chọn/Bỏ Hết
+                  <button class="btn btn-warning btn-sm" onclick="toggleAllMachines(true)" id="btnToggleSelectAll">
+                      <i class="fas fa-check-double"></i> Chọn Hết
                   </button>
-                  <button class="btn btn-danger btn-sm" onclick="processSelectedItems('REMOVE', this)">
+                  <button class="btn btn-warning btn-sm" onclick="toggleAllMachines(false)" id="btnToggleDeselectAll">
+                      <i class="fas fa-times"></i> Bỏ Chọn
+                  </button>
+                  <button class="btn btn-danger btn-sm" onclick="processBatchAction('REMOVE')" id="btnRemoveSelectedBottom">
                       <i class="fas fa-trash"></i> Xóa Máy
-                  </button>
-                  <button class="btn btn-success btn-sm" onclick="processSelectedItems('FA', this)">
-                      <i class="fas fa-robot"></i> Gửi FA
                   </button>
               </div>
               <div class="modal-actions-right">
-                  <button class="btn btn-info btn-sm" onclick="copyRemarksModal()">
+                  <button class="btn btn-info btn-sm" onclick="copySelectedRemarks()" id="btnCopyRemarks">
                       <i class="fas fa-quote-right"></i> Copy Tên
                   </button>
-                  <button class="btn btn-primary btn-sm" onclick="copySerialsModal()">
-                      <i class="fas fa-copy"></i> Copy Serial
+                  <button class="btn btn-primary btn-sm" onclick="copySelectedMcids()" id="btnCopyMCIDs">
+                      <i class="fas fa-copy"></i> Copy MCID
                   </button>
                   <button class="btn btn-rose btn-sm" onclick="closePackageModal()">Đóng</button>
               </div>
@@ -891,22 +861,57 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
+    // 🔥 HÀM PARSE MỚI CHÍNH XÁC HƠN
     function parseMxPackage(mxpackage) {
         try {
-            const match = mxpackage.match(/([A-Z0-9]+)(\d{6})(?:_|$)/);
-            if (!match) return { success: false };
-            const fullStr = match[0];
-            const len = fullStr.length;
-            const revno = fullStr.substring(len - 3);
-            const color = fullStr.substring(len - 6, len - 3);
-            const leftPart = fullStr.substring(0, len - 6);
-            const last3 = leftPart.slice(-3);
-            const last2 = leftPart.slice(-2);
-            let stylecode = "", stylesize = "";
-            if (/^[A-Z]+$/.test(last3)) { stylesize = last3; stylecode = leftPart.slice(0, -3); } 
-            else { stylesize = last2; stylecode = leftPart.slice(0, -2); }
-            return { stylecode, stylesize, stylecolorserial: color, revno, success: true };
-        } catch (e) { return { success: false }; }
+            // Tìm phần có chứa style code (sau dấu _)
+            const parts = mxpackage.split('_');
+            if (parts.length < 3) return { success: false };
+            
+            // Thông thường: M_KUU-0375_2_KUU0260RGL011004_01_06
+            // Style code thường ở phần thứ 3: KUU0260RGL011004
+            const stylePart = parts[2] || '';
+            
+            if (!stylePart) return { success: false };
+            
+            // Pattern: 6 chữ cái đầu là style code, 3 chữ tiếp theo là size, 3 số tiếp là color, 3 số cuối là rev
+            // Ví dụ: KUU0260RGL011004
+            // Style: KUU0260, Size: RGL, Color: 011, Rev: 004
+            
+            let stylecode = '', stylesize = '', stylecolorserial = '', revno = '';
+            
+            // Logic parse chính xác hơn
+            if (stylePart.length >= 6) {
+                stylecode = stylePart.substring(0, 6); // 6 ký tự đầu
+                const remaining = stylePart.substring(6);
+                
+                // Kiểm tra xem phần còn lại có đủ không
+                if (remaining.length >= 9) {
+                    stylesize = remaining.substring(0, 3); // 3 ký tự tiếp
+                    stylecolorserial = remaining.substring(3, 6); // 3 ký tự tiếp
+                    revno = remaining.substring(6, 9); // 3 ký tự cuối
+                } else if (remaining.length >= 6) {
+                    stylesize = remaining.substring(0, 3);
+                    stylecolorserial = remaining.substring(3, 6);
+                    revno = "001"; // Mặc định
+                } else if (remaining.length >= 3) {
+                    stylesize = remaining.substring(0, 3);
+                    stylecolorserial = "001"; // Mặc định
+                    revno = "001"; // Mặc định
+                }
+            }
+            
+            return { 
+                stylecode, 
+                stylesize, 
+                stylecolorserial, 
+                revno, 
+                success: true 
+            };
+        } catch (e) { 
+            console.error("Parse error:", e);
+            return { success: false }; 
+        }
     }
 
     function formatDateTime(isoString) {
@@ -1411,8 +1416,8 @@
             `;
         }
         
-        // Cập nhật nút batch actions dựa trên số máy đã chọn
-        updateBatchActionButtons();
+        // Cập nhật nút xóa máy dựa trên số máy đã chọn
+        updateRemoveButtonVisibility();
     }
 
     async function loadOperationsForModal() {
@@ -1536,6 +1541,8 @@
         document.getElementById('statFound').innerText = '0';
         document.getElementById('statSelected').innerText = '0';
         
+        modalLog(`[SYSTEM]`, 'info');
+        modalLog(`Sẵn sàng quét. Chọn tab IoT Scan để bắt đầu.`, 'info');
         modalLog(`Bắt đầu quét gói: ${pkgId}`, 'info');
         
         // Disable nút quét
@@ -1609,6 +1616,9 @@
             updateModalProgress(100, "Hoàn tất");
             document.getElementById('btnStartScan').disabled = false;
             document.getElementById('btnStartScan').innerHTML = '<i class="fas fa-search"></i> Quét Chi Tiết IoT';
+            
+            // Hiển thị nút xóa máy nếu có máy được tìm thấy
+            updateRemoveButtonVisibility();
         }
     }
 
@@ -1654,8 +1664,8 @@
         });
         container.innerHTML = html;
         
-        // Cập nhật nút batch actions
-        updateBatchActionButtons();
+        // Cập nhật nút xóa máy
+        updateRemoveButtonVisibility();
     }
 
     function toggleMachineModal(idx) {
@@ -1675,7 +1685,20 @@
     function updateMachineStats() {
         const count = discoveredMachines.filter(m => m.selected).length;
         document.getElementById('statSelected').innerText = count;
-        updateBatchActionButtons();
+        updateRemoveButtonVisibility();
+    }
+
+    function updateRemoveButtonVisibility() {
+        const selectedCount = discoveredMachines.filter(m => m.selected).length;
+        const hasSelected = selectedCount > 0;
+        
+        // Hiển thị/ẩn nút xóa máy
+        document.getElementById('btnRemoveSelected').style.display = hasSelected ? 'inline-flex' : 'none';
+        document.getElementById('btnRemoveSelectedBottom').style.display = hasSelected ? 'inline-flex' : 'none';
+        
+        // Enable/disable các nút copy
+        document.getElementById('btnCopyRemarks').disabled = !hasSelected;
+        document.getElementById('btnCopyMCIDs').disabled = !hasSelected;
     }
 
     function updateModalProgress(pct, text) {
@@ -1695,16 +1718,7 @@
         el.scrollTop = el.scrollHeight;
     }
 
-    /* ========== BATCH ACTIONS FUNCTIONS ========== */
-    function updateBatchActionButtons() {
-        const selectedCount = discoveredMachines.filter(m => m.selected).length;
-        const hasSelected = selectedCount > 0;
-        
-        document.getElementById('btnBatchRemove').disabled = !hasSelected;
-        document.getElementById('btnBatchFA').disabled = !hasSelected;
-        document.getElementById('btnBatchQA').disabled = !hasSelected;
-    }
-
+    /* ========== XÓA MÁY FUNCTIONS ========== */
     async function processBatchAction(action) {
         // Validate package status
         const validation = validatePackageStatus(currentModalPackage);
@@ -1749,6 +1763,7 @@
                 if (action === 'FA' || action === 'QA') {
                     url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}&processtype=${action}`;
                 } else {
+                    // Sử dụng API xóa máy
                     url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
                 }
                 
@@ -1792,139 +1807,32 @@
     }
 
     /* ========== UTILITY FUNCTIONS FOR MODAL ========== */
-    function toggleSelectAllModal() {
-        const cbs = document.querySelectorAll('.serial-checkbox');
-        const allChecked = Array.from(cbs).every(c => c.checked);
-        cbs.forEach(c => c.checked = !allChecked);
-    }
-
-    function copySerialsModal() {
-        const checked = document.querySelectorAll('.serial-checkbox:checked');
-        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
-        const txt = Array.from(checked).map(cb => cb.value).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Serial!`));
-    }
-
-    function copyRemarksModal() {
-        const checked = document.querySelectorAll('.serial-checkbox:checked');
-        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
-        const txt = Array.from(checked).map(cb => cb.dataset.name).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Tên công đoạn!`));
-    }
-
-    async function processSelectedItems(action, btnElement) {
-        // Validate package status
-        const validation = validatePackageStatus(currentModalPackage);
-        if (!validation.valid && validation.status === 'RO') {
-            alert(`Không thể ${action}: Package đang ở trạng thái READ ONLY!`);
+    function copySelectedRemarks() {
+        const selected = discoveredMachines.filter(m => m.selected);
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất một máy!");
             return;
         }
-
-        const checked = document.querySelectorAll('.serial-checkbox:checked');
-        if(checked.length === 0) return alert("Vui lòng tích chọn máy cần xử lý!");
         
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng xác thực bảo mật (Turnstile) ở màn hình chính trước!");
-            return;
-        }
-
-        const pkg = currentModalPackage;
-        const apiKey = document.getElementById('apiKey').value;
-        const confirmMsg = action === 'FA' 
-            ? `Gửi lệnh FA cho ${checked.length} máy đã chọn?` 
-            : `⚠️ CẢNH BÁO: Bạn có chắc muốn XÓA ${checked.length} máy khỏi Package?`;
-
-        if(!confirm(confirmMsg)) return;
-
-        let successCount = 0;
-        
-        const originalText = btnElement.innerHTML;
-        btnElement.innerHTML = `<span class="loader" style="width:15px;height:15px;border-width:2px;"></span> Đang chạy...`;
-        btnElement.disabled = true;
-
-        for (const cb of checked) {
-            const opserial = cb.value;
-            const mcid = cb.dataset.mcid || ""; 
-            
-            if (action === 'FA' && !mcid) {
-                console.warn(`Bỏ qua Op ${opserial} vì chưa có MCID`);
-                continue;
-            }
-
-            try {
-                let url = "";
-                if (action === 'FA') {
-                    url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}&processtype=FA`;
-                } else {
-                    url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
-                }
-                
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                const res = await fetch(url);
-                const json = await res.json();
-
-                if (json.IsSuccess) {
-                    successCount++;
-                    const row = document.getElementById(`row-${opserial}`);
-                    if(action === 'REMOVE') {
-                        row.style.opacity = '0.5'; 
-                        row.style.textDecoration = 'line-through';
-                        cb.checked = false;
-                        cb.dataset.mcid = "";
-                        row.querySelector('.mcid-col').innerHTML = '<span style="color:red">Đã xóa</span>';
-                    } else {
-                        row.style.backgroundColor = '#dcfce7'; 
-                    }
-                }
-            } catch (e) {
-                console.error(`Lỗi ${action} ${opserial}:`, e);
-            }
-        }
-        
-        btnElement.innerHTML = originalText;
-        btnElement.disabled = false;
-        alert(`Hoàn tất! Thành công: ${successCount}/${checked.length}`);
+        const txt = selected.map(m => m.opname).join('\n');
+        navigator.clipboard.writeText(txt).then(() => {
+            alert(`Đã copy ${selected.length} tên công đoạn!`);
+            modalLog(`Đã copy ${selected.length} tên công đoạn`, 'success');
+        });
     }
 
     function copySelectedMcids() {
         const selected = discoveredMachines.filter(m => m.selected);
         if (selected.length === 0) {
-            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
+            alert("Vui lòng chọn ít nhất một máy!");
             return;
         }
         
         const txt = selected.map(m => m.mcid).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${selected.length} MCID!`));
-    }
-
-    function copySelectedRemarks() {
-        const selected = discoveredMachines.filter(m => m.selected);
-        if (selected.length === 0) {
-            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
-            return;
-        }
-        
-        const txt = selected.map(m => m.opname).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${selected.length} tên công đoạn!`));
-    }
-
-    function exportSelectedData() {
-        const selected = discoveredMachines.filter(m => m.selected);
-        if (selected.length === 0) {
-            alert("Vui lòng chọn ít nhất một máy từ tab IoT Scan!");
-            return;
-        }
-        
-        const csv = "Opserial,MCID,Type,OpName,Module,Remarks,IoTData,IoTTime\n" +
-            selected.map(m => 
-                `${m.opserial},${m.mcid},${m.iotType},"${m.opname}","${m.module}","${m.remarks}",${m.lastIotData||''},${m.lastIotTime||''}`
-            ).join('\n');
-        
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob(["\uFEFF"+csv], {type: 'text/csv'}));
-        a.download = `Package_${currentModalPackage}_${new Date().toISOString().slice(0,10)}.csv`;
-        a.click();
+        navigator.clipboard.writeText(txt).then(() => {
+            alert(`Đã copy ${selected.length} MCID!`);
+            modalLog(`Đã copy ${selected.length} MCID`, 'success');
+        });
     }
 
     /* ========== QUICK FUNCTIONS ========== */
