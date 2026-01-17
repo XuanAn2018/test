@@ -80,23 +80,24 @@
     
     /* Nút xóa trong input */
     .clear-input-btn {
-      position: absolute;
-      right: 40px; /* Để cách nút reload */
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 14px;
-      padding: 4px;
-      display: none;
-    }
-    .clear-input-btn:hover {
-      color: #ef4444;
+        position: absolute;
+        right: 45px; /* Tăng khoảng cách để tránh đè lên nút reload */
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px 6px;
+        display: none;
+        z-index: 2; /* Đảm bảo nút ở trên cùng */
     }
     .input-wrapper:has(input:not(:placeholder-shown)) .clear-input-btn {
-      display: block;
+        display: block;
+    }
+    .clear-input-btn:hover {
+        color: #ef4444;
     }
 
     /* --- PACKAGE INFO CARD --- */
@@ -798,7 +799,7 @@
     const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
     const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
     const MODULE_DETAIL_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/detail";
-    const REMOVE_API = "https://remove-machine.chiscoong-cloudflare-com.workers.dev/";
+    const REMOVE_API = "https://remove-machine.chiscoong-cloudflare-com.workers.dev/remove-machine";
     
     // 🔥 Cấu hình Token sống 4.5 phút (270s)
     const TOKEN_MAX_AGE = 270 * 1000; 
