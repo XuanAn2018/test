@@ -62,7 +62,11 @@
     /* Inputs */
     .form-group { margin-bottom: 15px; }
     .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
-    .input-wrapper { display: flex; gap: 5px; }
+    .input-wrapper { 
+      display: flex; 
+      gap: 5px; 
+      position: relative;
+    }
     label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569; }
     input, textarea, select {
       width: 100%; padding: 10px; border: 2px solid var(--border-color);
@@ -73,6 +77,27 @@
       border-color: #6366f1; background: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
     }
     textarea { min-height: 120px; font-family: 'Courier New', monospace; line-height: 1.5; }
+    
+    /* Nút xóa trong input */
+    .clear-input-btn {
+      position: absolute;
+      right: 40px; /* Để cách nút reload */
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      display: none;
+    }
+    .clear-input-btn:hover {
+      color: #ef4444;
+    }
+    .input-wrapper:has(input:not(:placeholder-shown)) .clear-input-btn {
+      display: block;
+    }
 
     /* --- PACKAGE INFO CARD --- */
     .pkg-info-card {
@@ -503,6 +528,9 @@
           <label>Package ID</label>
           <div class="input-wrapper">
              <input type="text" id="pkg" list="packageList" placeholder="Nhập Key rồi nhấn 🔄 tải gói..." autocomplete="off">
+             <button id="btnClearPkg" class="clear-input-btn" title="Xóa Package ID">
+               <i class="fas fa-times"></i>
+             </button>
              <button id="btnReloadPkg" class="btn btn-slate btn-sm" style="width: auto;">🔄</button>
           </div>
           <datalist id="packageList"></datalist>
@@ -539,8 +567,6 @@
 2,60:01:94:3A:74:B6,FA"></textarea>
         </div>
       </div>
-
-      <!-- ĐÃ XÓA: Card công cụ nâng cao -->
 
       <div class="card">
         <div class="card-header"><div class="card-title">🔧 Tiện Ích</div></div>
@@ -905,22 +931,66 @@
       logEl.scrollTop = logEl.scrollHeight;
     }
 
+    /* ========== FIXED: PARSE MXPACKAGE FUNCTION ========== */
     function parseMxPackage(mxpackage) {
         try {
-            const match = mxpackage.match(/([A-Z0-9]+)(\d{6})(?:_|$)/);
-            if (!match) return { success: false };
-            const fullStr = match[0];
-            const len = fullStr.length;
-            const revno = fullStr.substring(len - 3);
-            const color = fullStr.substring(len - 6, len - 3);
-            const leftPart = fullStr.substring(0, len - 6);
-            const last3 = leftPart.slice(-3);
-            const last2 = leftPart.slice(-2);
-            let stylecode = "", stylesize = "";
-            if (/^[A-Z]+$/.test(last3)) { stylesize = last3; stylecode = leftPart.slice(0, -3); } 
-            else { stylesize = last2; stylecode = leftPart.slice(0, -2); }
-            return { stylecode, stylesize, stylecolorserial: color, revno, success: true };
-        } catch (e) { return { success: false }; }
+            // Tìm phần có dạng: [chữ và số]_[số]_[rev]
+            // Ví dụ: M_KUU-0374_1_KUU0260RGL011004_02_02
+            // Cần lấy phần: KUU0260RGL011004
+            
+            const pattern = /_([A-Z0-9]+[A-Z]{2,3}\d{6})_/;
+            const match = mxpackage.match(pattern);
+            
+            if (!match) {
+                // Thử tìm pattern khác: [style][size][color][rev]
+                const pattern2 = /([A-Z]{2,}\d+)([A-Z]{2,3})(\d{3})(\d{3})/;
+                const match2 = mxpackage.match(pattern2);
+                
+                if (!match2) return { success: false, error: "Không thể phân tích package ID" };
+                
+                const fullStr = match2[0];
+                const stylecode = match2[1];
+                const stylesize = match2[2];
+                const stylecolorserial = match2[3];
+                const revno = match2[4];
+                
+                return { 
+                    stylecode, 
+                    stylesize, 
+                    stylecolorserial, 
+                    revno, 
+                    success: true 
+                };
+            }
+            
+            const fullStr = match[1]; // KUU0260RGL011004
+            
+            // Tách phần: Style + Size + Color + Rev
+            // Pattern: [A-Z]+[0-9]+[A-Z]{2,3}[0-9]{3}[0-9]{3}
+            const styleMatch = fullStr.match(/^([A-Z]+)(\d+)([A-Z]{2,3})(\d{3})(\d{3})$/);
+            
+            if (!styleMatch) return { success: false, error: "Không thể phân tích style từ package" };
+            
+            const stylecode = styleMatch[1] + styleMatch[2]; // KUU0260
+            const stylesize = styleMatch[3]; // LRG
+            const stylecolorserial = styleMatch[4]; // 011
+            const revno = styleMatch[5]; // 004
+            
+            console.log(`✅ Phân tích package "${mxpackage}":`, {
+                stylecode, stylesize, stylecolorserial, revno
+            });
+            
+            return { 
+                stylecode, 
+                stylesize, 
+                stylecolorserial, 
+                revno, 
+                success: true 
+            };
+        } catch (e) { 
+            console.error("Lỗi parseMxPackage:", e);
+            return { success: false, error: e.message }; 
+        }
     }
 
     function formatDateTime(isoString) {
@@ -1010,9 +1080,19 @@
       finally { btnReload.disabled = false; btnReload.textContent = "🔄"; }
     }
 
+    // Nút xóa Package ID
+    document.getElementById('btnClearPkg').addEventListener('click', () => {
+        document.getElementById('pkg').value = '';
+        pkgInfoCard.classList.remove('active');
+        document.getElementById('pkg').focus();
+    });
+
     document.getElementById('pkg').addEventListener('input', (e) => {
         const val = e.target.value.trim();
-        if(val.startsWith('──────')) { e.target.value = ''; return; }
+        if(val.startsWith('──────')) { 
+            e.target.value = ''; 
+            return; 
+        }
 
         const p = currentPackages.find(x => x.packageId === val);
         if(p) {
@@ -1364,6 +1444,8 @@
             const styleInfo = parseMxPackage(selectedPackageId);
             if (styleInfo.success) {
                 fetchMachineDetailsBackground(apiKey, styleInfo, ops);
+            } else {
+                modalLog(`❌ Không thể phân tích Package ID: ${styleInfo.error}`, 'error');
             }
 
         } catch (e) { 
@@ -1784,9 +1866,13 @@
         
         try {
             const styleInfo = parseMxPackage(pkgId);
-            if(!styleInfo.success) throw new Error("Không thể phân tích Package ID. Định dạng không hỗ trợ.");
+            if(!styleInfo.success) throw new Error(`Không thể phân tích Package ID: ${styleInfo.error}`);
             
-            modalLog(`Parsed: Style ${styleInfo.stylecode} | Size ${styleInfo.stylesize} | Color ${styleInfo.stylecolorserial} | Rev ${styleInfo.revno}`, 'success');
+            modalLog(`✅ Phân tích thành công:`, 'success');
+            modalLog(`  • Style: ${styleInfo.stylecode}`, 'info');
+            modalLog(`  • Size: ${styleInfo.stylesize}`, 'info');
+            modalLog(`  • Color: ${styleInfo.stylecolorserial}`, 'info');
+            modalLog(`  • Rev: ${styleInfo.revno}`, 'info');
 
             const opsUrl = `${MODULE_API}?mxpackage=${encodeURIComponent(pkgId)}&mode=operations&apikey=${apiKey}`;
             const opsRes = await fetch(opsUrl, { signal: scanAbortController.signal });
