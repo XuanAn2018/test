@@ -146,6 +146,7 @@
     .btn-slate { background: linear-gradient(135deg, #475569 0%, #1e293b 100%); }
     .btn-rose { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); }
     .btn-info { background: linear-gradient(90deg, #00BCD4 0%, #00acc1 100%); color: white; }
+    .btn-gray { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
     .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
     .btn-xs { padding: 4px 10px; font-size: 0.75rem; }
 
@@ -256,7 +257,7 @@
     /* HEADER CHO DANH SÁCH CÔNG ĐOẠN */
     .operations-header { 
         display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 120px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
+        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 150px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
         align-items: center; 
         gap: 10px;
         padding: 10px 15px; 
@@ -270,7 +271,7 @@
     
     .detail-row { 
         display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 120px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
+        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 150px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
         align-items: center; 
         gap: 10px;
         padding: 10px 15px; 
@@ -296,22 +297,25 @@
     /* Action buttons trong danh sách */
     .action-buttons {
         display: flex;
-        gap: 5px;
+        gap: 3px;
         justify-content: flex-end;
+        flex-wrap: wrap;
     }
     .action-btn {
-        padding: 4px 8px;
-        font-size: 11px;
-        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 10px;
+        border-radius: 3px;
         border: none;
         cursor: pointer;
         color: white;
         transition: all 0.2s;
+        white-space: nowrap;
     }
     .action-btn:hover { transform: translateY(-1px); }
     .btn-fa { background: #10b981; }
     .btn-qa { background: #3b82f6; }
     .btn-remove { background: #ef4444; }
+    .btn-clear { background: #6b7280; }
     .action-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
@@ -417,8 +421,6 @@
     .modal-log-info { color: #60a5fa; }
     .modal-log-warning { color: #facc15; }
     
-    /* Action Buttons Grid - ĐÃ XÓA */
-    
     .modal-footer { 
         padding: 15px 25px; border-top: 1px solid #eee; 
         display: flex; gap: 10px; justify-content: space-between; 
@@ -495,7 +497,7 @@
 <body>
 
   <div class="navbar">
-    <div class="brand"><span>⚡ MES QR Scanner Pro v1.0🚀 </span></div>
+    <div class="brand"><span>⚡ MES QR Scanner Pro v1.1🚀 </span></div>
     <div id="statusBadge" class="status-badge">Hệ thống sẵn sàng</div>
   </div>
 
@@ -660,7 +662,6 @@
               <button class="modal-tab" data-tab="tab-iot" onclick="switchModalTab('tab-iot')">
                   <i class="fas fa-satellite-dish"></i> Quét IoT & Xóa máy
               </button>
-              <!-- ĐÃ XÓA: Tab Xử lý hàng loạt -->
           </div>
           
           <!-- Tab 1: Operations List -->
@@ -699,6 +700,9 @@
                           </button>
                           <button class="btn btn-primary btn-sm" onclick="batchSendCommand('QA')" id="btnBatchQAOps">
                               <i class="fas fa-check-circle"></i> Gửi QA Đã Chọn
+                          </button>
+                          <button class="btn btn-gray btn-sm" onclick="batchSendCommand('')" id="btnBatchClearOps">
+                              <i class="fas fa-eraser"></i> Xóa FA/QA Đã Chọn
                           </button>
                       </div>
                   </div>
@@ -753,6 +757,9 @@
                           </button>
                           <button class="btn btn-primary btn-sm" onclick="batchSendCommandIoT('QA')" id="btnBatchQAIoT">
                               <i class="fas fa-check-circle"></i> Gửi QA Đã Chọn
+                          </button>
+                          <button class="btn btn-gray btn-sm" onclick="batchSendCommandIoT('')" id="btnBatchClearIoT">
+                              <i class="fas fa-eraser"></i> Xóa FA/QA Đã Chọn
                           </button>
                       </div>
                       
@@ -1173,7 +1180,7 @@
 
     /* ========== MAIN SCANNER FUNCTIONS ========== */
     async function sendRequest({apiKey, pkg, opserial, mcid, processtype}) {
-      let url = `${API_ENDPOINT}?mxpackage=${encodeURIComponent(pkg)}&opserial=${opserial}&mcid=${mcid}${processtype ? `&processtype=${processtype}` : ''}&apikey=${encodeURIComponent(apiKey)}`;
+      let url = `${API_ENDPOINT}?mxpackage=${encodeURIComponent(pkg)}&opserial=${opserial}&mcid=${mcid}${processtype !== undefined ? `&processtype=${processtype}` : ''}&apikey=${encodeURIComponent(apiKey)}`;
       if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
 
       const start = Date.now();
@@ -1434,6 +1441,9 @@
                             <button class="action-btn btn-qa btn-xs" onclick="sendSingleCommand('${op.opserial}', 'QA', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Gửi QA">
                                 <i class="fas fa-check-circle"></i>
                             </button>
+                            <button class="action-btn btn-clear btn-xs" onclick="sendSingleCommand('${op.opserial}', '', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Xóa FA/QA">
+                                <i class="fas fa-eraser"></i>
+                            </button>
                         </div>
                     </label>`;
                 });
@@ -1550,10 +1560,12 @@
         const btnBatchRemoveOps = document.getElementById('btnBatchRemoveOps');
         const btnBatchFAOps = document.getElementById('btnBatchFAOps');
         const btnBatchQAOps = document.getElementById('btnBatchQAOps');
+        const btnBatchClearOps = document.getElementById('btnBatchClearOps');
         
         btnBatchRemoveOps.disabled = selectedCount === 0 || packageStatus === 'RO';
         btnBatchFAOps.disabled = selectedCount === 0 || packageStatus === 'RO';
         btnBatchQAOps.disabled = selectedCount === 0 || packageStatus === 'RO';
+        btnBatchClearOps.disabled = selectedCount === 0 || packageStatus === 'RO';
     }
 
     function toggleSelectAllOperations() {
@@ -1645,7 +1657,8 @@
             return;
         }
         
-        if (!confirm(`Gửi lệnh ${commandType} đến máy ${mcid}?`)) {
+        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
+        if (!confirm(`Gửi lệnh ${commandText} đến máy ${mcid}?`)) {
             return;
         }
         
@@ -1662,7 +1675,10 @@
         btnElement.disabled = true;
         
         try {
-            let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}&processtype=${commandType}`;
+            let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
+            if (commandType !== undefined && commandType !== '') {
+                url += `&processtype=${commandType}`;
+            }
             if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
             
             const response = await fetch(url);
@@ -1670,17 +1686,24 @@
             
             if (result.IsSuccess || result.ok) {
                 // Highlight row
-                row.style.backgroundColor = commandType === 'FA' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+                if (commandType === 'FA') {
+                    row.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                } else if (commandType === 'QA') {
+                    row.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                } else {
+                    row.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
+                }
                 
                 // Hiển thị thông báo
-                showToast('✅ Thành công', `Đã gửi lệnh ${commandType} đến máy ${mcid}`, 'success');
-                modalLog(`✅ Đã gửi ${commandType} đến ${mcid}`, 'success');
+                const actionText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
+                showToast('✅ Thành công', `Đã gửi lệnh ${actionText} đến máy ${mcid}`, 'success');
+                modalLog(`✅ Đã gửi ${actionText} đến ${mcid}`, 'success');
             } else {
                 throw new Error(result.Log || 'Gửi lệnh thất bại');
             }
         } catch (error) {
             alert(`Lỗi khi gửi lệnh: ${error.message}`);
-            modalLog(`❌ Lỗi gửi ${commandType} đến ${mcid}: ${error.message}`, 'error');
+            modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${error.message}`, 'error');
         } finally {
             btnElement.innerHTML = originalHTML;
         }
@@ -1781,7 +1804,8 @@
             return;
         }
         
-        if (!confirm(`Gửi lệnh ${commandType} đến ${hasMcid} máy đã chọn?`)) {
+        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
+        if (!confirm(`Gửi lệnh ${commandText} đến ${hasMcid} máy đã chọn?`)) {
             return;
         }
         
@@ -1803,7 +1827,10 @@
             if (!mcid || mcid.trim() === '') continue;
             
             try {
-                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}&processtype=${commandType}`;
+                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
+                if (commandType !== '') {
+                    url += `&processtype=${commandType}`;
+                }
                 if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
                 
                 const response = await fetch(url);
@@ -1814,23 +1841,29 @@
                     
                     // Highlight row
                     const row = document.getElementById(`row-${opserial}`);
-                    row.style.backgroundColor = commandType === 'FA' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+                    if (commandType === 'FA') {
+                        row.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                    } else if (commandType === 'QA') {
+                        row.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                    } else {
+                        row.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
+                    }
                     
-                    modalLog(`✅ Đã gửi ${commandType} đến ${mcid}`, 'success');
+                    modalLog(`✅ Đã gửi ${commandText} đến ${mcid}`, 'success');
                 } else {
                     failCount++;
-                    modalLog(`❌ Lỗi gửi ${commandType} đến ${mcid}: ${result.Log}`, 'error');
+                    modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${result.Log}`, 'error');
                 }
             } catch (error) {
                 failCount++;
-                modalLog(`❌ Lỗi gửi ${commandType} đến ${mcid}: ${error.message}`, 'error');
+                modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${error.message}`, 'error');
             }
             
             // Delay giữa các request
             await new Promise(r => setTimeout(r, 500));
         }
         
-        showToast('🏁 Hoàn tất', `Đã gửi ${commandType} đến ${successCount} máy thành công, ${failCount} thất bại`, successCount > 0 ? 'success' : 'warning');
+        showToast('🏁 Hoàn tất', `Đã gửi ${commandText} đến ${successCount} máy thành công, ${failCount} thất bại`, successCount > 0 ? 'success' : 'warning');
     }
 
     /* ========== IOT SCAN FUNCTIONS ========== */
@@ -2031,6 +2064,7 @@
         document.getElementById('btnBatchRemoveIoT').disabled = !hasSelected || isRO;
         document.getElementById('btnBatchFAIoT').disabled = !hasSelected || isRO;
         document.getElementById('btnBatchQAIoT').disabled = !hasSelected || isRO;
+        document.getElementById('btnBatchClearIoT').disabled = !hasSelected || isRO;
     }
 
     async function batchRemoveDiscoveredMachines() {
@@ -2113,9 +2147,8 @@
             return;
         }
 
-        const confirmMsg = commandType === 'FA' 
-            ? `Gửi lệnh FA đến ${selected.length} máy đã chọn?`
-            : `Gửi lệnh QA đến ${selected.length} máy đã chọn?`;
+        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
+        const confirmMsg = `Gửi lệnh ${commandText} đến ${selected.length} máy đã chọn?`;
 
         if(!confirm(confirmMsg)) return;
 
@@ -2124,7 +2157,7 @@
 
         // Hiển thị progress
         document.getElementById('modalProgressContainer').style.display = 'block';
-        updateModalProgress(0, `Đang gửi ${commandType}...`);
+        updateModalProgress(0, `Đang gửi ${commandText}...`);
 
         for(let i=0; i<selected.length; i++) {
             // Check token timeout
@@ -2133,10 +2166,15 @@
             }
 
             const item = selected[i];
-            updateModalProgress((i/selected.length)*100, `${commandType}: ${item.mcid}`);
+            updateModalProgress((i/selected.length)*100, `${commandText}: ${item.mcid}`);
             
             try {
-                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}&processtype=${commandType}`;
+                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
+                
+                // Nếu commandType không rỗng, thêm processtype vào URL
+                if (commandType !== '') {
+                    url += `&processtype=${commandType}`;
+                }
                 
                 // Thêm Token vào request
                 if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
@@ -2146,15 +2184,21 @@
                 
                 if(json.IsSuccess || json.ok) {
                     success++;
-                    modalLog(`✅ ${commandType} OK: ${item.mcid}`, 'success');
+                    modalLog(`✅ ${commandText} OK: ${item.mcid}`, 'success');
                     
                     // Cập nhật UI
                     const row = document.getElementById(`modal-machine-${discoveredMachines.indexOf(item)}`);
-                    row.style.background = commandType === 'FA' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+                    if (commandType === 'FA') {
+                        row.style.background = 'rgba(16, 185, 129, 0.1)';
+                    } else if (commandType === 'QA') {
+                        row.style.background = 'rgba(59, 130, 246, 0.1)';
+                    } else {
+                        row.style.background = 'rgba(107, 114, 128, 0.1)';
+                    }
                 } else throw new Error(json.Log || 'Fail');
             } catch(e) {
                 fail++;
-                modalLog(`❌ Lỗi ${commandType} ${item.mcid}: ${e.message}`, 'error');
+                modalLog(`❌ Lỗi ${commandText} ${item.mcid}: ${e.message}`, 'error');
             }
             await new Promise(r => setTimeout(r, 500));
         }
@@ -2166,7 +2210,7 @@
             document.getElementById('modalProgressContainer').style.display = 'none';
         }, 3000);
         
-        showToast('🏁 Hoàn tất', `Đã gửi ${commandType} đến ${success} máy thành công, ${fail} thất bại`, success > 0 ? 'success' : 'warning');
+        showToast('🏁 Hoàn tất', `Đã gửi ${commandText} đến ${success} máy thành công, ${fail} thất bại`, success > 0 ? 'success' : 'warning');
     }
 
     /* ========== UTILITY FUNCTIONS FOR MODAL ========== */
