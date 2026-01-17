@@ -83,12 +83,23 @@
       margin-top: 10px;
       display: none; 
       font-size: 0.9rem;
+      transition: all 0.3s;
     }
     .pkg-info-card.active { display: block; animation: fadeIn 0.3s; }
-    .pkg-row { display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px dashed #e0f2fe; padding-bottom: 4px; }
+    
+    /* 🔥 CSS TRẠNG THÁI STATUS 🔥 */
+    .pkg-info-card.status-ro { background: #fef2f2; border-color: #fecaca; }
+    .pkg-info-card.status-cf { background: #f0fdf4; border-color: #dcfce7; }
+
+    .pkg-row { display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 4px; }
     .pkg-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .pkg-label { color: #64748b; font-weight: 600; }
     .pkg-val { color: #0369a1; font-weight: 700; text-align: right; max-width: 65%; word-break: break-word;}
+    
+    /* Status Styles Text */
+    .status-ro { color: #ef4444; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+    .status-cf { color: #10b981; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Buttons */
@@ -164,18 +175,18 @@
     .turnstile-floating.minimized .turnstile-minimized-icon { opacity: 1; visibility: visible; }
 
     /* ========================================================================== */
-    /* CSS CHO MODAL & CHI TIẾT PACKAGE (MỞ RỘNG) */
+    /* CSS CHO MODAL & CHI TIẾT PACKAGE */
     /* ========================================================================== */
     .modal-overlay { 
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
         background: rgba(0,0,0,0.7); z-index: 10000; 
         display: flex; justify-content: center; align-items: center; 
         opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); 
-        pointer-events: none; /* Cho phép click xuyên qua khi ẩn */
+        pointer-events: none;
     }
     .modal-overlay.open { 
         opacity: 1; visibility: visible; 
-        pointer-events: auto; /* Bật click khi hiện */
+        pointer-events: auto;
     }
     .modal-box { 
         background: white; width: 95%; max-width: 1200px; border-radius: 15px; 
@@ -231,7 +242,7 @@
     .serial-checkbox { width: 18px; height: 18px; cursor: pointer; }
     .op-name { font-weight: 600; color: #333; }
     
-    /* Tab 2: IoT Scan (Từ remove-machine) */
+    /* Tab 2: IoT Scan */
     .scan-controls {
         background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px;
         border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -378,9 +389,10 @@
             <div class="pkg-row"><span class="pkg-label">Line:</span> <span class="pkg-val" id="infoLine">-</span></div>
             <div class="pkg-row"><span class="pkg-label">Style:</span> <span class="pkg-val" id="infoStyle">-</span></div>
             <div class="pkg-row"><span class="pkg-label">Target:</span> <span class="pkg-val" id="infoTarget">-</span></div>
+            
+            <!-- 🔥 HIỂN THỊ STATUS ĐÃ TÙY BIẾN 🔥 -->
             <div class="pkg-row"><span class="pkg-label">Status:</span> <span class="pkg-val" id="infoStatus">-</span></div>
             
-            <!-- 🔥 THAY ĐỔI: PO NO -> MOBILE OUTPUT -->
             <div class="pkg-row">
                 <span class="pkg-label">Mobile Output:</span> 
                 <span class="pkg-val" id="infoOutput" style="font-weight: 800;">-</span>
@@ -640,7 +652,7 @@
 
     let isPaused = false, isStopped = false;
     let currentBatchStart = null, batchResults = [], currentPackages = [];
-    let selectedPackageStatus = ""; // 🔥 BIẾN LƯU TRẠNG THÁI STATUS
+    let selectedPackageStatus = ""; 
     
     let turnstileToken = null;
     let tokenTimestamp = 0; 
@@ -861,25 +873,29 @@
             infoStyle.textContent = p.styleText || "N/A";
             infoTarget.textContent = p.target || "0";
             
-            // 🔥 CẬP NHẬT TRẠNG THÁI STATUS
-            selectedPackageStatus = p.status || "";
-            infoStatus.textContent = selectedPackageStatus;
+            // 🔥 CẬP NHẬT TRẠNG THÁI STATUS (THEO YÊU CẦU MỚI)
+            selectedPackageStatus = (p.status || "").toUpperCase();
+            let statusHtml = '';
             
-            // Đổi màu Status: CF = Xanh, Còn lại = Đỏ
-            if (selectedPackageStatus === 'CF') {
-                infoStatus.style.color = '#10b981';
-                infoStatus.style.fontWeight = '800';
+            pkgInfoCard.classList.remove('status-ro', 'status-cf');
+            
+            if (selectedPackageStatus === 'RO' || selectedPackageStatus === 'READONLY') {
+                statusHtml = '<span class="status-ro"><i class="fas fa-lock"></i> READ ONLY</span>';
+                pkgInfoCard.classList.add('status-ro');
+            } else if (selectedPackageStatus === 'CF' || selectedPackageStatus === 'CONFIRM') {
+                statusHtml = '<span class="status-cf"><i class="fas fa-check-circle"></i> CONFIRMED</span>';
+                pkgInfoCard.classList.add('status-cf');
             } else {
-                infoStatus.style.color = '#ef4444'; // Đỏ
-                infoStatus.style.fontWeight = '800';
+                statusHtml = `<span style="font-weight:bold; color:#64748b">${selectedPackageStatus || 'Unknown'}</span>`;
             }
             
+            infoStatus.innerHTML = statusHtml;
             pkgInfoCard.classList.add('active');
             
             appendLog(`🔹 Đã chọn: ${p.packageId}`, 'info');
             appendLog(`• Line: ${p.lineName || 'N/A'} - Status: ${selectedPackageStatus}`, 'detail');
 
-            // 🔥 LOGIC MỚI: FETCH OUTPUT
+            // FETCH OUTPUT
             infoOutput.innerHTML = '<span class="loader" style="width:12px;height:12px;border-width:2px;"></span>';
             const apiKey = document.getElementById('apiKey').value;
             
@@ -889,21 +905,17 @@
                     if(json.success && json.data && json.data.summary) {
                         const actual = json.data.summary.total_manual_input || 0;
                         const target = parseInt(p.target) || 0;
-                        
-                        // Màu sắc trực quan
-                        let color = '#ef4444'; // Mặc định đỏ (0)
+                        let color = '#ef4444'; // Đỏ
                         let textSuffix = " (Chưa nhập)";
-                        
                         if (actual > 0) {
                             if (actual >= target && target > 0) {
-                                color = '#10b981'; // Xanh lá (Đủ)
+                                color = '#10b981'; // Xanh lá
                                 textSuffix = " (Đủ)";
                             } else {
-                                color = '#f59e0b'; // Cam (Thiếu)
+                                color = '#f59e0b'; // Cam
                                 textSuffix = ` (Thiếu ${target - actual})`;
                             }
                         }
-                        
                         infoOutput.innerHTML = `<span style="color:${color}">${actual}${textSuffix}</span>`;
                     } else {
                         infoOutput.innerHTML = `<span style="color:#ef4444">0 (Chưa nhập)</span>`;
@@ -960,14 +972,7 @@
       if (!apiKey || !pkg || rawLines.length === 0) return alert("Thiếu dữ liệu đầu vào!");
 
       // 🔥 THÊM LOGIC KIỂM TRA STATUS TRƯỚC KHI CHẠY 🔥
-      // Nếu user gõ tay mà chưa chọn list, thử check lại trong list đã load
-      if (!selectedPackageStatus && currentPackages.length > 0) {
-          const found = currentPackages.find(p => p.packageId === pkg);
-          if (found) selectedPackageStatus = found.status;
-      }
-      
-      // Nếu status KHÁC CF, chặn lại
-      if (selectedPackageStatus !== 'CF') {
+      if (selectedPackageStatus !== 'CF' && selectedPackageStatus !== 'CONFIRM') {
           appendLog(`⛔ KHÔNG THỂ CHẠY: Package đang ở trạng thái [${selectedPackageStatus||'Unknown'}]. Vui lòng Confirm (CF) gói trước!`, "error");
           alert(`Gói hàng đang ở trạng thái: ${selectedPackageStatus||'Chưa rõ'}.\nVui lòng Confirm (CF) trên hệ thống trước khi chạy lệnh!`);
           return;
@@ -1119,7 +1124,6 @@
             `;
         }
         
-        // Cập nhật nút batch actions dựa trên số máy đã chọn
         updateBatchActionButtons();
     }
 
@@ -1194,7 +1198,7 @@
                     const row = document.getElementById(`row-${op.opserial}`);
                     if (row && m.MCID) {
                         const checkbox = row.querySelector('.serial-checkbox');
-                        checkbox.dataset.mcid = m.MCID; 
+                        checkbox.dataset.mcid = m.MCID; // 🔥 GÁN MCID VÀO ĐÂY ĐỂ XÓA ĐƯỢC
                         
                         row.querySelector('.mcid-col').innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
                         row.querySelector('.iot-col').innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
@@ -1396,7 +1400,7 @@
         el.scrollTop = el.scrollHeight;
     }
 
-    /* ========== BATCH ACTIONS FUNCTIONS ========== */
+    /* ========== BATCH ACTIONS FUNCTIONS (ĐÃ SỬA LỖI XÓA) ========== */
     function updateBatchActionButtons() {
         const selectedCount = discoveredMachines.filter(m => m.selected).length;
         const hasSelected = selectedCount > 0;
@@ -1414,7 +1418,7 @@
         }
 
         // 🔥 THÊM CHECK STATUS TRONG MODAL 🔥
-        if (selectedPackageStatus !== 'CF') {
+        if (selectedPackageStatus !== 'CF' && selectedPackageStatus !== 'CONFIRM') {
             modalLog(`⛔ TỪ CHỐI: Package đang ở Status [${selectedPackageStatus||'Unknown'}]. Vui lòng CF!`, "error");
             alert(`⛔ LỖI: Package đang là [${selectedPackageStatus}].\nVui lòng Confirm (CF) trên hệ thống trước khi gửi lệnh!`);
             return;
@@ -1442,6 +1446,14 @@
             }
 
             const item = selected[i];
+            
+            // 🔥 KIỂM TRA MCID TRƯỚC KHI GỬI 🔥
+            if (!item.mcid || item.mcid === "N/A" || item.mcid === "undefined") {
+                 modalLog(`⚠️ Bỏ qua Op ${item.opserial}: Không tìm thấy MCID hợp lệ.`, "warning");
+                 fail++;
+                 continue;
+            }
+
             updateModalProgress((i/selected.length)*100, `${action}: ${item.mcid}`);
             
             try {
@@ -1449,6 +1461,7 @@
                 if (action === 'FA' || action === 'QA') {
                     url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}&processtype=${action}`;
                 } else {
+                    // 🔥 LỆNH XÓA THỰC SỰ 🔥
                     url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
                 }
                 
@@ -1458,6 +1471,7 @@
                 const res = await fetch(url);
                 const json = await res.json();
                 
+                // 🔥 LOGIC CHECK SUCCESS CHẶT CHẼ HƠN 🔥
                 if(json.IsSuccess) {
                     success++;
                     modalLog(`✅ ${action} OK: ${item.mcid}`, 'success');
@@ -1472,7 +1486,9 @@
                     } else {
                         row.style.background = 'rgba(16, 185, 129, 0.1)';
                     }
-                } else throw new Error(json.Log || 'Fail');
+                } else {
+                    throw new Error(json.Log || 'Server returned false');
+                }
             } catch(e) {
                 fail++;
                 modalLog(`❌ Lỗi ${item.mcid}: ${e.message}`, 'error');
@@ -1512,12 +1528,13 @@
         navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Tên công đoạn!`));
     }
 
+    // 🔥 HÀM XỬ LÝ NÚT Ở FOOTER (Tab Danh sách) - ĐÃ FIX LỖI XÓA 🔥
     async function processSelectedItems(action, btnElement) {
         const checked = document.querySelectorAll('.serial-checkbox:checked');
         if(checked.length === 0) return alert("Vui lòng tích chọn máy cần xử lý!");
         
-        // 🔥 THÊM CHECK STATUS TRONG MODAL LIST OPERATIONS 🔥
-        if (selectedPackageStatus !== 'CF') {
+        // Check Status
+        if (selectedPackageStatus !== 'CF' && selectedPackageStatus !== 'CONFIRM') {
             alert(`⛔ LỖI: Package đang là [${selectedPackageStatus}].\nVui lòng Confirm (CF) trên hệ thống trước khi gửi lệnh!`);
             return;
         }
@@ -1536,6 +1553,7 @@
         if(!confirm(confirmMsg)) return;
 
         let successCount = 0;
+        let failCount = 0;
         
         const originalText = btnElement.innerHTML;
         btnElement.innerHTML = `<span class="loader" style="width:15px;height:15px;border-width:2px;"></span> Đang chạy...`;
@@ -1543,11 +1561,13 @@
 
         for (const cb of checked) {
             const opserial = cb.value;
-            const mcid = cb.dataset.mcid || ""; 
+            const mcid = cb.dataset.mcid; // Lấy MCID từ dataset (đã gán khi fetch detail)
             
-            if (action === 'FA' && !mcid) {
-                console.warn(`Bỏ qua Op ${opserial} vì chưa có MCID`);
-                continue;
+            // 🔥 KIỂM TRA MCID 🔥
+            if (!mcid || mcid === "") {
+                console.warn(`Bỏ qua Op ${opserial} vì chưa có MCID (Chưa load xong hoặc trống)`);
+                failCount++;
+                continue; // Bỏ qua item này
             }
 
             try {
@@ -1555,6 +1575,7 @@
                 if (action === 'FA') {
                     url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}&processtype=FA`;
                 } else {
+                    // 🔥 GỌI API XÓA THỰC SỰ 🔥
                     url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
                 }
                 
@@ -1570,20 +1591,27 @@
                         row.style.opacity = '0.5'; 
                         row.style.textDecoration = 'line-through';
                         cb.checked = false;
-                        cb.dataset.mcid = "";
-                        row.querySelector('.mcid-col').innerHTML = '<span style="color:red">Đã xóa</span>';
+                        cb.dataset.mcid = ""; // Xóa MCID khỏi dataset để không xóa lại được
+                        row.querySelector('.mcid-col').innerHTML = '<span style="color:red; font-weight:bold;">Đã xóa</span>';
                     } else {
                         row.style.backgroundColor = '#dcfce7'; 
                     }
+                } else {
+                    failCount++;
+                    console.error(`Lỗi API trả về false: ${json.Log}`);
                 }
             } catch (e) {
+                failCount++;
                 console.error(`Lỗi ${action} ${opserial}:`, e);
             }
         }
         
         btnElement.innerHTML = originalText;
         btnElement.disabled = false;
-        alert(`Hoàn tất! Thành công: ${successCount}/${checked.length}`);
+        
+        let msg = `Hoàn tất! Thành công: ${successCount}/${checked.length}`;
+        if(failCount > 0) msg += `\nThất bại: ${failCount} (Có thể do máy chưa load xong MCID)`;
+        alert(msg);
     }
 
     function copySelectedMcids() {
