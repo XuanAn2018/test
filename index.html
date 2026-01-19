@@ -257,7 +257,7 @@
     /* HEADER CHO DANH SÁCH CÔNG ĐOẠN */
     .operations-header { 
         display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 150px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
+        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 110px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
         align-items: center; 
         gap: 10px;
         padding: 10px 15px; 
@@ -271,7 +271,7 @@
     
     .detail-row { 
         display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 150px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
+        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 110px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
         align-items: center; 
         gap: 10px;
         padding: 10px 15px; 
@@ -315,7 +315,7 @@
     .btn-fa { background: #10b981; }
     .btn-qa { background: #3b82f6; }
     .btn-remove { background: #ef4444; }
-    .btn-clear { background: #6b7280; }
+    /* REMOVED: .btn-clear */
     .action-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
@@ -1258,7 +1258,8 @@
         if (result.ok) appendLog(`✅ OK (${result.duration}s)`, "success");
         else appendLog(`❌ FAIL: ${resObj.status}`, "error");
         updateStats(batchResults, total, currentBatchStart);
-        if (queue.length > 0 && !isStopped) await new Promise(r => setTimeout(r, Math.random() * 2000 + 4000));
+        // RANDOM DELAY: 0.5s - 1.2s to be human-like but fast
+        if (queue.length > 0 && !isStopped) await new Promise(r => setTimeout(r, Math.random() * 800 + 500));
       }
 
       setRunningState(false);
@@ -1437,9 +1438,6 @@
                             </button>
                             <button class="action-btn btn-qa btn-xs" onclick="sendSingleCommand('${op.opserial}', 'QA', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Gửi QA">
                                 <i class="fas fa-check-circle"></i>
-                            </button>
-                            <button class="action-btn btn-clear btn-xs" onclick="sendSingleCommand('${op.opserial}', '', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Xóa FA/QA">
-                                <i class="fas fa-eraser"></i>
                             </button>
                         </div>
                     </label>`;
@@ -1775,8 +1773,8 @@
                 modalLog(`❌ Lỗi xóa máy ${mcid}: ${error.message}`, 'error');
             }
             
-            // Delay giữa các request
-            await new Promise(r => setTimeout(r, 500));
+            // RANDOM DELAY: 200ms - 500ms
+            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
         }
         
         updateOperationsStats();
@@ -1856,8 +1854,8 @@
                 modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${error.message}`, 'error');
             }
             
-            // Delay giữa các request
-            await new Promise(r => setTimeout(r, 500));
+            // RANDOM DELAY: 200ms - 500ms
+            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
         }
         
         showToast('🏁 Hoàn tất', `Đã gửi ${commandText} đến ${successCount} máy thành công, ${failCount} thất bại`, successCount > 0 ? 'success' : 'warning');
@@ -2118,7 +2116,8 @@
                 fail++;
                 modalLog(`❌ Lỗi xóa ${item.mcid}: ${e.message}`, 'error');
             }
-            await new Promise(r => setTimeout(r, 500));
+            // RANDOM DELAY: 200ms - 500ms
+            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
         }
 
         updateModalProgress(100, `Hoàn tất: ${success} OK, ${fail} Lỗi`);
@@ -2197,7 +2196,8 @@
                 fail++;
                 modalLog(`❌ Lỗi ${commandText} ${item.mcid}: ${e.message}`, 'error');
             }
-            await new Promise(r => setTimeout(r, 500));
+            // RANDOM DELAY: 200ms - 500ms
+            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
         }
 
         updateModalProgress(100, `Hoàn tất: ${success} OK, ${fail} Lỗi`);
