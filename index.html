@@ -1,2267 +1,2006 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MES QR Scanner Pro - Integrated Version</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- FONT AWESOME -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- Script Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-  <style>
-    :root {
-      --primary-gradient: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
-      --bg-body: #f1f5f9; 
-      --bg-card: #ffffff;
-      --text-main: #1e293b;
-      --border-color: #cbd5e1;
-      --radius: 12px;
-      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-
-    * { box-sizing: border-box; outline: none; }
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-body);
-      color: var(--text-main);
-      margin: 0; padding: 0; min-height: 100vh;
-      padding-bottom: 60px;
-    }
-
-    /* Navbar */
-    .navbar {
-      background: #1e293b; color: white; padding: 1rem 2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .brand { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 12px; color: #f8fafc; }
-    .status-badge {
-      font-size: 0.85rem; background: rgba(16, 185, 129, 0.15); color: #34d399;
-      padding: 6px 16px; border-radius: 99px; font-weight: 600;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    /* Layout */
-    .container {
-      max-width: 1400px; margin: 30px auto; padding: 0 20px;
-      display: grid; grid-template-columns: 420px 1fr; gap: 25px;
-    }
-    @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
-
-    /* Cards */
-    .card { background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow-soft); padding: 24px; margin-bottom: 24px; border: 1px solid white; }
-    .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; }
-    .card-title { font-size: 1.1rem; font-weight: 700; color: #334155; }
-
-    /* Inputs */
-    .form-group { margin-bottom: 15px; }
-    .form-row { display: flex; gap: 10px; margin-bottom: 15px; }
-    .input-wrapper { 
-      display: flex; 
-      gap: 5px; 
-      position: relative;
-    }
-    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #475569; }
-    input, textarea, select {
-      width: 100%; padding: 10px; border: 2px solid var(--border-color);
-      border-radius: 8px; font-size: 0.95rem; font-family: inherit;
-      background: #f8fafc; transition: all 0.2s;
-    }
-    input:focus, textarea:focus, select:focus {
-      border-color: #6366f1; background: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-    }
-    textarea { min-height: 120px; font-family: 'Courier New', monospace; line-height: 1.5; }
-    
-    /* Nút xóa trong input */
-    .clear-input-btn {
-        position: absolute;
-        right: 45px; /* Tăng khoảng cách để tránh đè lên nút reload */
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: #94a3b8;
-        cursor: pointer;
-        font-size: 14px;
-        padding: 4px 6px;
-        display: none;
-        z-index: 2; /* Đảm bảo nút ở trên cùng */
-    }
-    .input-wrapper:has(input:not(:placeholder-shown)) .clear-input-btn {
-        display: block;
-    }
-    .clear-input-btn:hover {
-        color: #ef4444;
-    }
-
-    /* --- PACKAGE INFO CARD --- */
-    .pkg-info-card {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 10px;
-      display: none; 
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-    }
-    .pkg-info-card.cf-status {
-      background: rgba(16, 185, 129, 0.05);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-    .pkg-info-card.ro-status {
-      background: rgba(239, 68, 68, 0.05);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      animation: pulse-red 2s infinite;
-    }
-    .pkg-info-card.active { display: block; animation: fadeIn 0.3s; }
-    .pkg-row { display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px dashed #e0f2fe; padding-bottom: 4px; }
-    .pkg-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .pkg-label { color: #64748b; font-weight: 600; }
-    .pkg-val { color: #0369a1; font-weight: 700; text-align: right; max-width: 65%; word-break: break-word;}
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.1); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 12px 20px; border-radius: 10px; font-weight: 600;
-      cursor: pointer; border: none; color: white; transition: all 0.2s ease;
-      font-size: 0.95rem; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .btn:hover { transform: translateY(-2px); filter: brightness(110%); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(100%); }
-    .btn-primary { background: var(--primary-gradient); }
-    .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-    .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-    .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
-    .btn-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
-    .btn-slate { background: linear-gradient(135deg, #475569 0%, #1e293b 100%); }
-    .btn-rose { background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); }
-    .btn-info { background: linear-gradient(90deg, #00BCD4 0%, #00acc1 100%); color: white; }
-    .btn-gray { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
-    .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
-    .btn-xs { padding: 4px 10px; font-size: 0.75rem; }
-
-    /* Stats & Logs */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-    .stat-card { background: white; padding: 15px; border-radius: 12px; box-shadow: var(--shadow-soft); text-align: center; border-bottom: 4px solid transparent; }
-    .stat-card.total { border-color: #6366f1; } .stat-card.success { border-color: #10b981; }
-    .stat-card.error { border-color: #ef4444; } .stat-card.rate { border-color: #3b82f6; }
-    .stat-value { font-size: 1.8rem; font-weight: 800; color: #1e293b; }
-    .stat-label { font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
-
-    .progress-track { background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-    .progress-bar { height: 100%; background: linear-gradient(90deg, #4f46e5, #0ea5e9); width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-size: 0.75rem; font-weight: 700; }
-    
-    .log-container {
-      background: #0f172a; color: #e2e8f0; padding: 20px; border-radius: 12px;
-      font-family: 'Consolas', monospace; font-size: 0.9rem; height: 500px; overflow-y: auto;
-    }
-    .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
-    .log-time { color: #64748b; min-width: 70px; font-size: 0.8rem; }
-    .log-success { color: #4ade80; } .log-error { color: #f87171; } .log-info { color: #60a5fa; } .log-warning { color: #facc15; }
-    .log-detail { color: #cbd5e1; font-style: italic; margin-left: 20px; display: block; width: 100%; font-size: 0.85rem;}
-
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); } }
-    .btn-pulse { animation: pulse 2s infinite; }
-
-    /* FLOATING TURNSTILE */
-    .turnstile-floating {
-      position: fixed; bottom: 20px; right: 20px; z-index: 9999;
-      background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px);
-      border-radius: 16px; border: 1px solid rgba(99, 102, 241, 0.2);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 320px; overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .turnstile-header { display: flex; justify-content: space-between; padding: 10px 16px; background: linear-gradient(to right, #eef2ff, #fff); border-bottom: 1px solid rgba(99, 102, 241, 0.1); align-items: center;}
-    .turnstile-title { font-size: 0.85rem; font-weight: 700; color: #4338ca; display: flex; gap: 8px; }
-    .turnstile-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 600; }
-    .status-pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-    .status-success { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-    
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #64748b; }
-    .turnstile-body { padding: 16px; display: flex; flex-direction: column; align-items: center; }
-    .turnstile-note { font-size: 0.7rem; color: #94a3b8; margin-top: 10px; text-align: center; }
-
-    .turnstile-content { opacity: 1; visibility: visible; transition: opacity 0.3s; width: 100%; }
-    .turnstile-minimized-icon {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; cursor: pointer; opacity: 0; visibility: hidden; transition: opacity 0.3s;
-      background: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%); color: white;
-    }
-    .turnstile-floating.minimized { width: 56px; height: 56px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 12px rgba(67, 56, 202, 0.4); }
-    .turnstile-floating.minimized .turnstile-content { opacity: 0; visibility: hidden; position: absolute; }
-    .turnstile-floating.minimized .turnstile-minimized-icon { opacity: 1; visibility: visible; }
-
-    /* ========================================================================== */
-    /* CSS CHO MODAL & CHI TIẾT PACKAGE (MỞ RỘNG) */
-    /* ========================================================================== */
-    .modal-overlay { 
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.7); z-index: 10000; 
-        display: flex; justify-content: center; align-items: center; 
-        opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); 
-        pointer-events: none; /* Cho phép click xuyên qua khi ẩn */
-    }
-    .modal-overlay.open { 
-        opacity: 1; visibility: visible; 
-        pointer-events: auto; /* Bật click khi hiện */
-    }
-    .modal-box { 
-        background: white; width: 95%; max-width: 1200px; border-radius: 15px; 
-        box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; 
-        height: 90vh; overflow: hidden; transform: translateY(-20px); transition: transform 0.3s ease-out; 
-    }
-    .modal-overlay.open .modal-box { transform: translateY(0); }
-    
-    /* Modal Tabs */
-    .modal-tabs {
-        display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-        padding: 0 15px; gap: 1px;
-    }
-    .modal-tab {
-        padding: 12px 24px; font-weight: 600; color: #64748b; cursor: pointer;
-        border-bottom: 3px solid transparent; transition: all 0.2s;
-        background: none; border: none; font-size: 14px;
-    }
-    .modal-tab:hover { color: #334155; background: #f1f5f9; }
-    .modal-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: white; }
-    
-    .modal-header { 
-        padding: 15px 25px; border-bottom: 1px solid #eee; 
-        display: flex; justify-content: space-between; align-items: center; 
-        background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; 
-        border-radius: 15px 15px 0 0; 
-    }
-    .modal-header h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-    
-    .modal-body { padding: 15px; overflow-y: auto; flex: 1; color: #333; background: #f8f9fa; }
-    
-    /* Tab Content */
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    /* Tab 1: Operations List - CẬP NHẬT */
-    .detail-module { margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); background: white; }
-    .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 10px 18px; font-weight: bold; color: #1565c0; display: flex; justify-content: space-between; font-size: 14px; }
-    
-    /* HEADER CHO DANH SÁCH CÔNG ĐOẠN */
-    .operations-header { 
-        display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 110px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
-        align-items: center; 
-        gap: 10px;
-        padding: 10px 15px; 
-        background: #e2e8f0; 
-        font-weight: bold; 
-        font-size: 13px; 
-        color: #475569;
-        border-radius: 8px 8px 0 0;
-        margin-bottom: 5px;
-    }
-    
-    .detail-row { 
-        display: grid; 
-        grid-template-columns: 40px 2fr 1.5fr 1fr 1fr 110px; /* Checkbox, Tên, MCID, IoT, Time, Actions */
-        align-items: center; 
-        gap: 10px;
-        padding: 10px 15px; 
-        border-bottom: 1px solid #f0f0f0; 
-        font-size: 13px; 
-        transition: background 0.2s; 
-        background: white;
-    }
-    .detail-row:hover { background: #f0f7ff; }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-row.has-mcid { 
-        background: rgba(16, 185, 129, 0.05);
-        border-left: 3px solid #10b981;
-    }
-    .detail-row.no-mcid { 
-        background: rgba(248, 113, 113, 0.05);
-        border-left: 3px solid #f87171;
-    }
-    
-    .serial-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
-    .op-name { font-weight: 600; color: #333; }
-    
-    /* Action buttons trong danh sách */
-    .action-buttons {
-        display: flex;
-        gap: 3px;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-    .action-btn {
-        padding: 3px 6px;
-        font-size: 10px;
-        border-radius: 3px;
-        border: none;
-        cursor: pointer;
-        color: white;
-        transition: all 0.2s;
-        white-space: nowrap;
-    }
-    .action-btn:hover { transform: translateY(-1px); }
-    .btn-fa { background: #10b981; }
-    .btn-qa { background: #3b82f6; }
-    .btn-remove { background: #ef4444; }
-    /* REMOVED: .btn-clear */
-    .action-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
-    /* Batch Actions Container */
-    .batch-actions-container {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .batch-stats {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 10px;
-        flex-wrap: wrap;
-    }
-    .batch-stat-badge {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 12px;
-        background: #f1f5f9;
-        color: #475569;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .batch-stat-badge.has-mcid { background: #dcfce7; color: #15803d; }
-    .batch-stat-badge.selected { background: #fef3c7; color: #92400e; }
-    
-    /* Tab 2: IoT Scan */
-    .scan-controls {
-        background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px;
-        border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .scan-stats {
-        display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;
-    }
-    .stat-badge {
-        padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 12px;
-        background: #f1f5f9; color: #475569; display: flex; align-items: center; gap: 6px;
-    }
-    .stat-badge.found { background: #dcfce7; color: #15803d; }
-    .stat-badge.selected { background: #fef3c7; color: #92400e; }
-    
-    .machine-grid-container {
-        max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0;
-        border-radius: 8px; background: white;
-    }
-    .machine-item {
-        padding: 12px 15px; border-bottom: 1px solid #f1f5f9;
-        display: flex; align-items: flex-start; gap: 12px;
-        transition: background 0.2s;
-    }
-    .machine-item:hover { background: #f8fafc; }
-    .machine-item.selected { background: #fef3c7; border-left: 3px solid #f59e0b; }
-    .machine-item:last-child { border-bottom: none; }
-    
-    .machine-checkbox { width: 18px; height: 18px; margin-top: 3px; cursor: pointer; accent-color: #f59e0b; }
-    .machine-info { flex: 1; }
-    .machine-row-1 { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-    .machine-title { color: #1e293b; font-weight: 700; font-size: 13px; }
-    .machine-module { color: #64748b; font-size: 12px; }
-    .machine-remarks { color: #d97706; font-size: 12px; font-style: italic; }
-    .machine-row-2 { margin-bottom: 6px; font-size: 12px; color: #475569; }
-    .mcid-tag { color: #2563eb; font-weight: bold; background: #eff6ff; padding: 2px 8px; border-radius: 4px; border: 1px solid #bfdbfe; }
-    
-    .machine-iot-row {
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
-        padding: 6px 10px; margin-top: 5px; font-size: 11px;
-        display: flex; flex-direction: column; gap: 2px;
-    }
-    .iot-value { color: #059669; font-weight: bold; font-family: 'Consolas', monospace; }
-    .iot-time-label { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .iot-time-value { color: #475569; font-family: 'Consolas', monospace; }
-    
-    .iot-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
-    .iot-fa { background: #10b981; }
-    .iot-qa { background: #3b82f6; }
-    .iot-none { background: #94a3b8; }
-    
-    /* Progress Bar trong Modal */
-    .modal-progress-container { margin: 15px 0; display: none; }
-    .modal-progress-bar { width: 100%; height: 20px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative; }
-    .modal-progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); width: 0%; transition: width 0.3s; }
-    .modal-progress-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #1e293b; font-size: 11px; }
-    
-    /* Log Console trong Modal */
-    .modal-log-console {
-        background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px;
-        font-family: monospace; font-size: 11px; max-height: 150px; overflow-y: auto;
-        margin-top: 15px; border: 1px solid #334155;
-    }
-    .modal-log-entry { margin-bottom: 3px; display: flex; gap: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-    .modal-log-time { color: #64748b; min-width: 50px; font-size: 10px; }
-    .modal-log-success { color: #4ade80; }
-    .modal-log-error { color: #f87171; }
-    .modal-log-info { color: #60a5fa; }
-    .modal-log-warning { color: #facc15; }
-    
-    .modal-footer { 
-        padding: 15px 25px; border-top: 1px solid #eee; 
-        display: flex; gap: 10px; justify-content: space-between; 
-        background: #fff; border-radius: 0 0 15px 15px; flex-wrap: wrap; 
-    }
-    
-    .modal-actions-left, .modal-actions-right { display: flex; gap: 8px; flex-wrap: wrap; }
-    
-    /* Tags & Badges */
-    .serial-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-family: monospace; color: #475569; border: 1px solid #cbd5e1; display: inline-block;}
-    .type-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; color: white; font-weight: bold; margin-left: 5px; vertical-align: middle; }
-    .badge-fa { background: #10b981; }
-    .badge-qa { background: #3b82f6; }
-    .badge-none { background: #94a3b8; }
-    
-    /* Status Badge */
-    .package-status-badge {
-        font-size: 11px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-    .status-cf {
-        background: rgba(16, 185, 129, 0.2);
-        color: #047857;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .status-ro {
-        background: rgba(239, 68, 68, 0.2);
-        color: #dc2626;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        animation: pulse-red 2s infinite;
-    }
-
-    .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    /* Toast Notification */
-    .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        z-index: 10001;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transform: translateX(150%);
-        transition: transform 0.3s ease;
-        max-width: 400px;
-    }
-    .toast.show {
-        transform: translateX(0);
-    }
-    .toast-warning {
-        border-left: 4px solid #f59e0b;
-        background: #fffbeb;
-    }
-    .toast-success {
-        border-left: 4px solid #10b981;
-        background: #f0fdf4;
-    }
-    .toast-icon {
-        font-size: 20px;
-    }
-    .toast-warning .toast-icon { color: #f59e0b; }
-    .toast-success .toast-icon { color: #10b981; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MES Package Explorer | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette - Professional Dashboard */
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            
+            /* Neutral Colors */
+            --dark: #1e293b;
+            --gray-900: #0f172a;
+            --gray-800: #1e293b;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-500: #64748b;
+            --gray-400: #94a3b8;
+            --gray-300: #cbd5e1;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50: #f8fafc;
+            --white: #ffffff;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius: 10px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+        
+        html {
+            font-size: 16px;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+            color: var(--gray-700);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* ===== LAYOUT ===== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+        }
+        
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+            .sidebar-toggle {
+                display: block !important;
+            }
+        }
+        
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            background: var(--gray-900);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 25px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo-subtext {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+        
+        /* ===== STATS IN SIDEBAR ===== */
+        .stats-sidebar {
+            margin-bottom: 30px;
+        }
+        
+        .stat-card-sidebar {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all var(--transition);
+        }
+        
+        .stat-card-sidebar:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-value-sidebar {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .stat-label-sidebar {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+        
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--secondary);
+        }
+        
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+        
+        /* ===== SIDEBAR NAVIGATION ===== */
+        .nav-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: var(--radius);
+            color: var(--gray-300);
+            text-decoration: none;
+            transition: all var(--transition);
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        
+        .nav-text {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        /* ===== COOKIE STATUS ===== */
+        .cookie-status {
+            margin-top: auto;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .cookie-status-title {
+            color: var(--gray-400);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cookie-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+        
+        .status-dot.valid {
+            background: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .status-text {
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .cookie-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--gray-300);
+            cursor: pointer;
+            transition: all var(--transition);
+            flex: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .btn-small:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            background: var(--gray-100);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .header-subtitle {
+            color: var(--gray-500);
+            font-size: 0.95rem;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        /* ===== FILTER SECTION ===== */
+        .filter-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            color: var(--gray-800);
+            background: white;
+            transition: all var(--transition);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .date-input-group {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .date-display {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .date-display strong {
+            color: var(--primary);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border-radius: var(--radius);
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 140px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--gray-600);
+            border: 2px solid var(--gray-300);
+        }
+        
+        .btn-outline:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+        
+        .btn-sm {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            min-width: auto;
+        }
+        
+        .copy-format-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gray-50);
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-top: 20px;
+        }
+        
+        .copy-format-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+        
+        /* ===== RESULTS SECTION ===== */
+        .results-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .results-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-50);
+        }
+        
+        .results-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .results-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .results-body {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-table th {
+            background: var(--gray-50);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+        }
+        
+        .data-table tr:hover {
+            background: var(--gray-50);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-confirmed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-dark);
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        /* ===== JSON OUTPUT STYLE - FIXED ===== */
+        .json-output {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            padding: 20px;
+            overflow-x: auto;
+            border-radius: var(--radius);
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .json-pretty {
+            color: #e2e8f0;
+            background: transparent;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .json-key {
+            color: #7dd3fc;
+        }
+        
+        .json-string {
+            color: #bbf7d0;
+        }
+        
+        .json-number {
+            color: #fbbf24;
+        }
+        
+        .json-boolean {
+            color: #60a5fa;
+        }
+        
+        .json-null {
+            color: #c084fc;
+        }
+        
+        .json-undefined {
+            color: #f87171;
+        }
+        
+        /* ===== TABLE ACTION BUTTONS - IMPROVED VISIBILITY ===== */
+        .table-action-btn {
+            padding: 6px 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .table-action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+        
+        .table-action-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* ===== LOADING ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ===== TOAST NOTIFICATION ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform var(--transition-slow);
+            animation: slideIn 0.5s ease forwards;
+        }
+        
+        .toast.success {
+            border-left-color: var(--secondary);
+        }
+        
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            font-size: 1.2rem;
+        }
+        
+        .toast.success .toast-icon { color: var(--secondary); }
+        .toast.error .toast-icon { color: var(--danger); }
+        .toast.warning .toast-icon { color: var(--warning); }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+        
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            padding: 60px 30px;
+            text-align: center;
+            color: var(--gray-400);
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--gray-500);
+        }
+        
+        .empty-description {
+            max-width: 400px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+        
+        /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 20px;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .date-input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .copy-format-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        /* ===== SECTION CONTENT ===== */
+        .section-content {
+            display: none;
+        }
+        
+        .section-content.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-
-  <div class="navbar">
-    <div class="brand"><span>⚡ MES QR Scanner Pro v1.1🚀 </span></div>
-    <div id="statusBadge" class="status-badge">Hệ thống sẵn sàng</div>
-  </div>
-
-  <div class="container">
-    
-    <!-- LEFT: Configuration -->
-    <div class="left-col">
-      <div class="card">
-        <div class="card-header"><div class="card-title">📝 Cấu Hình Dữ Liệu</div></div>
-        
-        <div class="form-group">
-          <label>API Key</label>
-          <input type="password" id="apiKey" placeholder="Nhập khóa bảo mật...">
-        </div>
-
-        <div class="form-row">
-          <div style="flex: 1;">
-            <label>Factory</label>
-            <input list="factoryOptions" id="factory" value="P2C1" placeholder="Chọn...">
-            <datalist id="factoryOptions">
-              <option value="P2A1"><option value="P2B1"><option value="P2C1"><option value="P2D1">
-            </datalist>
-          </div>
-          <div style="flex: 1;">
-            <label>Date</label>
-            <input type="date" id="dateSelect">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Package ID</label>
-          <div class="input-wrapper">
-             <input type="text" id="pkg" list="packageList" placeholder="Nhập Key rồi nhấn 🔄 tải gói..." autocomplete="off">
-             <button id="btnClearPkg" class="clear-input-btn" title="Xóa Package ID">
-               <i class="fas fa-times"></i>
-             </button>
-             <button id="btnReloadPkg" class="btn btn-slate btn-sm" style="width: auto;">🔄</button>
-          </div>
-          <datalist id="packageList"></datalist>
-          
-          <!-- KHUNG HIỂN THỊ THÔNG TIN GÓI -->
-          <div id="pkgInfoCard" class="pkg-info-card">
-            <div class="pkg-row"><span class="pkg-label">Line:</span> <span class="pkg-val" id="infoLine">-</span></div>
-            <div class="pkg-row"><span class="pkg-label">Style:</span> <span class="pkg-val" id="infoStyle">-</span></div>
-            <div class="pkg-row"><span class="pkg-label">Target:</span> <span class="pkg-val" id="infoTarget">-</span></div>
-            <div class="pkg-row">
-                <span class="pkg-label">Status:</span> 
-                <span class="pkg-val" id="infoStatus">-</span>
-            </div>
-            
-            <div class="pkg-row">
-                <span class="pkg-label">Mobile Output:</span> 
-                <span class="pkg-val" id="infoOutput" style="font-weight: 800;">-</span>
-            </div>
-            
-            <button id="btnViewDetails" class="btn btn-info btn-sm" style="width: 100%; margin-top: 12px;" onclick="openPackageManagement()">
-                <i class="fas fa-server"></i> Mở Quản Lý Package Nâng Cao
-            </button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Dữ liệu (Opserial, MCID, Type)</label>
-          <div class="form-row" style="margin-bottom: 10px;">
-            <button id="importBtn" class="btn btn-purple btn-sm" style="flex:1;">📂 Mở File</button>
-            <button id="downloadTemplate" class="btn btn-cyan btn-sm" style="flex:1;">📥 Tải Mẫu</button>
-            <input type="file" id="fileInput" accept=".csv,.txt" style="display:none">
-          </div>
-          <textarea id="list" placeholder="1,60:01:94:3A:74:B5,QA
-2,60:01:94:3A:74:B6,FA"></textarea>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><div class="card-title">🔧 Tiện Ích</div></div>
-        <div class="form-row">
-           <button id="testConnection" class="btn btn-slate btn-sm">🔗 Test Kết Nối</button>
-           <button id="clearLog" class="btn btn-rose btn-sm">🧹 Xóa Log</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Monitor -->
-    <div class="right-col">
-      <div class="stats-grid">
-        <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tổng số</div></div>
-        <div class="stat-card success"><div class="stat-value" id="statSuccess">0</div><div class="stat-label">Thành công</div></div>
-        <div class="stat-card error"><div class="stat-value" id="statFailed">0</div><div class="stat-label">Thất bại</div></div>
-        <div class="stat-card rate"><div class="stat-value" id="statRate">0.0</div><div class="stat-label">Giây/Req</div></div>
-      </div>
-
-      <div class="card" style="border: none; background: transparent; padding: 0; box-shadow: none;">
-        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-          <button id="run" class="btn btn-primary btn-pulse" disabled style="flex: 2; font-size: 1.1rem; opacity: 0.6; cursor: not-allowed;">
-            🔒 CHỜ XÁC THỰC BẢO MẬT
-          </button>
-          <button id="pause" class="btn btn-warning" style="display:none; flex: 1;">⏸️ Tạm Dừng</button>
-          <button id="stop" class="btn btn-danger" style="display:none; flex: 1;">⏹️ Dừng Lại</button>
-          <button id="export" class="btn btn-success" disabled style="flex: 1;">💾 Xuất CSV</button>
-        </div>
-      </div>
-
-      <div class="progress-track"><div id="progressBar" class="progress-bar" style="width: 0%">0%</div></div>
-      <div class="log-container" id="log">
-        <div class="log-entry"><span class="log-time">SYSTEM</span><span class="log-info">Giao diện sẵn sàng. Vui lòng xác thực ở góc phải.</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FLOATING WIDGET -->
-  <div id="turnstileWidget" class="turnstile-floating">
-    <div class="turnstile-content">
-      <div class="turnstile-header">
-        <div class="turnstile-title">🛡️ Xác Thực Bảo Mật</div>
-        <div style="display:flex; align-items:center; gap:8px;">
-           <span id="turnstileStatus" class="turnstile-badge status-pending">Đang chờ</span>
-           <button id="btnMinimize" class="btn-icon">─</button>
-        </div>
-      </div>
-      <div class="turnstile-body">
-        <div id="cf-turnstile-widget" class="cf-turnstile" 
-             data-sitekey="0x4AAAAAACKJOBIKvTV3je0V" 
-             data-callback="onTurnstileSuccess"
-             data-error-callback="onTurnstileError"
-             data-expired-callback="onTurnstileExpired"
-             data-theme="light">
-        </div>
-        <div class="turnstile-note">Tự động ẩn sau khi xác thực.</div>
-      </div>
-    </div>
-    <div class="turnstile-minimized-icon" title="Mở xác thực">
-      <span id="minimizedIconChar">🔐</span>
-    </div>
-  </div>
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toastNotification" class="toast">
-    <div class="toast-icon"><i class="fas fa-exclamation-triangle"></i></div>
-    <div>
-      <div style="font-weight: bold; margin-bottom: 5px;" id="toastTitle">Cảnh báo</div>
-      <div style="font-size: 13px; color: #475569;" id="toastMessage">Message</div>
-    </div>
-    <button onclick="hideToast()" style="margin-left: auto; background: none; border: none; color: #64748b; cursor: pointer;">
-      <i class="fas fa-times"></i>
+    <!-- Sidebar Toggle for Mobile -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
     </button>
-  </div>
-
-  <!-- MODAL QUẢN LÝ PACKAGE MỞ RỘNG -->
-  <div class="modal-overlay" id="packageModal">
-      <div class="modal-box">
-          <div class="modal-header">
-              <h3><i class="fas fa-server"></i> Quản Lý Package - <span id="modalPackageId">...</span></h3>
-              <div id="modalPackageStatus" class="package-status-badge">-</div>
-              <button class="btn btn-sm btn-danger" onclick="closePackageModal()" style="width: auto;"><i class="fas fa-times"></i></button>
-          </div>
-          
-          <!-- Tabs -->
-          <div class="modal-tabs">
-              <button class="modal-tab active" data-tab="tab-operations" onclick="switchModalTab('tab-operations')">
-                  <i class="fas fa-list"></i> Danh sách công đoạn
-              </button>
-              <button class="modal-tab" data-tab="tab-iot" onclick="switchModalTab('tab-iot')">
-                  <i class="fas fa-satellite-dish"></i> Quét IoT & Xóa máy
-              </button>
-          </div>
-          
-          <!-- Tab 1: Operations List -->
-          <div class="modal-body">
-              <div class="tab-content active" id="tab-operations">
-                  <!-- Batch Actions Container - CHỈ HIỆN TRONG TAB NÀY -->
-                  <div class="batch-actions-container">
-                      <h4 style="margin: 0 0 15px 0; color: #1e293b; font-size: 14px;">
-                          <i class="fas fa-tasks"></i> Xử lý hàng loạt
-                      </h4>
-                      
-                      <div class="batch-stats">
-                          <div class="batch-stat-badge has-mcid">
-                              <i class="fas fa-microchip"></i> Máy có MCID: <strong id="statHasMcid">0</strong>
-                          </div>
-                          <div class="batch-stat-badge selected">
-                              <i class="fas fa-check-circle"></i> Đã chọn: <strong id="statSelectedOps">0</strong>
-                          </div>
-                      </div>
-                      
-                      <!-- Hàng 1: Chỉ chứa nút chọn -->
-                      <div class="form-row" style="margin-bottom: 10px;">
-                          <button class="btn btn-warning btn-sm" onclick="toggleAllOperations(true)" id="btnSelectAllOps" style="flex: 1;">
-                              <i class="fas fa-check-double"></i> Chọn Hết
-                          </button>
-                          <button class="btn btn-warning btn-sm" onclick="toggleAllOperations(false)" id="btnDeselectAllOps" style="flex: 1;">
-                              <i class="fas fa-times"></i> Bỏ Chọn
-                          </button>
-                      </div>
-                      
-                      <!-- Hàng 2: Gom các nút hành động (Xóa, FA, QA) -->
-                      <div class="form-row">
-                          <button class="btn btn-danger btn-sm" onclick="batchRemoveMachines()" id="btnBatchRemoveOps" style="flex: 1;">
-                              <i class="fas fa-trash"></i> Xóa Máy Đã Chọn
-                          </button>
-                          <button class="btn btn-success btn-sm" onclick="batchSendCommand('FA')" id="btnBatchFAOps" style="flex: 1;">
-                              <i class="fas fa-robot"></i> Gửi FA Đã Chọn
-                          </button>
-                          <button class="btn btn-primary btn-sm" onclick="batchSendCommand('QA')" id="btnBatchQAOps" style="flex: 1;">
-                              <i class="fas fa-check-circle"></i> Gửi QA Đã Chọn
-                          </button>
-                      </div>
-                  </div>
-                  
-                  <!-- Operations List Header -->
-                  <div class="operations-header">
-                       <div><input type="checkbox" id="selectAllOperations" onclick="toggleSelectAllOperations()"></div>
-                       <div>TÊN CÔNG ĐOẠN</div>
-                       <div>MCID (MÃ MÁY)</div>
-                       <div>DỮ LIỆU IoT</div>
-                       <div>THỜI GIAN</div>
-                       <div>THAO TÁC</div>
-                  </div>
-                  
-                  <div id="operationsContent">
-                      <div style="text-align:center; padding:20px;"><div class="loader"></div> Đang tải danh sách công đoạn...</div>
-                  </div>
-              </div>
-              
-              <!-- Tab 2: IoT Scan -->
-              <div class="tab-content" id="tab-iot">
-                  <div class="scan-controls">
-                      <h4 style="margin-bottom: 15px; color: #1e293b;"><i class="fas fa-search"></i> Quét dữ liệu IoT chi tiết</h4>
-                      
-                      <div class="form-row" style="margin-bottom: 15px;">
-                          <button class="btn btn-primary btn-sm" onclick="startIotScan()" id="btnStartScan">
-                              <i class="fas fa-search"></i> Quét Chi Tiết IoT
-                          </button>
-                          <button class="btn btn-warning btn-sm" onclick="toggleAllMachines(true)" id="btnSelectAll">
-                              <i class="fas fa-check-double"></i> Chọn Hết
-                          </button>
-                          <button class="btn btn-warning btn-sm" onclick="toggleAllMachines(false)" id="btnDeselectAll">
-                              <i class="fas fa-times"></i> Bỏ Chọn
-                          </button>
-                      </div>
-                      
-                      <div class="scan-stats">
-                          <div class="stat-badge found">
-                              <i class="fas fa-microchip"></i> Máy tìm thấy: <strong id="statFound">0</strong>
-                          </div>
-                          <div class="stat-badge selected">
-                              <i class="fas fa-check-circle"></i> Đã chọn: <strong id="statSelected">0</strong>
-                          </div>
-                      </div>
-                      
-                      <!-- Hàng 2: Dàn đều 3 nút thực thi -->
-                      <div class="form-row">
-                          <button class="btn btn-danger btn-sm" onclick="batchRemoveDiscoveredMachines()" id="btnBatchRemoveIoT" style="flex: 1;">
-                              <i class="fas fa-trash"></i> Xóa Máy Đã Chọn
-                          </button>
-                          <button class="btn btn-success btn-sm" onclick="batchSendCommandIoT('FA')" id="btnBatchFAIoT" style="flex: 1;">
-                              <i class="fas fa-robot"></i> Gửi FA Đã Chọn
-                          </button>
-                          <button class="btn btn-primary btn-sm" onclick="batchSendCommandIoT('QA')" id="btnBatchQAIoT" style="flex: 1;">
-                              <i class="fas fa-check-circle"></i> Gửi QA Đã Chọn
-                          </button>
-                      </div>
-                      
-                      <div class="modal-progress-container" id="modalProgressContainer">
-                          <div class="modal-progress-bar">
-                              <div class="modal-progress-fill" id="modalProgressFill"></div>
-                              <div class="modal-progress-text" id="modalProgressText">0%</div>
-                          </div>
-                      </div>
-                  </div>
-                  
-                  <div class="machine-grid-container" id="machineListContainer">
-                      <div style="padding: 40px; text-align: center; color: #64748b;">
-                          <i class="fas fa-search-location" style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;"></i>
-                          <p>Nhấn "Quét Chi Tiết IoT" để hiển thị dữ liệu</p>
-                      </div>
-                  </div>
-                  
-                  <div class="modal-log-console" id="modalLogConsole">
-                      <div class="modal-log-entry"><span class="modal-log-time">[SYSTEM]</span><span class="modal-log-info">Sẵn sàng quét. Chọn tab IoT Scan để bắt đầu.</span></div>
-                  </div>
-              </div>
-          </div>
-          
-          <div class="modal-footer">
-              <div class="modal-actions-left">
-                  <button class="btn btn-info btn-sm" onclick="copyRemarksModal()">
-                      <i class="fas fa-quote-right"></i> Copy Tên
-                  </button>
-                  <button class="btn btn-primary btn-sm" onclick="copySerialsModal()">
-                      <i class="fas fa-copy"></i> Copy Serial
-                  </button>
-              </div>
-              <div class="modal-actions-right">
-                  <button class="btn btn-rose btn-sm" onclick="closePackageModal()">Đóng</button>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <script>
-    /* ========== CẤU HÌNH & VARIABLES ========== */
-    const API_ENDPOINT = "https://mes-qr-scanner.chiscoong-cloudflare-com.workers.dev/";
-    const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
-    const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
-    const MODULE_DETAIL_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/detail";
-    const REMOVE_API = "https://remove-machine.chiscoong-cloudflare-com.workers.dev/remove-machine";
     
-    // 🔥 Cấu hình Token sống 4.5 phút (270s)
-    const TOKEN_MAX_AGE = 270 * 1000; 
-
-    let isPaused = false, isStopped = false;
-    let currentBatchStart = null, batchResults = [], currentPackages = [];
-    
-    let turnstileToken = null;
-    let tokenTimestamp = 0; 
-    let tokenRefreshResolver = null; 
-    let isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    // BIẾN MỚI CHO MODAL QUẢN LÝ PACKAGE
-    let currentModalPackage = null;
-    let discoveredMachines = [];
-    let isScanning = false;
-    let scanAbortController = null;
-    let modalCurrentTab = 'tab-operations';
-    let operationsList = []; // Lưu danh sách operation để sắp xếp
-    let packageStatus = ''; // Lưu trạng thái package (CF/RO)
-
-    // UI Elements
-    const logEl = document.getElementById("log");
-    const progressBar = document.getElementById("progressBar");
-    const btnRun = document.getElementById("run");
-    const btnPause = document.getElementById("pause");
-    const btnStop = document.getElementById("stop");
-    const btnExport = document.getElementById("export");
-    const statusBadge = document.getElementById("statusBadge");
-
-    // Package Info Elements
-    const pkgInfoCard = document.getElementById("pkgInfoCard");
-    const infoLine = document.getElementById("infoLine");
-    const infoStyle = document.getElementById("infoStyle");
-    const infoTarget = document.getElementById("infoTarget");
-    const infoStatus = document.getElementById("infoStatus");
-    const infoOutput = document.getElementById("infoOutput");
-
-    /* ========== TOAST NOTIFICATION ========== */
-    function showToast(title, message, type = 'warning') {
-        const toast = document.getElementById('toastNotification');
-        document.getElementById('toastTitle').textContent = title;
-        document.getElementById('toastMessage').textContent = message;
-        
-        toast.className = 'toast';
-        toast.classList.add(type === 'warning' ? 'toast-warning' : 'toast-success');
-        toast.classList.add('show');
-        
-        // Tự động ẩn sau 5 giây
-        setTimeout(hideToast, 5000);
-    }
-
-    function hideToast() {
-        const toast = document.getElementById('toastNotification');
-        toast.classList.remove('show');
-    }
-
-    /* ========== TURNSTILE WIDGET LOGIC ========== */
-    const widgetEl = document.getElementById('turnstileWidget');
-    const btnMinimize = document.getElementById('btnMinimize');
-
-    function toggleWidgetState(forceMinimize = false) {
-      if (forceMinimize) widgetEl.classList.add('minimized');
-      else widgetEl.classList.toggle('minimized');
-    }
-
-    btnMinimize.addEventListener('click', (e) => { e.stopPropagation(); toggleWidgetState(true); });
-    widgetEl.addEventListener('click', () => { if (widgetEl.classList.contains('minimized')) toggleWidgetState(false); });
-
-    window.onTurnstileSuccess = function(token) {
-        turnstileToken = token;
-        tokenTimestamp = Date.now();
-        document.getElementById('turnstileStatus').textContent = "Đã xác thực";
-        document.getElementById('turnstileStatus').className = "turnstile-badge status-success";
-        document.getElementById('minimizedIconChar').textContent = "✅";
-        btnRun.disabled = false; btnRun.style.opacity = "1"; btnRun.style.cursor = "pointer"; btnRun.innerHTML = "🚀 BẮT ĐẦU CHẠY";
-
-        if (tokenRefreshResolver) {
-            appendLog("♻️ Đã gia hạn Token thành công! Tự động chạy tiếp...", "success");
-            tokenRefreshResolver(true); 
-            tokenRefreshResolver = null;
-            setTimeout(() => toggleWidgetState(true), 1000);
-        } else {
-            appendLog("✅ Đã xác thực bảo mật thành công.", "success");
-            setTimeout(() => toggleWidgetState(true), 1500);
-        }
-    };
-
-    window.onTurnstileError = function() {
-        turnstileToken = null;
-        btnRun.disabled = true; btnRun.textContent = "❌ LỖI XÁC THỰC";
-        document.getElementById('minimizedIconChar').textContent = "⚠️";
-    };
-
-    window.onTurnstileExpired = function() {
-        turnstileToken = null;
-        if (!tokenRefreshResolver) {
-            btnRun.disabled = true; btnRun.textContent = "🔒 XÁC THỰC LẠI";
-            document.getElementById('minimizedIconChar').textContent = "🔐";
-            toggleWidgetState(false);
-            appendLog("⚠️ Phiên xác thực hết hạn.", "warning");
-        }
-    };
-
-    /* ========== HELPER FUNCTIONS ========== */
-    function formatTime(ms) {
-      const totalSec = Math.floor(ms / 1000);
-      const m = Math.floor(totalSec / 60).toString().padStart(2, "0");
-      const s = (totalSec % 60).toString().padStart(2, "0");
-      return `${m}:${s}`;
-    }
-
-    function appendLog(message, type = 'info') {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
-      let colorClass = 'log-info';
-      if (type === 'error') colorClass = 'log-error';
-      else if (type === 'success') colorClass = 'log-success';
-      else if (type === 'warning') colorClass = 'log-warning';
-      else if (type === 'detail') colorClass = 'log-detail';
-
-      const div = document.createElement('div');
-      div.className = 'log-entry';
-      if (type === 'detail') {
-          div.innerHTML = `<span style="width:70px; display:inline-block"></span><span class="${colorClass}">${message}</span>`;
-      } else {
-          div.innerHTML = `<span class="log-time">${timeStr}</span> <span class="${colorClass}">${message}</span>`;
-      }
-      logEl.appendChild(div);
-      logEl.scrollTop = logEl.scrollHeight;
-    }
-
-    /* ========== FIXED: PARSE MXPACKAGE FUNCTION ========== */
-    function parseMxPackage(mxpackage) {
-        try {
-            // Tìm phần có dạng: [chữ và số]_[số]_[rev]
-            // Ví dụ: M_KUU-0374_1_KUU0260RGL011004_02_02
-            // Cần lấy phần: KUU0260RGL011004
-            
-            const pattern = /_([A-Z0-9]+[A-Z]{2,3}\d{6})_/;
-            const match = mxpackage.match(pattern);
-            
-            if (!match) {
-                // Thử tìm pattern khác: [style][size][color][rev]
-                const pattern2 = /([A-Z]{2,}\d+)([A-Z]{2,3})(\d{3})(\d{3})/;
-                const match2 = mxpackage.match(pattern2);
-                
-                if (!match2) return { success: false, error: "Không thể phân tích package ID" };
-                
-                const fullStr = match2[0];
-                const stylecode = match2[1];
-                const stylesize = match2[2];
-                const stylecolorserial = match2[3];
-                const revno = match2[4];
-                
-                return { 
-                    stylecode, 
-                    stylesize, 
-                    stylecolorserial, 
-                    revno, 
-                    success: true 
-                };
-            }
-            
-            const fullStr = match[1]; // KUU0260RGL011004
-            
-            // Tách phần: Style + Size + Color + Rev
-            // Pattern: [A-Z]+[0-9]+[A-Z]{2,3}[0-9]{3}[0-9]{3}
-            const styleMatch = fullStr.match(/^([A-Z]+)(\d+)([A-Z]{2,3})(\d{3})(\d{3})$/);
-            
-            if (!styleMatch) return { success: false, error: "Không thể phân tích style từ package" };
-            
-            const stylecode = styleMatch[1] + styleMatch[2]; // KUU0260
-            const stylesize = styleMatch[3]; // LRG
-            const stylecolorserial = styleMatch[4]; // 011
-            const revno = styleMatch[5]; // 004
-            
-            console.log(`✅ Phân tích package "${mxpackage}":`, {
-                stylecode, stylesize, stylecolorserial, revno
-            });
-            
-            return { 
-                stylecode, 
-                stylesize, 
-                stylecolorserial, 
-                revno, 
-                success: true 
-            };
-        } catch (e) { 
-            console.error("Lỗi parseMxPackage:", e);
-            return { success: false, error: e.message }; 
-        }
-    }
-
-    function formatDateTime(isoString) {
-        if (!isoString) return "-";
-        try {
-            const date = new Date(isoString);
-            if (isNaN(date.getTime())) return isoString;
-            const d = String(date.getDate()).padStart(2, '0');
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const y = date.getFullYear();
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mm = String(date.getMinutes()).padStart(2, '0');
-            const ss = String(date.getSeconds()).padStart(2, '0');
-            return `${d}/${m}/${y} - ${hh}:${mm}:${ss}`;
-        } catch (e) { return "-"; }
-    }
-
-    /* ========== PACKAGE LOGIC ========== */
-    function setTodayDate() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById('dateSelect').value = `${yyyy}-${mm}-${dd}`;
-    }
-
-    function getApiDateString() { return document.getElementById('dateSelect').value.replace(/-/g, ''); }
-
-    function compareLines(a, b) {
-        const lineA = (a.lineName || "").toUpperCase();
-        const lineB = (b.lineName || "").toUpperCase();
-        const matchA = lineA.match(/(\d+)/);
-        const matchB = lineB.match(/(\d+)/);
-        if (matchA && matchB) {
-            const numA = parseInt(matchA[0]);
-            const numB = parseInt(matchB[0]);
-            if (numA !== numB) return numA - numB;
-        } else if (matchA && !matchB) return -1;
-        else if (!matchA && matchB) return 1;
-        return lineA.localeCompare(lineB);
-    }
-
-    async function fetchPackages() {
-      const factory = document.getElementById('factory').value.trim();
-      const dateStr = getApiDateString();
-      const apiKey = document.getElementById('apiKey').value.trim();
-
-      if (!apiKey) { appendLog("⚠️ Chưa nhập API Key.", "warning"); return document.getElementById('apiKey').focus(); }
-      if (!factory || !dateStr) return;
-
-      const btnReload = document.getElementById('btnReloadPkg');
-      const datalist = document.getElementById('packageList');
-
-      try {
-          btnReload.disabled = true; btnReload.textContent = "⏳";
-          const url = `${PACKAGE_API}?factory=${encodeURIComponent(factory)}&fromDate=${dateStr}&withDetails=true&apikey=${encodeURIComponent(apiKey)}`;
-          appendLog(`Đang tải danh sách gói...`, 'info');
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`Lỗi HTTP ${res.status}`);
-          
-          const rawData = await res.json();
-          let list = rawData.data?.packages || (Array.isArray(rawData.data) ? rawData.data : (Array.isArray(rawData) ? rawData : []));
-          
-          list.sort(compareLines);
-          currentPackages = list;
-          datalist.innerHTML = '';
-
-          if (list.length === 0) appendLog(`⚠️ Không tìm thấy gói nào.`, 'warning');
-          else {
-              let currentLine = null;
-              list.forEach(pkg => {
-                  const lineName = pkg.lineName || "Unknown";
-                  if (lineName !== currentLine) {
-                      currentLine = lineName;
-                      const separator = document.createElement('option');
-                      separator.value = `────── LINE ${currentLine} ──────`;
-                      datalist.appendChild(separator);
-                  }
-                  const option = document.createElement('option');
-                  option.value = pkg.packageId; 
-                  option.textContent = `${pkg.lineName||'?'} | ${pkg.styleText||'N/A'} | ${pkg.target||0}`;
-                  datalist.appendChild(option);
-              });
-              appendLog(`✅ Đã tải ${list.length} gói.`, 'success');
-          }
-      } catch (e) { appendLog(`❌ Lỗi tải Package: ${e.message}`, 'error'); } 
-      finally { btnReload.disabled = false; btnReload.textContent = "🔄"; }
-    }
-
-    // Nút xóa Package ID
-    document.getElementById('btnClearPkg').addEventListener('click', () => {
-        document.getElementById('pkg').value = '';
-        pkgInfoCard.classList.remove('active');
-        document.getElementById('pkg').focus();
-    });
-
-    document.getElementById('pkg').addEventListener('input', (e) => {
-        const val = e.target.value.trim();
-        if(val.startsWith('──────')) { 
-            e.target.value = ''; 
-            return; 
-        }
-
-        const p = currentPackages.find(x => x.packageId === val);
-        if(p) {
-            infoLine.textContent = p.lineName || "N/A";
-            infoStyle.textContent = p.styleText || "N/A";
-            infoTarget.textContent = p.target || "0";
-            
-            // Cập nhật trạng thái với hiển thị đẹp hơn
-            const status = p.status || "N/A";
-            let statusText = status;
-            let statusClass = "";
-            
-            if (status === 'CF') {
-                statusText = 'Confirm';
-                statusClass = 'status-cf';
-                pkgInfoCard.classList.remove('ro-status');
-                pkgInfoCard.classList.add('cf-status');
-            } else if (status === 'RO') {
-                statusText = 'Read Only';
-                statusClass = 'status-ro';
-                pkgInfoCard.classList.remove('cf-status');
-                pkgInfoCard.classList.add('ro-status');
-                
-                // Hiển thị cảnh báo Read Only
-                showToast('⚠️ CẢNH BÁO', 'Gói này đang ở trạng thái READ ONLY. Hệ thống sẽ không nhận dữ liệu gửi đi!');
-            } else {
-                pkgInfoCard.classList.remove('cf-status', 'ro-status');
-            }
-            
-            infoStatus.innerHTML = `<span class="${statusClass}">${statusText}</span>`;
-            
-            pkgInfoCard.classList.add('active');
-            
-            appendLog(`🔹 Đã chọn: ${p.packageId}`, 'info');
-            appendLog(`• Line: ${p.lineName || 'N/A'}`, 'detail');
-
-            // 🔥 LOGIC MỚI: FETCH OUTPUT
-            infoOutput.innerHTML = '<span class="loader" style="width:12px;height:12px;border-width:2px;"></span>';
-            const apiKey = document.getElementById('apiKey').value;
-            
-            fetch(`${MODULE_API}?mxpackage=${p.packageId}&mode=summary&apikey=${apiKey}`)
-                .then(res => res.json())
-                .then(json => {
-                    if(json.success && json.data && json.data.summary) {
-                        const actual = json.data.summary.total_manual_input || 0;
-                        const target = parseInt(p.target) || 0;
-                        
-                        // Màu sắc trực quan
-                        let color = '#ef4444'; // Mặc định đỏ (0)
-                        let textSuffix = " (Chưa nhập)";
-                        
-                        if (actual > 0) {
-                            if (actual >= target && target > 0) {
-                                color = '#10b981'; // Xanh lá (Đủ)
-                                textSuffix = " (Đủ)";
-                            } else {
-                                color = '#f59e0b'; // Cam (Thiếu)
-                                textSuffix = ` (Thiếu ${target - actual})`;
-                            }
-                        }
-                        
-                        infoOutput.innerHTML = `<span style="color:${color}">${actual}${textSuffix}</span>`;
-                    } else {
-                        infoOutput.innerHTML = `<span style="color:#ef4444">0 (Chưa nhập)</span>`;
-                    }
-                })
-                .catch(() => { infoOutput.textContent = "Lỗi tải"; });
-
-        } else {
-            pkgInfoCard.classList.remove('active');
-        }
-    });
-
-    document.getElementById('factory').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
-    document.getElementById('dateSelect').addEventListener('change', () => { if(document.getElementById('apiKey').value) fetchPackages(); });
-    document.getElementById('btnReloadPkg').addEventListener('click', fetchPackages);
-
-    /* ========== MAIN SCANNER FUNCTIONS ========== */
-    async function sendRequest({apiKey, pkg, opserial, mcid, processtype}) {
-      let url = `${API_ENDPOINT}?mxpackage=${encodeURIComponent(pkg)}&opserial=${opserial}&mcid=${mcid}${processtype !== undefined ? `&processtype=${processtype}` : ''}&apikey=${encodeURIComponent(apiKey)}`;
-      if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-      const start = Date.now();
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); 
-        const res = await fetch(url, { method: 'GET', signal: controller.signal });
-        clearTimeout(timeoutId);
-        const text = await res.text();
-        const duration = ((Date.now() - start) / 1000).toFixed(2);
-        let ok = res.ok;
-        try { if (JSON.parse(text).IsSuccess === true) ok = true; } catch (e) {}
-        return { ok, status: res.status, body: text, duration };
-      } catch (err) {
-        return { ok: false, error: err.message, duration: ((Date.now() - start) / 1000).toFixed(2) };
-      }
-    }
-
-    async function refreshTurnstileToken() {
-        appendLog("⏳ Token sắp hết hạn. Tạm dừng để xác thực lại...", "warning");
-        toggleWidgetState(false);
-        document.getElementById('turnstileStatus').textContent = "Cần gia hạn";
-        document.getElementById('turnstileStatus').className = "turnstile-badge status-pending";
-        if(window.turnstile) window.turnstile.reset('#cf-turnstile-widget');
-        await new Promise(resolve => { tokenRefreshResolver = resolve; });
-    }
-
-    async function runBatchProcess() {
-      if (!turnstileToken && !isLocalhost) return alert("Vui lòng hoàn thành xác thực bảo mật ở góc màn hình!");
-      const apiKey = document.getElementById("apiKey").value.trim();
-      const pkg = document.getElementById("pkg").value.trim();
-      const rawLines = document.getElementById("list").value.split("\n").map(x => x.trim()).filter(Boolean);
-      if (!apiKey || !pkg || rawLines.length === 0) return alert("Thiếu dữ liệu đầu vào!");
-
-      batchResults = [];
-      document.getElementById("statSuccess").textContent = "0"; document.getElementById("statFailed").textContent = "0";
-      progressBar.style.width = "0%"; progressBar.textContent = "0%";
-      appendLog("--- BẮT ĐẦU CHẠY ---", "info");
-      setRunningState(true);
-      currentBatchStart = Date.now();
-
-      const queue = rawLines.map((line, idx) => {
-        const parts = line.split(",").map(x => x.trim());
-        return { apiKey, pkg, opserial: parts[0], mcid: parts[1], processtype: parts[2]||'', index: idx + 1 };
-      });
-
-      const total = queue.length;
-      let done = 0;
-
-      while (queue.length > 0) {
-        if (isStopped) break;
-        if (isPaused) { await new Promise(r => setTimeout(r, 500)); continue; }
-        if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) await refreshTurnstileToken();
-
-        const task = queue.shift();
-        if (!task.opserial || !task.mcid) { done++; continue; }
-
-        appendLog(`📤 [${task.index}/${total}] Gửi MCID: ${task.mcid}...`);
-        
-        let attempt = 0, result = null;
-        while (attempt < 3 && !isStopped) {
-          attempt++;
-          result = await sendRequest(task);
-          if (!result.ok && (result.status === 403 || result.status === 401) && !isLocalhost) {
-             appendLog(`⚠️ Token bị từ chối. Đang xin cấp lại...`, "warning");
-             await refreshTurnstileToken();
-             attempt--; continue;
-          }
-          if (result.ok) break;
-          if (attempt < 3) await new Promise(r => setTimeout(r, 1000));
-        }
-
-        const resObj = { ...task, status: result.ok ? "OK" : (result.error||result.status), success: result.ok, duration: result.duration };
-        batchResults.push(resObj);
-        done++;
-        const pct = Math.round((done/total)*100);
-        progressBar.style.width = `${pct}%`; progressBar.textContent = `${pct}%`;
-        if (result.ok) appendLog(`✅ OK (${result.duration}s)`, "success");
-        else appendLog(`❌ FAIL: ${resObj.status}`, "error");
-        updateStats(batchResults, total, currentBatchStart);
-        // RANDOM DELAY: 0.5s - 1.2s to be human-like but fast
-        if (queue.length > 0 && !isStopped) await new Promise(r => setTimeout(r, Math.random() * 800 + 500));
-      }
-
-      setRunningState(false);
-      appendLog(`🏁 Hoàn tất trong ${formatTime(Date.now() - currentBatchStart)}.`);
-
-      // Reset turnstile sau khi chạy xong
-      if (window.turnstile && !isLocalhost) {
-          window.turnstile.reset('#cf-turnstile-widget');
-          turnstileToken = null;
-          btnRun.disabled = true; btnRun.innerHTML = "🔒 XÁC THỰC LẠI";
-          document.getElementById('turnstileStatus').textContent = "Cần xác thực";
-          document.getElementById('turnstileStatus').className = "turnstile-badge status-pending";
-          document.getElementById('minimizedIconChar').textContent = "🔐";
-          toggleWidgetState(false);
-          appendLog("🔒 Đã reset phiên bảo mật.", "warning");
-      }
-    }
-    
-    function updateStats(results, total, startTime) {
-      const success = results.filter(r => r.success).length;
-      const failed = results.filter(r => !r.success && r.status !== "STOPPED").length;
-      document.getElementById("statTotal").textContent = total;
-      document.getElementById("statSuccess").textContent = success;
-      document.getElementById("statFailed").textContent = failed;
-      const elapsedTime = (Date.now() - startTime) / 1000;
-      const rate = elapsedTime > 0 ? (results.length / elapsedTime).toFixed(2) : "0.0";
-      document.getElementById("statRate").textContent = rate;
-    }
-
-    function setRunningState(isRunning) {
-      btnRun.style.display = isRunning ? "none" : "block";
-      btnPause.style.display = isRunning ? "block" : "none";
-      btnStop.style.display = isRunning ? "block" : "none";
-      const inputs = ["apiKey", "factory", "dateSelect", "pkg", "btnReloadPkg", "list", "importBtn"];
-      inputs.forEach(id => document.getElementById(id).disabled = isRunning);
-      btnExport.disabled = isRunning || batchResults.length === 0;
-
-      if (isRunning) {
-        statusBadge.innerHTML = "⚡ Đang xử lý...";
-        statusBadge.style.color = "#f59e0b"; statusBadge.style.background = "rgba(245, 158, 11, 0.15)";
-      } else {
-        statusBadge.innerHTML = "✅ Sẵn sàng";
-        statusBadge.style.color = "#34d399"; statusBadge.style.background = "rgba(16, 185, 129, 0.15)";
-        isPaused = false; isStopped = false;
-        btnPause.textContent = "⏸️ Tạm Dừng"; btnPause.className = "btn btn-warning";
-      }
-    }
-
-    /* ========== MODAL PACKAGE MANAGEMENT ========== */
-    function openPackageManagement() {
-        const apiKey = document.getElementById('apiKey').value;
-        const selectedPackageId = document.getElementById('pkg').value;
-
-        if(!apiKey) return alert("Vui lòng nhập API Key!");
-        if(!selectedPackageId) return alert("Vui lòng nhập hoặc chọn Package ID!");
-
-        currentModalPackage = selectedPackageId;
-        document.getElementById('modalPackageId').textContent = selectedPackageId;
-        document.getElementById('packageModal').classList.add('open');
-        
-        // Reset trạng thái
-        discoveredMachines = [];
-        isScanning = false;
-        operationsList = [];
-        
-        // Mặc định hiển thị tab Operations
-        switchModalTab('tab-operations');
-        
-        // Load operations
-        loadOperationsForModal();
-    }
-
-    function closePackageModal() {
-        document.getElementById('packageModal').classList.remove('open');
-        if (scanAbortController) {
-            scanAbortController.abort();
-        }
-    }
-
-    function switchModalTab(tabId) {
-        modalCurrentTab = tabId;
-        
-        // Ẩn tất cả tab
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.modal-tab').forEach(tab => tab.classList.remove('active'));
-        
-        // Hiện tab được chọn
-        document.getElementById(tabId).classList.add('active');
-        document.querySelector(`.modal-tab[data-tab="${tabId}"]`).classList.add('active');
-        
-        // Nếu là tab IoT Scan và chưa có dữ liệu, hiển thị thông báo
-        if (tabId === 'tab-iot' && discoveredMachines.length === 0) {
-            document.getElementById('machineListContainer').innerHTML = `
-                <div style="padding: 40px; text-align: center; color: #64748b;">
-                    <i class="fas fa-search-location" style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;"></i>
-                    <p>Nhấn "Quét Chi Tiết IoT" để hiển thị dữ liệu</p>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-industry"></i>
                 </div>
-            `;
-        }
+                <div>
+                    <div class="logo-text">MES Explorer</div>
+                    <div class="logo-subtext">Production Package Dashboard</div>
+                </div>
+            </div>
+            
+            <!-- STATS IN SIDEBAR -->
+            <div class="stats-sidebar">
+                <div class="section-title">Statistics</div>
+                
+                <div class="stat-card-sidebar">
+                    <div class="stat-value-sidebar">
+                        <span id="statTotalSidebar">0</span>
+                        <span class="stat-trend" id="statTrendTotal">0%</span>
+                    </div>
+                    <div class="stat-label-sidebar">Total Packages</div>
+                </div>
+                
+                <div class="stat-card-sidebar">
+                    <div class="stat-value-sidebar">
+                        <span id="statConfirmedSidebar">0</span>
+                        <span class="stat-trend" id="statTrendConfirmed">0%</span>
+                    </div>
+                    <div class="stat-label-sidebar">Confirmed</div>
+                </div>
+                
+                <div class="stat-card-sidebar">
+                    <div class="stat-value-sidebar">
+                        <span id="statPendingSidebar">0</span>
+                        <span class="stat-trend" id="statTrendPending">0%</span>
+                    </div>
+                    <div class="stat-label-sidebar">Pending</div>
+                </div>
+                
+                <div class="stat-card-sidebar">
+                    <div class="stat-value-sidebar">
+                        <span id="statSuccessRateSidebar">0%</span>
+                        <span class="stat-trend" id="statTrendSuccess">0%</span>
+                    </div>
+                    <div class="stat-label-sidebar">Success Rate</div>
+                </div>
+            </div>
+            
+            <!-- SIDEBAR NAVIGATION -->
+            <div class="nav-section">
+                <div class="section-title">Navigation</div>
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <div class="nav-icon"><i class="fas fa-search"></i></div>
+                    <div class="nav-text">Package Search</div>
+                </div>
+                <div class="nav-item" onclick="showSection('cookie')">
+                    <div class="nav-icon"><i class="fas fa-key"></i></div>
+                    <div class="nav-text">Authentication</div>
+                </div>
+                <div class="nav-item" onclick="showCopyFormats()">
+                    <div class="nav-icon"><i class="fas fa-copy"></i></div>
+                    <div class="nav-text">Copy Tools</div>
+                </div>
+            </div>
+            
+            <!-- COOKIE STATUS -->
+            <div class="cookie-status">
+                <div class="cookie-status-title">
+                    <i class="fas fa-shield-alt"></i> Authentication Status
+                </div>
+                <div class="cookie-status-indicator">
+                    <div class="status-dot" id="cookieStatusDot"></div>
+                    <div class="status-text" id="cookieStatusText">Not Authenticated</div>
+                </div>
+                <div class="cookie-actions">
+                    <button class="btn-small" onclick="showSection('cookie')">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <button class="btn-small" onclick="validateCookie()">
+                        <i class="fas fa-check"></i> Validate
+                    </button>
+                </div>
+            </div>
+        </div>
         
-        // Cập nhật nút batch actions dựa trên số máy đã chọn
-        updateBatchActionButtons();
-    }
-
-    async function loadOperationsForModal() {
-        const apiKey = document.getElementById('apiKey').value;
-        const selectedPackageId = currentModalPackage;
-        const content = document.getElementById('operationsContent');
-        
-        content.innerHTML = '<div style="text-align:center; padding:20px;"><div class="loader"></div> Đang tải danh sách công đoạn...</div>';
-
-        try {
-            const res = await fetch(`${MODULE_API}?mxpackage=${selectedPackageId}&mode=operations&apikey=${apiKey}`);
-            const json = await res.json();
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title" id="pageTitle">Package Search</div>
+                <div class="header-subtitle" id="pageSubtitle">Search and manage MES production packages</div>
+            </div>
             
-            if (!json.success || !json.data.operations) throw new Error("Không tìm thấy operation.");
-            
-            let ops = json.data.operations;
-            operationsList = ops;
-            
-            // Lấy thông tin package để hiển thị trạng thái
-            const pkgInfo = currentPackages.find(p => p.packageId === selectedPackageId);
-            if (pkgInfo) {
-                packageStatus = pkgInfo.status || '';
-                const statusBadgeEl = document.getElementById('modalPackageStatus');
-                statusBadgeEl.textContent = packageStatus === 'CF' ? 'CONFIRMED' : 
-                                          packageStatus === 'RO' ? 'READ ONLY' : packageStatus;
-                statusBadgeEl.className = 'package-status-badge ' + 
-                    (packageStatus === 'CF' ? 'status-cf' : 
-                     packageStatus === 'RO' ? 'status-ro' : '');
-                
-                if (packageStatus === 'RO') {
-                    showToast('⚠️ CẢNH BÁO', 'Gói này đang ở trạng thái READ ONLY. Hệ thống sẽ không nhận dữ liệu gửi đi!');
-                }
-            }
-            
-            // Group by module
-            const grouped = {};
-            ops.forEach(op => {
-                const modName = op.modulename || "Khác";
-                if(!grouped[modName]) grouped[modName] = [];
-                grouped[modName].push(op);
-            });
-
-            let html = '';
-            for (const [modName, modOps] of Object.entries(grouped)) {
-                html += `<div class="detail-module">
-                    <div class="detail-module-header"><span>${modName}</span></div>`;
-                
-                // Sắp xếp modOps: có MCID lên trước
-                modOps.sort((a, b) => {
-                    // Ưu tiên có MCID (tạm thời không biết, sẽ cập nhật sau)
-                    return 0;
-                });
-                
-                modOps.forEach(op => {
-                    const isFA = op.iottype === 'FA';
-                    const badgeClass = isFA ? 'badge-fa' : (op.iottype === 'QA' ? 'badge-qa' : 'badge-none');
-                    
-                    html += `<label class="detail-row" id="row-${op.opserial}">
-                        <input type="checkbox" class="serial-checkbox" value="${op.opserial}" data-mcid="" data-name="${op.remarks||op.opname}">
-                        <div>
-                            <div class="op-name">${op.remarks||op.opname}</div>
-                            <span class="serial-tag">${op.opserial}</span>
-                            <span class="type-badge ${badgeClass}">${op.iottype||'NONE'}</span>
+            <div class="content-area">
+                <!-- DASHBOARD SECTION -->
+                <div class="section-content active" id="section-dashboard">
+                    <div class="filter-section">
+                        <h2 style="margin-bottom: 25px; color: var(--dark); font-size: 1.4rem;">
+                            <i class="fas fa-search me-2"></i> Package Search
+                        </h2>
+                        
+                        <div class="filter-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="startDate">
+                                    <i class="fas fa-calendar-alt"></i> Start Date
+                                </label>
+                                <input type="date" id="startDate" class="form-control" 
+                                       value="2026-01-01">
+                                <div class="date-display">
+                                    Searching: <strong id="dateRangeDisplay">Jan 1, 2026 - Mar 31, 2026</strong> (3 months)
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="factory">
+                                    <i class="fas fa-industry"></i> Factory
+                                </label>
+                                <select id="factory" class="form-control">
+                                    <option value="P2C1" selected>P2C1</option>
+                                    <option value="P2A1">P2A1</option>
+                                    <option value="P2B1">P2B1</option>
+                                    <option value="P2D1">P2D1</option>
+                                    <option value="P2E1">P2E1</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="outputFormat">
+                                    <i class="fas fa-file-export"></i> Output Format
+                                </label>
+                                <select id="outputFormat" class="form-control">
+                                    <option value="json">JSON (Full Data)</option>
+                                    <option value="simple">Simple (Package List)</option>
+                                    <option value="csv">CSV (Excel Format)</option>
+                                    <option value="table">Table View</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="mcid-col"><span class="loader" style="width:12px;height:12px;border-width:2px;"></span></div>
-                        <div class="iot-col">-</div>
-                        <div class="time-col">-</div>
+                        
                         <div class="action-buttons">
-                            <button class="action-btn btn-remove btn-xs" onclick="removeSingleMachine('${op.opserial}', this)" disabled title="Xóa máy">
-                                <i class="fas fa-trash"></i>
+                            <button class="btn btn-primary" onclick="fetchPackages()">
+                                <i class="fas fa-rocket"></i> Fetch Packages
                             </button>
-                            <button class="action-btn btn-fa btn-xs" onclick="sendSingleCommand('${op.opserial}', 'FA', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Gửi FA">
-                                <i class="fas fa-robot"></i>
+                            <button class="btn btn-success" onclick="validateAndFetch()">
+                                <i class="fas fa-shield-check"></i> Validate & Fetch
                             </button>
-                            <button class="action-btn btn-qa btn-xs" onclick="sendSingleCommand('${op.opserial}', 'QA', this)" ${packageStatus === 'RO' ? 'disabled' : ''} title="Gửi QA">
-                                <i class="fas fa-check-circle"></i>
+                            <button class="btn btn-warning" onclick="showCopyFormats()">
+                                <i class="fas fa-copy"></i> Copy Packages
+                            </button>
+                            <button class="btn btn-outline" onclick="resetFilters()">
+                                <i class="fas fa-redo"></i> Reset Filters
                             </button>
                         </div>
-                    </label>`;
-                });
-                html += `</div>`;
-            }
-            content.innerHTML = html;
-
-            // Fetch details ngầm
-            const styleInfo = parseMxPackage(selectedPackageId);
-            if (styleInfo.success) {
-                fetchMachineDetailsBackground(apiKey, styleInfo, ops);
-            } else {
-                modalLog(`❌ Không thể phân tích Package ID: ${styleInfo.error}`, 'error');
-            }
-
-        } catch (e) { 
-            content.innerHTML = `<p style="color:red; font-weight:bold; padding:20px;">Lỗi: ${e.message}</p>`; 
-        }
-    }
-
-    async function fetchMachineDetailsBackground(apiKey, styleInfo, operations) {
-        const hasMcidList = [];
-        
-        for (let op of operations) {
-            try {
-                let url = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
-                const res = await fetch(url);
-                const json = await res.json();
-
-                if (json.success && json.data?.Result?.MachineList?.length > 0) {
-                    const m = json.data.Result.MachineList[0]; 
-                    const row = document.getElementById(`row-${op.opserial}`);
-                    if (row && m.MCID) {
-                        const checkbox = row.querySelector('.serial-checkbox');
-                        checkbox.dataset.mcid = m.MCID; 
                         
-                        row.classList.add('has-mcid');
-                        row.classList.remove('no-mcid');
-                        
-                        row.querySelector('.mcid-col').innerHTML = `<span class="mcid-tag">${m.MCID}</span>`;
-                        row.querySelector('.iot-col').innerHTML = `<span class="iot-data">${m.LAST_IOT_DATA || '-'}</span>`;
-                        row.querySelector('.time-col').innerHTML = `<span class="iot-time">${formatDateTime(m.LAST_IOT_DATA_RECEIVE_TIME)}</span>`;
-                        
-                        // Kích hoạt nút xóa
-                        row.querySelector('.btn-remove').disabled = false;
-                        
-                        hasMcidList.push(op);
-                    } else if (row) {
-                        row.classList.add('no-mcid');
-                        row.classList.remove('has-mcid');
-                        row.querySelector('.mcid-col').innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
-                        row.querySelector('.btn-remove').disabled = true;
-                    }
-                } else {
-                    const row = document.getElementById(`row-${op.opserial}`);
-                    if (row) {
-                        row.classList.add('no-mcid');
-                        row.classList.remove('has-mcid');
-                        row.querySelector('.mcid-col').innerHTML = `<span style="color:#94a3b8; font-size:11px;">Trống</span>`;
-                        row.querySelector('.btn-remove').disabled = true;
-                    }
-                }
-            } catch (err) { 
-                console.warn("Lỗi fetch detail op:", op.opserial);
-                const row = document.getElementById(`row-${op.opserial}`);
-                if (row) {
-                    row.classList.add('no-mcid');
-                    row.querySelector('.mcid-col').innerHTML = `<span style="color:#ef4444; font-size:11px;">Lỗi</span>`;
-                    row.querySelector('.btn-remove').disabled = true;
-                }
-            }
-            await new Promise(r => setTimeout(r, 50)); 
-        }
-        
-        // Cập nhật thống kê
-        updateOperationsStats();
-        
-        // Sắp xếp lại: máy có MCID lên đầu mỗi module
-        sortOperationsByMcid();
-    }
-
-    function sortOperationsByMcid() {
-        // Lấy tất cả các module
-        const modules = document.querySelectorAll('.detail-module');
-        
-        modules.forEach(module => {
-            const rows = Array.from(module.querySelectorAll('.detail-row'));
-            
-            // Sắp xếp: has-mcid lên trước
-            rows.sort((a, b) => {
-                const aHasMcid = a.classList.contains('has-mcid');
-                const bHasMcid = b.classList.contains('has-mcid');
-                
-                if (aHasMcid && !bHasMcid) return -1;
-                if (!aHasMcid && bHasMcid) return 1;
-                return 0;
-            });
-            
-            // Xóa và thêm lại theo thứ tự mới
-            rows.forEach(row => {
-                module.appendChild(row);
-            });
-        });
-    }
-
-    function updateOperationsStats() {
-        const hasMcidCount = document.querySelectorAll('.detail-row.has-mcid').length;
-        const selectedCount = document.querySelectorAll('.serial-checkbox:checked').length;
-        
-        document.getElementById('statHasMcid').textContent = hasMcidCount;
-        document.getElementById('statSelectedOps').textContent = selectedCount;
-        
-        // Cập nhật trạng thái nút batch
-        const btnBatchRemoveOps = document.getElementById('btnBatchRemoveOps');
-        const btnBatchFAOps = document.getElementById('btnBatchFAOps');
-        const btnBatchQAOps = document.getElementById('btnBatchQAOps');
-        // REMOVED: const btnBatchClearOps = document.getElementById('btnBatchClearOps');
-        
-        btnBatchRemoveOps.disabled = selectedCount === 0 || packageStatus === 'RO';
-        btnBatchFAOps.disabled = selectedCount === 0 || packageStatus === 'RO';
-        btnBatchQAOps.disabled = selectedCount === 0 || packageStatus === 'RO';
-        // REMOVED: btnBatchClearOps.disabled = selectedCount === 0 || packageStatus === 'RO';
-    }
-
-    function toggleSelectAllOperations() {
-        const selectAll = document.getElementById('selectAllOperations');
-        const checkboxes = document.querySelectorAll('.serial-checkbox');
-        const isChecked = selectAll.checked;
-        
-        checkboxes.forEach(cb => cb.checked = isChecked);
-        updateOperationsStats();
-    }
-
-    function toggleAllOperations(isSelect) {
-        const checkboxes = document.querySelectorAll('.serial-checkbox');
-        checkboxes.forEach(cb => cb.checked = isSelect);
-        document.getElementById('selectAllOperations').checked = isSelect;
-        updateOperationsStats();
-    }
-
-    /* ========== SINGLE OPERATION ACTIONS ========== */
-    async function removeSingleMachine(opserial, btnElement) {
-        const row = document.getElementById(`row-${opserial}`);
-        const checkbox = row.querySelector('.serial-checkbox');
-        const mcid = checkbox.dataset.mcid;
-        
-        if (!mcid || mcid.trim() === '') {
-            alert("Operation này chưa có MCID!");
-            return;
-        }
-        
-        if (!confirm(`Bạn có chắc muốn xóa máy ${mcid} khỏi operation ${opserial}?`)) {
-            return;
-        }
-        
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const pkg = currentModalPackage;
-        
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng xác thực bảo mật trước!");
-            return;
-        }
-        
-        const originalHTML = btnElement.innerHTML;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btnElement.disabled = true;
-        
-        try {
-            let url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
-            if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-            
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if (result.IsSuccess) {
-                // Cập nhật UI
-                row.classList.remove('has-mcid');
-                row.classList.add('no-mcid');
-                row.querySelector('.mcid-col').innerHTML = '<span style="color:#ef4444; font-size:11px;">Đã xóa</span>';
-                checkbox.dataset.mcid = '';
-                checkbox.checked = false;
-                btnElement.disabled = true;
-                
-                // Hiển thị thông báo
-                showToast('✅ Thành công', `Đã xóa máy ${mcid} khỏi operation ${opserial}`, 'success');
-                modalLog(`✅ Đã xóa máy ${mcid} khỏi operation ${opserial}`, 'success');
-            } else {
-                throw new Error(result.Log || 'Xóa thất bại');
-            }
-        } catch (error) {
-            alert(`Lỗi khi xóa máy: ${error.message}`);
-            modalLog(`❌ Lỗi xóa máy ${mcid}: ${error.message}`, 'error');
-        } finally {
-            btnElement.innerHTML = originalHTML;
-            updateOperationsStats();
-        }
-    }
-
-    async function sendSingleCommand(opserial, commandType, btnElement) {
-        const row = document.getElementById(`row-${opserial}`);
-        const checkbox = row.querySelector('.serial-checkbox');
-        const mcid = checkbox.dataset.mcid;
-        
-        if (!mcid || mcid.trim() === '') {
-            alert("Operation này chưa có MCID!");
-            return;
-        }
-        
-        if (packageStatus === 'RO') {
-            alert("Gói này đang ở trạng thái READ ONLY. Không thể gửi lệnh!");
-            return;
-        }
-        
-        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
-        if (!confirm(`Gửi lệnh ${commandText} đến máy ${mcid}?`)) {
-            return;
-        }
-        
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const pkg = currentModalPackage;
-        
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng xác thực bảo mật trước!");
-            return;
-        }
-        
-        const originalHTML = btnElement.innerHTML;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btnElement.disabled = true;
-        
-        try {
-            let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
-            if (commandType !== undefined && commandType !== '') {
-                url += `&processtype=${commandType}`;
-            }
-            if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-            
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if (result.IsSuccess || result.ok) {
-                // Highlight row
-                if (commandType === 'FA') {
-                    row.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                } else if (commandType === 'QA') {
-                    row.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-                } else {
-                    row.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
-                }
-                
-                // Hiển thị thông báo
-                const actionText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
-                showToast('✅ Thành công', `Đã gửi lệnh ${actionText} đến máy ${mcid}`, 'success');
-                modalLog(`✅ Đã gửi ${actionText} đến ${mcid}`, 'success');
-            } else {
-                throw new Error(result.Log || 'Gửi lệnh thất bại');
-            }
-        } catch (error) {
-            alert(`Lỗi khi gửi lệnh: ${error.message}`);
-            modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${error.message}`, 'error');
-        } finally {
-            btnElement.innerHTML = originalHTML;
-        }
-    }
-
-    /* ========== BATCH OPERATIONS ACTIONS ========== */
-    async function batchRemoveMachines() {
-        const checkedBoxes = document.querySelectorAll('.serial-checkbox:checked');
-        if (checkedBoxes.length === 0) {
-            alert("Vui lòng chọn ít nhất một operation!");
-            return;
-        }
-        
-        if (packageStatus === 'RO') {
-            alert("Gói này đang ở trạng thái READ ONLY. Không thể thực hiện thao tác!");
-            return;
-        }
-        
-        const hasMcid = Array.from(checkedBoxes).filter(cb => cb.dataset.mcid && cb.dataset.mcid.trim() !== '').length;
-        if (hasMcid === 0) {
-            alert("Các operation đã chọn không có MCID để xóa!");
-            return;
-        }
-        
-        if (!confirm(`Bạn có chắc muốn xóa ${hasMcid} máy đã chọn?`)) {
-            return;
-        }
-        
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const pkg = currentModalPackage;
-        
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng xác thực bảo mật trước!");
-            return;
-        }
-        
-        let successCount = 0;
-        let failCount = 0;
-        
-        for (const checkbox of checkedBoxes) {
-            const opserial = checkbox.value;
-            const mcid = checkbox.dataset.mcid;
-            
-            if (!mcid || mcid.trim() === '') continue;
-            
-            try {
-                let url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.IsSuccess) {
-                    successCount++;
-                    
-                    // Cập nhật UI
-                    const row = document.getElementById(`row-${opserial}`);
-                    row.classList.remove('has-mcid');
-                    row.classList.add('no-mcid');
-                    row.querySelector('.mcid-col').innerHTML = '<span style="color:#ef4444; font-size:11px;">Đã xóa</span>';
-                    checkbox.dataset.mcid = '';
-                    checkbox.checked = false;
-                    row.querySelector('.btn-remove').disabled = true;
-                    
-                    modalLog(`✅ Đã xóa máy ${mcid}`, 'success');
-                } else {
-                    failCount++;
-                    modalLog(`❌ Lỗi xóa máy ${mcid}: ${result.Log}`, 'error');
-                }
-            } catch (error) {
-                failCount++;
-                modalLog(`❌ Lỗi xóa máy ${mcid}: ${error.message}`, 'error');
-            }
-            
-            // RANDOM DELAY: 200ms - 500ms
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
-        }
-        
-        updateOperationsStats();
-        showToast('🏁 Hoàn tất', `Đã xóa ${successCount} máy thành công, ${failCount} thất bại`, successCount > 0 ? 'success' : 'warning');
-    }
-
-    async function batchSendCommand(commandType) {
-        const checkedBoxes = document.querySelectorAll('.serial-checkbox:checked');
-        if (checkedBoxes.length === 0) {
-            alert("Vui lòng chọn ít nhất một operation!");
-            return;
-        }
-        
-        if (packageStatus === 'RO') {
-            alert("Gói này đang ở trạng thái READ ONLY. Không thể gửi lệnh!");
-            return;
-        }
-        
-        const hasMcid = Array.from(checkedBoxes).filter(cb => cb.dataset.mcid && cb.dataset.mcid.trim() !== '').length;
-        if (hasMcid === 0) {
-            alert("Các operation đã chọn không có MCID để gửi lệnh!");
-            return;
-        }
-        
-        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
-        if (!confirm(`Gửi lệnh ${commandText} đến ${hasMcid} máy đã chọn?`)) {
-            return;
-        }
-        
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const pkg = currentModalPackage;
-        
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng xác thực bảo mật trước!");
-            return;
-        }
-        
-        let successCount = 0;
-        let failCount = 0;
-        
-        for (const checkbox of checkedBoxes) {
-            const opserial = checkbox.value;
-            const mcid = checkbox.dataset.mcid;
-            
-            if (!mcid || mcid.trim() === '') continue;
-            
-            try {
-                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(pkg)}&mcid=${encodeURIComponent(mcid)}&opserial=${opserial}`;
-                if (commandType !== '') {
-                    url += `&processtype=${commandType}`;
-                }
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.IsSuccess || result.ok) {
-                    successCount++;
-                    
-                    // Highlight row
-                    const row = document.getElementById(`row-${opserial}`);
-                    if (commandType === 'FA') {
-                        row.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-                    } else if (commandType === 'QA') {
-                        row.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-                    } else {
-                        row.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
-                    }
-                    
-                    modalLog(`✅ Đã gửi ${commandText} đến ${mcid}`, 'success');
-                } else {
-                    failCount++;
-                    modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${result.Log}`, 'error');
-                }
-            } catch (error) {
-                failCount++;
-                modalLog(`❌ Lỗi gửi ${commandText} đến ${mcid}: ${error.message}`, 'error');
-            }
-            
-            // RANDOM DELAY: 200ms - 500ms
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
-        }
-        
-        showToast('🏁 Hoàn tất', `Đã gửi ${commandText} đến ${successCount} máy thành công, ${failCount} thất bại`, successCount > 0 ? 'success' : 'warning');
-    }
-
-    /* ========== IOT SCAN FUNCTIONS ========== */
-    async function startIotScan() {
-        // Kiểm tra token trước khi bắt đầu
-        if (!turnstileToken && !isLocalhost) {
-            alert("Vui lòng hoàn thành xác thực bảo mật trước!");
-            return;
-        }
-
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const pkgId = currentModalPackage;
-        
-        if(!apiKey || !pkgId) { 
-            modalLog("Thiếu API Key hoặc Package ID!", "error");
-            return; 
-        }
-        
-        isScanning = true;
-        scanAbortController = new AbortController();
-        discoveredMachines = [];
-        
-        // Reset UI
-        document.getElementById('machineListContainer').innerHTML = '<div style="padding:20px;text-align:center;"><div class="loader"></div> Đang quét...</div>';
-        document.getElementById('modalProgressContainer').style.display = 'block';
-        document.getElementById('statFound').innerText = '0';
-        document.getElementById('statSelected').innerText = '0';
-        
-        modalLog(`Bắt đầu quét gói: ${pkgId}`, 'info');
-        
-        // Disable nút quét
-        document.getElementById('btnStartScan').disabled = true;
-        document.getElementById('btnStartScan').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang quét...';
-        
-        try {
-            const styleInfo = parseMxPackage(pkgId);
-            if(!styleInfo.success) throw new Error(`Không thể phân tích Package ID: ${styleInfo.error}`);
-            
-            modalLog(`✅ Phân tích thành công:`, 'success');
-            modalLog(`  • Style: ${styleInfo.stylecode}`, 'info');
-            modalLog(`  • Size: ${styleInfo.stylesize}`, 'info');
-            modalLog(`  • Color: ${styleInfo.stylecolorserial}`, 'info');
-            modalLog(`  • Rev: ${styleInfo.revno}`, 'info');
-
-            const opsUrl = `${MODULE_API}?mxpackage=${encodeURIComponent(pkgId)}&mode=operations&apikey=${apiKey}`;
-            const opsRes = await fetch(opsUrl, { signal: scanAbortController.signal });
-            const opsData = await opsRes.json();
-            
-            if(!opsData.success || !opsData.data?.operations) throw new Error("Lỗi lấy danh sách công đoạn.");
-            
-            const operations = opsData.data.operations;
-            modalLog(`Tìm thấy ${operations.length} công đoạn.`, 'info');
-            
-            for(let i=0; i<operations.length; i++) {
-                // Check Token Age bên trong vòng lặp quét dài
-                if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
-                    await refreshTurnstileToken();
-                }
-
-                const op = operations[i];
-                updateModalProgress((i/operations.length)*100, `Quét OP: ${op.opserial}`);
-                
-                try {
-                    let detailUrl = `${MODULE_DETAIL_API}?stylecode=${styleInfo.stylecode}&stylesize=${styleInfo.stylesize}&stylecolorserial=${styleInfo.stylecolorserial}&revno=${styleInfo.revno}&oprevno=${op.oprevno}&opserial=${op.opserial}&apikey=${apiKey}`;
-                    // Thêm token vào request nếu cần
-                    if (turnstileToken && !isLocalhost) detailUrl += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                    const detailRes = await fetch(detailUrl, { signal: scanAbortController.signal });
-                    const detailJson = await detailRes.json();
-                    
-                    if(detailJson.success && detailJson.data?.Result?.MachineList) {
-                        detailJson.data.Result.MachineList.forEach(m => {
-                            if(m.MCID && m.MCID !== 'N/A') {
-                                discoveredMachines.push({
-                                    pkg: pkgId,
-                                    mcid: m.MCID,
-                                    opserial: op.opserial,
-                                    opname: op.opname || 'Unknown',
-                                    module: op.modulename || op.MODULENAME || 'N/A',
-                                    remarks: op.remarks || op.REMARKS || '', 
-                                    iotType: (op.iottype || 'NONE').toUpperCase(),
-                                    lastIotData: m.LAST_IOT_DATA,
-                                    lastIotTime: m.LAST_IOT_DATA_RECEIVE_TIME,
-                                    selected: false
-                                });
-                            }
-                        });
-                    }
-                } catch (err) {
-                    console.warn(`Lỗi quét OP ${op.opserial}:`, err);
-                }
-                await new Promise(r => setTimeout(r, 100));
-            }
-            
-            renderMachinesModal();
-            modalLog(`Hoàn tất. Tìm thấy ${discoveredMachines.length} máy.`, 'success');
-            
-        } catch (e) {
-            if(e.name === 'AbortError') modalLog("Đã dừng quét.", 'warning');
-            else modalLog(`Lỗi: ${e.message}`, 'error');
-        } finally {
-            isScanning = false;
-            updateModalProgress(100, "Hoàn tất");
-            document.getElementById('btnStartScan').disabled = false;
-            document.getElementById('btnStartScan').innerHTML = '<i class="fas fa-search"></i> Quét Chi Tiết IoT';
-        }
-    }
-
-    function renderMachinesModal() {
-        const container = document.getElementById('machineListContainer');
-        document.getElementById('statFound').innerText = discoveredMachines.length;
-        
-        if(discoveredMachines.length === 0) {
-            container.innerHTML = `<div style="padding:30px;text-align:center;color:#ef4444">Không tìm thấy máy nào. Vui lòng kiểm tra lại Package ID.</div>`;
-            return;
-        }
-        
-        let html = '';
-        discoveredMachines.forEach((m, idx) => {
-            const badgeClass = m.iotType === 'FA' ? 'iot-fa' : (m.iotType === 'QA' ? 'iot-qa' : 'iot-none');
-            const iotDataDisplay = (m.lastIotData !== null && m.lastIotData !== undefined) ? m.lastIotData : 'N/A';
-            const iotTimeDisplay = formatDateTime(m.lastIotTime);
-            const remarksPart = m.remarks ? ` | <span class="machine-remarks">${m.remarks}</span>` : '';
-            
-            html += `
-                <div class="machine-item" id="modal-machine-${idx}">
-                    <input type="checkbox" class="machine-checkbox" onchange="toggleMachineModal(${idx})" ${m.selected ? 'checked' : ''}>
-                    <div class="machine-info">
-                        <div class="machine-row-1">
-                            <span class="machine-title">${m.opname}</span>
-                            <span style="color:#64748b">|</span>
-                            <span class="machine-module">${m.module}</span>
-                            ${remarksPart}
+                        <div class="copy-format-selector" id="copyFormatSelector" style="display: none;">
+                            <div class="copy-format-label">Copy as:</div>
+                            <select id="copyFormat" class="form-control" style="flex: 1;">
+                                <option value="mxpackage">MxPackage Only (M_KUU-0375_1_KUU0264...)</option>
+                                <option value="line-mxpackage">Line + MxPackage (1: M_KUU-0375_1...)</option>
+                                <option value="json">JSON Array</option>
+                                <option value="csv">CSV Format</option>
+                                <option value="newline">Newline Separated</option>
+                                <option value="space">Space Separated</option>
+                            </select>
+                            <button class="btn btn-sm btn-success" onclick="copyPackagesToClipboard()">
+                                <i class="fas fa-clipboard"></i> Copy
+                            </button>
                         </div>
-                        <div class="machine-row-2">
-                            <span class="mcid-tag">${m.mcid}</span>
-                            <span style="margin: 0 5px;">•</span>
-                            <span>OP: <strong>${m.opserial}</strong></span>
-                            <span style="margin-left: 10px;" class="iot-badge ${badgeClass}">${m.iotType}</span>
+                    </div>
+                    
+                    <div class="results-section" id="resultsSection">
+                        <div class="results-header">
+                            <div class="results-title">
+                                <i class="fas fa-list"></i> Results
+                                <span class="badge" id="resultCount" style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem;">0 packages</span>
+                            </div>
+                            <div class="results-actions">
+                                <button class="btn btn-sm btn-outline" onclick="exportResults()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <button class="btn btn-sm btn-outline" onclick="clearResults()">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
                         </div>
-                        <div class="machine-iot-row">
-                            <div><span class="iot-time-label">IoT Data:</span> <span class="iot-value">${iotDataDisplay}</span></div>
-                            <div><span class="iot-time-label">THỜI GIAN NHẬN DỮ LIỆU:</span> <span class="iot-time-value">${iotTimeDisplay}</span></div>
+                        
+                        <div class="results-body">
+                            <div id="resultsContainer">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-inbox"></i>
+                                    </div>
+                                    <div class="empty-title">No Data Yet</div>
+                                    <div class="empty-description">
+                                        Enter your search criteria above and click "Fetch Packages" to retrieve MES package data.
+                                    </div>
+                                    <button class="btn btn-primary" onclick="fetchPackages()">
+                                        <i class="fas fa-search"></i> Start Searching
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            `;
+                
+                <!-- COOKIE SECTION -->
+                <div class="section-content" id="section-cookie">
+                    <div class="filter-section">
+                        <h2 style="margin-bottom: 25px; color: var(--dark); font-size: 1.4rem;">
+                            <i class="fas fa-key"></i> MES Authentication
+                        </h2>
+                        
+                        <div class="info-box" style="background: #dbeafe; padding: 20px; border-radius: var(--radius); margin-bottom: 25px; border-left: 4px solid var(--primary);">
+                            <div style="display: flex; align-items: flex-start; gap: 15px;">
+                                <div style="font-size: 1.5rem; color: var(--primary);">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin-bottom: 10px; color: var(--primary-dark);">How to get MES Cookie</h3>
+                                    <ol style="margin-left: 20px; line-height: 1.8; color: var(--gray-700);">
+                                        <li>Login to <a href="http://mespk2.pungkookvn.com" target="_blank">MES System</a></li>
+                                        <li>Open Developer Tools (F12)</li>
+                                        <li>Go to Application/Storage → Cookies</li>
+                                        <li>Find cookies for <code>mespk2.pungkookvn.com</code></li>
+                                        <li>Copy values of: <strong>ASP.NET_SessionId</strong>, <strong>.ASPXAUTH</strong>, <strong>PUNGKOOKUSID</strong></li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="cookieInput">
+                                <i class="fas fa-cookie-bite"></i> MES Cookie String
+                            </label>
+                            <textarea id="cookieInput" class="form-control" rows="5" 
+                                      placeholder="Paste your MES cookie here. Example: ASP.NET_SessionId=abc123; .ASPXAUTH=xyz456; PUNGKOOKUSID=789"></textarea>
+                        </div>
+                        
+                        <div class="action-buttons" style="margin-top: 30px;">
+                            <button class="btn btn-primary" onclick="saveCookie()">
+                                <i class="fas fa-save"></i> Save Cookie
+                            </button>
+                            <button class="btn btn-success" onclick="validateCookie()">
+                                <i class="fas fa-check-circle"></i> Validate Cookie
+                            </button>
+                            <button class="btn btn-warning" onclick="loadCookie()">
+                                <i class="fas fa-folder-open"></i> Load Saved Cookie
+                            </button>
+                            <button class="btn btn-outline" onclick="clearCookie()">
+                                <i class="fas fa-trash"></i> Clear Cookie
+                            </button>
+                        </div>
+                        
+                        <div id="cookieValidationResult" style="margin-top: 30px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            WORKER_URL: 'https://get-mes-package.chiscoong-cloudflare-com.workers.dev/',
+            DEFAULT_START_DATE: '2026-01-01',
+            MONTHS_RANGE: 3,
+            FACTORIES: ['P2C1', 'P2A1', 'P2B1', 'P2D1', 'P2E1'],
+            PAGE_SIZE: 1000,
+            MAX_PAGES: 5,
+            COOKIE_EXPIRY_DAYS: 30
+        };
+        
+        // ==================== GLOBAL STATE ====================
+        let state = {
+            currentPackages: [],
+            cookie: '',
+            cookieValid: false,
+            lastValidation: null,
+            stats: {
+                totalRequests: 0,
+                successfulRequests: 0,
+                totalPackages: 0,
+                confirmedPackages: 0,
+                pendingPackages: 0
+            },
+            previousStats: {
+                totalPackages: 0,
+                confirmedPackages: 0,
+                pendingPackages: 0,
+                successRate: 0
+            }
+        };
+        
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDatePicker();
+            loadCookieWithExpiryCheck();
+            updateStatsDisplay();
+            updateCookieStatus();
+            
+            // Setup sidebar toggle
+            document.getElementById('sidebarToggle').addEventListener('click', function() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+            });
+            
+            // Update date display when start date changes
+            document.getElementById('startDate').addEventListener('change', updateDateRangeDisplay);
         });
-        container.innerHTML = html;
         
-        // Cập nhật nút batch actions
-        updateBatchActionButtons();
-    }
-
-    function toggleMachineModal(idx) {
-        discoveredMachines[idx].selected = !discoveredMachines[idx].selected;
-        const el = document.getElementById(`modal-machine-${idx}`);
-        discoveredMachines[idx].selected ? el.classList.add('selected') : el.classList.remove('selected');
-        updateMachineStats();
-    }
-
-    function toggleAllMachines(isSelect) {
-        discoveredMachines.forEach(m => m.selected = isSelect);
-        document.querySelectorAll('.machine-checkbox').forEach(cb => cb.checked = isSelect);
-        document.querySelectorAll('.machine-item').forEach(el => isSelect ? el.classList.add('selected') : el.classList.remove('selected'));
-        updateMachineStats();
-    }
-
-    function updateMachineStats() {
-        const count = discoveredMachines.filter(m => m.selected).length;
-        document.getElementById('statSelected').innerText = count;
-        updateBatchActionButtons();
-    }
-
-    function updateModalProgress(pct, text) {
-        document.getElementById('modalProgressFill').style.width = `${pct}%`;
-        document.getElementById('modalProgressText').innerText = `${Math.round(pct)}% - ${text}`;
-    }
-
-    function modalLog(msg, type = 'info') {
-        const el = document.getElementById('modalLogConsole');
-        const time = new Date().toLocaleTimeString('vi-VN', {hour12: false});
-        let colorClass = 'modal-log-info';
-        if (type === 'error') colorClass = 'modal-log-error';
-        else if (type === 'success') colorClass = 'modal-log-success';
-        else if (type === 'warning') colorClass = 'modal-log-warning';
-        
-        el.innerHTML += `<div class="modal-log-entry"><span class="modal-log-time">[${time}]</span><span class="${colorClass}">${msg}</span></div>`;
-        el.scrollTop = el.scrollHeight;
-    }
-
-    /* ========== BATCH ACTIONS FOR IOT SCAN ========== */
-    function updateBatchActionButtons() {
-        const selectedCount = discoveredMachines.filter(m => m.selected).length;
-        const hasSelected = selectedCount > 0;
-        const isRO = packageStatus === 'RO';
-        
-        document.getElementById('btnBatchRemoveIoT').disabled = !hasSelected || isRO;
-        document.getElementById('btnBatchFAIoT').disabled = !hasSelected || isRO;
-        document.getElementById('btnBatchQAIoT').disabled = !hasSelected || isRO;
-        // REMOVED: document.getElementById('btnBatchClearIoT').disabled = !hasSelected || isRO;
-    }
-
-    async function batchRemoveDiscoveredMachines() {
-        const selected = discoveredMachines.filter(m => m.selected);
-        if (selected.length === 0) {
-            alert("Vui lòng chọn ít nhất một máy!");
-            return;
-        }
-
-        if (packageStatus === 'RO') {
-            alert("Gói này đang ở trạng thái READ ONLY. Không thể thực hiện thao tác!");
-            return;
-        }
-
-        if(!confirm(`⚠️ CẢNH BÁO: Xóa ${selected.length} máy khỏi Package?`)) return;
-
-        const apiKey = document.getElementById('apiKey').value.trim();
-        let success = 0, fail = 0;
-
-        // Hiển thị progress
-        document.getElementById('modalProgressContainer').style.display = 'block';
-        updateModalProgress(0, `Đang xóa máy...`);
-
-        for(let i=0; i<selected.length; i++) {
-            // Check token timeout
-            if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
-                await refreshTurnstileToken();
-            }
-
-            const item = selected[i];
-            updateModalProgress((i/selected.length)*100, `Xóa: ${item.mcid}`);
+        // ==================== UI FUNCTIONS ====================
+        function showSection(section) {
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
             
-            try {
-                let url = `${REMOVE_API}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
-                
-                // Thêm Token vào request
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                const res = await fetch(url);
-                const json = await res.json();
-                
-                if(json.IsSuccess) {
-                    success++;
-                    modalLog(`✅ Xóa OK: ${item.mcid}`, 'success');
-                    
-                    // Cập nhật UI
-                    const row = document.getElementById(`modal-machine-${discoveredMachines.indexOf(item)}`);
-                    row.style.opacity = '0.4'; 
-                    row.style.textDecoration = 'line-through';
-                    row.querySelector('input').disabled = true; 
-                    item.selected = false;
-                } else throw new Error(json.Log || 'Fail');
-            } catch(e) {
-                fail++;
-                modalLog(`❌ Lỗi xóa ${item.mcid}: ${e.message}`, 'error');
+            // Activate clicked nav item
+            if (section === 'dashboard') {
+                document.querySelector('.nav-item[onclick="showSection(\'dashboard\')"]').classList.add('active');
+            } else if (section === 'cookie') {
+                document.querySelector('.nav-item[onclick="showSection(\'cookie\')"]').classList.add('active');
             }
-            // RANDOM DELAY: 200ms - 500ms
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
-        }
-
-        updateModalProgress(100, `Hoàn tất: ${success} OK, ${fail} Lỗi`);
-        updateMachineStats();
-        
-        // Tự động ẩn progress sau 3 giây
-        setTimeout(() => {
-            document.getElementById('modalProgressContainer').style.display = 'none';
-        }, 3000);
-        
-        showToast('🏁 Hoàn tất', `Đã xóa ${success} máy thành công, ${fail} thất bại`, success > 0 ? 'success' : 'warning');
-    }
-
-    async function batchSendCommandIoT(commandType) {
-        const selected = discoveredMachines.filter(m => m.selected);
-        if (selected.length === 0) {
-            alert("Vui lòng chọn ít nhất một máy!");
-            return;
-        }
-
-        if (packageStatus === 'RO') {
-            alert("Gói này đang ở trạng thái READ ONLY. Không thể gửi lệnh!");
-            return;
-        }
-
-        const commandText = commandType === 'FA' ? 'FA' : (commandType === 'QA' ? 'QA' : 'Xóa FA/QA');
-        const confirmMsg = `Gửi lệnh ${commandText} đến ${selected.length} máy đã chọn?`;
-
-        if(!confirm(confirmMsg)) return;
-
-        const apiKey = document.getElementById('apiKey').value.trim();
-        let success = 0, fail = 0;
-
-        // Hiển thị progress
-        document.getElementById('modalProgressContainer').style.display = 'block';
-        updateModalProgress(0, `Đang gửi ${commandText}...`);
-
-        for(let i=0; i<selected.length; i++) {
-            // Check token timeout
-            if (!isLocalhost && (Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
-                await refreshTurnstileToken();
-            }
-
-            const item = selected[i];
-            updateModalProgress((i/selected.length)*100, `${commandText}: ${item.mcid}`);
             
+            // Update page title
+            const titles = {
+                dashboard: 'Package Search',
+                cookie: 'Authentication'
+            };
+            
+            const subtitles = {
+                dashboard: 'Search and manage MES production packages',
+                cookie: 'Manage MES authentication cookie'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[section] || 'MES Explorer';
+            document.getElementById('pageSubtitle').textContent = subtitles[section] || '';
+            
+            // Show/hide sections
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            const sectionEl = document.getElementById(`section-${section}`);
+            if (sectionEl) {
+                sectionEl.classList.add('active');
+            }
+        }
+        
+        function showCopyFormats() {
+            document.getElementById('copyFormatSelector').style.display = 'flex';
+            showToast('Select copy format and click Copy', 'info', 'Copy Tools');
+        }
+        
+        function initializeDatePicker() {
+            const today = new Date();
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(today.getMonth() - CONFIG.MONTHS_RANGE);
+            
+            // Format dates as YYYY-MM-DD
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            // Set max date to today
+            document.getElementById('startDate').max = formatDate(today);
+            
+            // If no date is set, default to 3 months ago
+            if (!document.getElementById('startDate').value) {
+                document.getElementById('startDate').value = formatDate(threeMonthsAgo);
+            }
+            
+            updateDateRangeDisplay();
+        }
+        
+        function updateDateRangeDisplay() {
+            const startDateInput = document.getElementById('startDate');
+            const startDate = new Date(startDateInput.value);
+            
+            if (isNaN(startDate.getTime())) return;
+            
+            // Calculate end date (3 months later)
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + CONFIG.MONTHS_RANGE);
+            
+            // Format dates for display
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const startFormatted = startDate.toLocaleDateString('en-US', options);
+            const endFormatted = endDate.toLocaleDateString('en-US', options);
+            
+            document.getElementById('dateRangeDisplay').textContent = 
+                `${startFormatted} - ${endFormatted}`;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        function showToast(message, type = 'info', title = 'Notification') {
+            const toastContainer = document.getElementById('toastContainer');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+        
+        // ==================== COOKIE MANAGEMENT ====================
+        function loadCookieWithExpiryCheck() {
             try {
-                let url = `${API_ENDPOINT}?apikey=${apiKey}&mxpackage=${encodeURIComponent(item.pkg)}&mcid=${encodeURIComponent(item.mcid)}&opserial=${item.opserial}`;
-                
-                // Nếu commandType không rỗng, thêm processtype vào URL
-                if (commandType !== '') {
-                    url += `&processtype=${commandType}`;
+                const cookieData = localStorage.getItem('mes_cookie_data');
+                if (!cookieData) {
+                    state.cookie = '';
+                    return;
                 }
                 
-                // Thêm Token vào request
-                if (turnstileToken && !isLocalhost) url += `&cf-turnstile-response=${encodeURIComponent(turnstileToken)}`;
-
-                const res = await fetch(url);
-                const json = await res.json();
+                const { cookie, savedAt, expiresAt } = JSON.parse(cookieData);
+                const now = new Date();
                 
-                if(json.IsSuccess || json.ok) {
-                    success++;
-                    modalLog(`✅ ${commandText} OK: ${item.mcid}`, 'success');
-                    
-                    // Cập nhật UI
-                    const row = document.getElementById(`modal-machine-${discoveredMachines.indexOf(item)}`);
-                    if (commandType === 'FA') {
-                        row.style.background = 'rgba(16, 185, 129, 0.1)';
-                    } else if (commandType === 'QA') {
-                        row.style.background = 'rgba(59, 130, 246, 0.1)';
-                    } else {
-                        row.style.background = 'rgba(107, 114, 128, 0.1)';
+                // Check if cookie is expired
+                if (expiresAt && new Date(expiresAt) < now) {
+                    localStorage.removeItem('mes_cookie_data');
+                    state.cookie = '';
+                    showToast('Saved cookie has expired', 'warning', 'Cookie Expired');
+                    return;
+                }
+                
+                state.cookie = cookie;
+                document.getElementById('cookieInput').value = cookie;
+                
+                // Check if cookie is about to expire (within 24 hours)
+                if (expiresAt) {
+                    const hoursUntilExpiry = (new Date(expiresAt) - now) / (1000 * 60 * 60);
+                    if (hoursUntilExpiry < 24) {
+                        showToast(`Cookie expires in ${Math.round(hoursUntilExpiry)} hours`, 'warning', 'Cookie Expiring Soon');
                     }
-                } else throw new Error(json.Log || 'Fail');
-            } catch(e) {
-                fail++;
-                modalLog(`❌ Lỗi ${commandText} ${item.mcid}: ${e.message}`, 'error');
+                }
+                
+                showToast('Cookie loaded from storage', 'success', 'Cookie Loaded');
+                updateCookieStatus();
+                
+            } catch (error) {
+                console.error('Error loading cookie:', error);
+                state.cookie = '';
             }
-            // RANDOM DELAY: 200ms - 500ms
-            await new Promise(r => setTimeout(r, Math.floor(Math.random() * 300) + 200));
         }
-
-        updateModalProgress(100, `Hoàn tất: ${success} OK, ${fail} Lỗi`);
         
-        // Tự động ẩn progress sau 3 giây
-        setTimeout(() => {
-            document.getElementById('modalProgressContainer').style.display = 'none';
-        }, 3000);
-        
-        showToast('🏁 Hoàn tất', `Đã gửi ${commandText} đến ${success} máy thành công, ${fail} thất bại`, success > 0 ? 'success' : 'warning');
-    }
-
-    /* ========== UTILITY FUNCTIONS FOR MODAL ========== */
-    function copySerialsModal() {
-        const checked = document.querySelectorAll('.serial-checkbox:checked');
-        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
-        const txt = Array.from(checked).map(cb => cb.value).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Serial!`));
-    }
-
-    function copyRemarksModal() {
-        const checked = document.querySelectorAll('.serial-checkbox:checked');
-        if(checked.length === 0) return alert("Vui lòng tích chọn ít nhất 1 dòng!");
-        const txt = Array.from(checked).map(cb => cb.dataset.name).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert(`Đã copy ${checked.length} Tên công đoạn!`));
-    }
-
-    /* ========== BUTTON EVENTS ========== */
-    btnRun.onclick = runBatchProcess;
-    btnPause.onclick = () => { isPaused = !isPaused; btnPause.textContent = isPaused ? "▶️ Tiếp Tục" : "⏸️ Tạm Dừng"; btnPause.className = isPaused ? "btn btn-success" : "btn btn-warning"; };
-    btnStop.onclick = () => { if(confirm("Dừng hệ thống?")) isStopped = true; };
-    document.getElementById("testConnection").onclick = async () => {
-      const apiKey = document.getElementById("apiKey").value.trim();
-      if(!apiKey) return alert("Nhập API Key trước!");
-      if (!turnstileToken && !isLocalhost) return alert("Vui lòng xác thực bảo mật trước!");
-      appendLog("🔗 Đang Test kết nối...");
-      const res = await sendRequest({ apiKey, pkg: "TEST", opserial: "0", mcid: "TEST" });
-      if (res.status === 404 || res.status === 200 || res.ok) appendLog("✅ Server OK!", "success"); else appendLog(`❌ Lỗi: ${res.status||res.error}`, "error");
-    };
-    document.getElementById("importBtn").onclick = () => document.getElementById("fileInput").click();
-    document.getElementById("fileInput").onchange = (e) => {
-      const f = e.target.files[0]; if(!f) return;
-      const r = new FileReader();
-      r.onload = (ev) => {
-        const l = ev.target.result.split('\n').filter(x=>x.trim().length>0);
-        const d = l[0].toLowerCase().includes('opserial') ? l.slice(1) : l;
-        document.getElementById("list").value = d.map(x=>x.replace(/\t/g,',')).join('\n');
-        appendLog(`📂 Đã load ${d.length} dòng.`, "success");
-      };
-      r.readAsText(f); e.target.value = '';
-    };
-    btnExport.onclick = () => { if(!batchResults.length) return; const csv = "Index,Opserial,Mcid,Type,Status,Duration\n" + batchResults.map(r=>`${r.index},${r.opserial},${r.mcid},${r.processtype},${r.status},${r.duration}`).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:'text/csv'})); a.download = `MES_Report_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
-    document.getElementById("downloadTemplate").onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(["\uFEFFopserial,mcid,processtype\n1,MC001,QA\n2,MC002,FA"],{type:'text/csv'})); a.download = "template.csv"; a.click(); };
-    document.getElementById("clearLog").onclick = () => { logEl.innerHTML = ""; appendLog("Log Cleaned."); };
-
-    /* ========== INITIALIZATION ========== */
-    document.addEventListener('DOMContentLoaded', () => {
-        setTodayDate();
-        if(isLocalhost) {
-            btnRun.disabled = false; btnRun.innerHTML = "🚀 BẮT ĐẦU (Localhost)";
-            btnRun.style.opacity = "1"; btnRun.style.cursor = "pointer";
-            document.getElementById('turnstileWidget').style.display = 'none';
+        function saveCookie() {
+            const cookie = document.getElementById('cookieInput').value.trim();
+            if (!cookie) {
+                showToast('Please enter a cookie first', 'error', 'Cookie Error');
+                return;
+            }
+            
+            // Calculate expiry date (30 days from now)
+            const now = new Date();
+            const expiresAt = new Date(now);
+            expiresAt.setDate(now.getDate() + CONFIG.COOKIE_EXPIRY_DAYS);
+            
+            // Save with expiry info
+            const cookieData = {
+                cookie: cookie,
+                savedAt: now.toISOString(),
+                expiresAt: expiresAt.toISOString()
+            };
+            
+            localStorage.setItem('mes_cookie_data', JSON.stringify(cookieData));
+            
+            state.cookie = cookie;
+            showToast(`Cookie saved for ${CONFIG.COOKIE_EXPIRY_DAYS} days`, 'success', 'Cookie Saved');
+            updateCookieStatus();
         }
-    });
-  </script>
+        
+        function loadCookie() {
+            loadCookieWithExpiryCheck();
+        }
+        
+        function clearCookie() {
+            localStorage.removeItem('mes_cookie_data');
+            document.getElementById('cookieInput').value = '';
+            state.cookie = '';
+            state.cookieValid = false;
+            
+            showToast('Cookie cleared from storage', 'info', 'Cookie Cleared');
+            updateCookieStatus();
+        }
+        
+        async function validateCookie() {
+            const cookie = document.getElementById('cookieInput').value.trim();
+            if (!cookie) {
+                showToast('Please enter a cookie to validate', 'error', 'Validation Error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${CONFIG.WORKER_URL}api/validate-cookie`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cookie })
+                });
+                
+                const data = await response.json();
+                
+                const resultDiv = document.getElementById('cookieValidationResult');
+                if (data.health && data.health.isAlive) {
+                    resultDiv.innerHTML = `
+                        <div style="background: #d1fae5; padding: 20px; border-radius: var(--radius); border-left: 4px solid var(--secondary);">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                                <div style="font-size: 2rem; color: var(--secondary);">✅</div>
+                                <div>
+                                    <h3 style="color: var(--secondary-dark); margin-bottom: 5px;">Cookie is Valid</h3>
+                                    <p style="color: var(--gray-700);">${data.health.reason || 'Cookie authentication successful'}</p>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                                <div style="background: white; padding: 15px; border-radius: var(--radius);">
+                                    <div style="font-size: 0.9rem; color: var(--gray-500);">Tested At</div>
+                                    <div style="font-weight: 600; color: var(--dark);">${new Date(data.health.testedAt).toLocaleString()}</div>
+                                </div>
+                                <div style="background: white; padding: 15px; border-radius: var(--radius);">
+                                    <div style="font-size: 0.9rem; color: var(--gray-500);">Sample Count</div>
+                                    <div style="font-weight: 600; color: var(--dark);">${data.health.sampleCount || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    state.cookieValid = true;
+                    state.lastValidation = new Date();
+                    showToast('Cookie validation successful', 'success', 'Valid Cookie');
+                    
+                    // Auto-save if valid
+                    saveCookie();
+                    
+                } else {
+                    resultDiv.innerHTML = `
+                        <div style="background: #fee2e2; padding: 20px; border-radius: var(--radius); border-left: 4px solid var(--danger);">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="font-size: 2rem; color: var(--danger);">❌</div>
+                                <div>
+                                    <h3 style="color: var(--danger); margin-bottom: 5px;">Cookie is Invalid</h3>
+                                    <p style="color: var(--gray-700);">${data.health?.reason || data.message || 'Cookie authentication failed'}</p>
+                                    <p style="color: var(--gray-600); font-size: 0.9rem; margin-top: 10px;">
+                                        Please check if you're logged into the MES system and try again.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    state.cookieValid = false;
+                    showToast('Cookie validation failed', 'error', 'Invalid Cookie');
+                }
+                
+                updateCookieStatus();
+                
+            } catch (error) {
+                showToast(`Validation error: ${error.message}`, 'error', 'Validation Failed');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function updateCookieStatus() {
+            const statusDot = document.getElementById('cookieStatusDot');
+            const statusText = document.getElementById('cookieStatusText');
+            
+            if (state.cookie && state.cookieValid) {
+                statusDot.className = 'status-dot valid';
+                statusText.textContent = 'Authenticated';
+                statusText.style.color = 'var(--secondary)';
+            } else if (state.cookie) {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'Cookie Saved (Not Validated)';
+                statusText.style.color = 'var(--warning)';
+            } else {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'Not Authenticated';
+                statusText.style.color = 'var(--danger)';
+            }
+        }
+        
+        // ==================== PACKAGE FETCHING ====================
+        async function validateAndFetch() {
+            if (!state.cookie) {
+                showToast('Please enter and save a cookie first', 'error', 'Authentication Required');
+                showSection('cookie');
+                return;
+            }
+            
+            // Validate cookie first
+            await validateCookie();
+            
+            if (state.cookieValid) {
+                await fetchPackages();
+            }
+        }
+        
+        async function fetchPackages() {
+            if (!state.cookie) {
+                showToast('Please enter and save a cookie first', 'error', 'Authentication Required');
+                showSection('cookie');
+                return;
+            }
+            
+            const startDateInput = document.getElementById('startDate').value;
+            const factory = document.getElementById('factory').value;
+            const outputFormat = document.getElementById('outputFormat').value;
+            
+            // Convert date from YYYY-MM-DD to YYYYMMDD
+            const startDate = startDateInput.replace(/-/g, '');
+            
+            // Calculate end date (3 months later)
+            const startDateObj = new Date(startDateInput);
+            const endDateObj = new Date(startDateObj);
+            endDateObj.setMonth(endDateObj.getMonth() + CONFIG.MONTHS_RANGE);
+            
+            // Format as YYYYMMDD
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}${month}${day}`;
+            };
+            
+            const endDate = formatDate(endDateObj);
+            
+            showLoading(true);
+            
+            try {
+                // Build request payload
+                const payload = {
+                    startDate: startDate,
+                    endDate: endDate,
+                    factory: factory,
+                    format: outputFormat === 'table' ? 'simple' : outputFormat,
+                    page: 1,
+                    limit: CONFIG.PAGE_SIZE
+                };
+                
+                const response = await fetch(`${CONFIG.WORKER_URL}api/get-packages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-MES-Cookie': state.cookie
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                state.stats.totalRequests++;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Handle CSV format
+                if (outputFormat === 'csv') {
+                    const csvData = await response.text();
+                    downloadCSV(csvData, `packages_${startDate}_${endDate}.csv`);
+                    showToast(`CSV file downloaded with ${csvData.split('\n').length - 1} records`, 'success', 'Export Complete');
+                    state.stats.successfulRequests++;
+                    updateStats();
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.message || 'Unknown error from API');
+                }
+                
+                state.stats.successfulRequests++;
+                
+                // Update stats
+                if (data.summary) {
+                    // Store previous stats for trend calculation
+                    state.previousStats.totalPackages = state.stats.totalPackages;
+                    state.previousStats.confirmedPackages = state.stats.confirmedPackages;
+                    state.previousStats.pendingPackages = state.stats.pendingPackages;
+                    state.previousStats.successRate = state.stats.totalRequests > 0 
+                        ? Math.round((state.stats.successfulRequests / state.stats.totalRequests) * 100)
+                        : 0;
+                    
+                    state.stats.totalPackages = data.summary.totalPackages || 0;
+                    state.stats.confirmedPackages = data.summary.confirmed || 0;
+                    state.stats.pendingPackages = data.summary.pending || 0;
+                }
+                
+                // Store packages for copy functionality
+                state.currentPackages = data.data || [];
+                
+                // Display results
+                displayResults(data, outputFormat);
+                
+                // Show success toast
+                const packageCount = state.currentPackages.length;
+                showToast(`Successfully fetched ${packageCount} packages`, 'success', 'Fetch Complete');
+                
+                // Update stats display
+                updateStats();
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showToast(`Error fetching packages: ${error.message}`, 'error', 'Fetch Failed');
+                
+                // Show error in results
+                const resultsContainer = document.getElementById('resultsContainer');
+                resultsContainer.innerHTML = `
+                    <div style="padding: 40px; text-align: center;">
+                        <div style="font-size: 3rem; color: var(--danger); margin-bottom: 20px;">❌</div>
+                        <h3 style="color: var(--danger); margin-bottom: 15px;">Fetch Error</h3>
+                        <p style="color: var(--gray-600); margin-bottom: 25px;">${error.message}</p>
+                        <button class="btn btn-primary" onclick="showSection('cookie')">
+                            <i class="fas fa-key"></i> Check Authentication
+                        </button>
+                    </div>
+                `;
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // ==================== JSON FORMATTING FUNCTIONS ====================
+        // FIXED: Proper JSON syntax highlighting
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+            return json.replace(
+                /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+                function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                            match = match.replace(/:$/, '') + '<span class="json-colon">:</span>';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                }
+            );
+        }
+        
+        // ==================== DISPLAY FUNCTIONS ====================
+        function displayResults(data, format) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultCount = document.getElementById('resultCount');
+            
+            const packageCount = data.data ? data.data.length : 0;
+            resultCount.textContent = `${packageCount} packages`;
+            
+            if (packageCount === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="empty-title">No Packages Found</div>
+                        <div class="empty-description">
+                            No packages match your search criteria. Try adjusting the date range or factory.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            if (format === 'table') {
+                // Create table view with IMPROVED action buttons
+                let tableHTML = `
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>MxPackage</th>
+                                    <th>Line</th>
+                                    <th>Seq</th>
+                                    <th>Status</th>
+                                    <th>Confirm</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                data.data.forEach((pkg, index) => {
+                    const isConfirmed = (pkg.confirmChk || pkg.CONFIRMCHK) === 'Y';
+                    const mxPackage = pkg.mxPackage || pkg.MxPackage || 'N/A';
+                    const safeMxPackage = mxPackage.replace(/'/g, "\\'");
+                    
+                    tableHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td style="font-weight: 600; color: var(--primary);">${mxPackage}</td>
+                            <td>${pkg.lineNo || pkg.LineNo || 'N/A'}</td>
+                            <td>${pkg.seqNo || pkg.SeqNo || 'N/A'}</td>
+                            <td>${pkg.status || pkg.StatusName || 'Unknown'}</td>
+                            <td>
+                                <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-pending'}">
+                                    ${isConfirmed ? 'Confirmed' : 'Pending'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="table-action-btn" onclick="copyPackage('${safeMxPackage}')" title="Copy package name">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                resultsContainer.innerHTML = tableHTML;
+                
+            } else if (format === 'simple') {
+                // Simple list view
+                let listHTML = '<div style="padding: 20px;">';
+                
+                data.data.forEach((pkg, index) => {
+                    const isConfirmed = (pkg.confirmChk || pkg.CONFIRMCHK) === 'Y';
+                    
+                    listHTML += `
+                        <div style="background: ${index % 2 === 0 ? 'var(--gray-50)' : 'white'}; 
+                                    padding: 15px; border-radius: var(--radius); margin-bottom: 10px;
+                                    border-left: 4px solid ${isConfirmed ? 'var(--secondary)' : 'var(--warning)'};">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--dark); margin-bottom: 5px;">
+                                        ${pkg.mxPackage || pkg.MxPackage || 'N/A'}
+                                    </div>
+                                    <div style="display: flex; gap: 15px; font-size: 0.9rem; color: var(--gray-600);">
+                                        <span>Line: ${pkg.lineNo || pkg.LineNo || 'N/A'}</span>
+                                        <span>Seq: ${pkg.seqNo || pkg.SeqNo || 'N/A'}</span>
+                                        <span>Status: ${pkg.status || pkg.StatusName || 'Unknown'}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-pending'}">
+                                        ${isConfirmed ? 'Confirmed' : 'Pending'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                listHTML += '</div>';
+                resultsContainer.innerHTML = listHTML;
+                
+            } else {
+                // JSON view with PROPER syntax highlighting
+                const jsonString = JSON.stringify(data, null, 2);
+                const highlightedJson = syntaxHighlight(jsonString);
+                
+                resultsContainer.innerHTML = `
+                    <div class="json-output">
+                        ${highlightedJson}
+                    </div>
+                `;
+            }
+        }
+        
+        // ==================== COPY FUNCTIONALITY ====================
+        function copyPackagesToClipboard() {
+            if (state.currentPackages.length === 0) {
+                showToast('No packages to copy', 'warning', 'Copy Failed');
+                return;
+            }
+            
+            const format = document.getElementById('copyFormat').value;
+            let textToCopy = '';
+            
+            switch(format) {
+                case 'mxpackage':
+                    textToCopy = state.currentPackages
+                        .map(pkg => pkg.mxPackage || pkg.MxPackage || '')
+                        .filter(pkg => pkg)
+                        .join('\n');
+                    break;
+                    
+                case 'line-mxpackage':
+                    textToCopy = state.currentPackages
+                        .map(pkg => `${pkg.lineNo || pkg.LineNo || ''}: ${pkg.mxPackage || pkg.MxPackage || ''}`)
+                        .filter(pkg => pkg && !pkg.startsWith(':'))
+                        .join('\n');
+                    break;
+                    
+                case 'json':
+                    textToCopy = JSON.stringify(state.currentPackages.map(pkg => ({
+                        mxPackage: pkg.mxPackage || pkg.MxPackage,
+                        lineNo: pkg.lineNo || pkg.LineNo,
+                        seqNo: pkg.seqNo || pkg.SeqNo
+                    })), null, 2);
+                    break;
+                    
+                case 'csv':
+                    const headers = ['MxPackage', 'LineNo', 'SeqNo', 'Status', 'ConfirmChk'];
+                    const csvRows = [
+                        headers.join(','),
+                        ...state.currentPackages.map(pkg => [
+                            pkg.mxPackage || pkg.MxPackage || '',
+                            pkg.lineNo || pkg.LineNo || '',
+                            pkg.seqNo || pkg.SeqNo || '',
+                            pkg.status || pkg.StatusName || '',
+                            pkg.confirmChk || pkg.CONFIRMCHK || ''
+                        ].map(val => `"${val}"`).join(','))
+                    ];
+                    textToCopy = csvRows.join('\n');
+                    break;
+                    
+                case 'newline':
+                    textToCopy = state.currentPackages
+                        .map(pkg => pkg.mxPackage || pkg.MxPackage || '')
+                        .filter(pkg => pkg)
+                        .join('\n');
+                    break;
+                    
+                case 'space':
+                    textToCopy = state.currentPackages
+                        .map(pkg => pkg.mxPackage || pkg.MxPackage || '')
+                        .filter(pkg => pkg)
+                        .join(' ');
+                    break;
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast(`Copied ${state.currentPackages.length} packages to clipboard`, 'success', 'Copy Successful');
+            }).catch(err => {
+                showToast(`Failed to copy: ${err.message}`, 'error', 'Copy Failed');
+            });
+        }
+        
+        function copyPackage(packageName) {
+            if (!packageName) return;
+            
+            navigator.clipboard.writeText(packageName).then(() => {
+                showToast(`Copied: ${packageName}`, 'success', 'Package Copied');
+            });
+        }
+        
+        // ==================== EXPORT FUNCTIONALITY ====================
+        function exportResults() {
+            if (state.currentPackages.length === 0) {
+                showToast('No data to export', 'warning', 'Export Failed');
+                return;
+            }
+            
+            const format = document.getElementById('outputFormat').value;
+            const startDate = document.getElementById('startDate').value.replace(/-/g, '');
+            const factory = document.getElementById('factory').value;
+            
+            let data, filename, mimeType;
+            
+            switch(format) {
+                case 'json':
+                    data = JSON.stringify(state.currentPackages, null, 2);
+                    filename = `packages_${factory}_${startDate}.json`;
+                    mimeType = 'application/json';
+                    break;
+                    
+                case 'simple':
+                case 'table':
+                    const simpleData = state.currentPackages.map(pkg => ({
+                        mxPackage: pkg.mxPackage || pkg.MxPackage,
+                        lineNo: pkg.lineNo || pkg.LineNo,
+                        seqNo: pkg.seqNo || pkg.SeqNo,
+                        status: pkg.status || pkg.StatusName,
+                        confirmChk: pkg.confirmChk || pkg.CONFIRMCHK
+                    }));
+                    data = JSON.stringify(simpleData, null, 2);
+                    filename = `packages_${factory}_${startDate}_simple.json`;
+                    mimeType = 'application/json';
+                    break;
+                    
+                case 'csv':
+                    const headers = ['MxPackage', 'LineNo', 'SeqNo', 'Status', 'ConfirmChk', 'Factory'];
+                    const csvRows = [
+                        headers.join(','),
+                        ...state.currentPackages.map(pkg => [
+                            pkg.mxPackage || pkg.MxPackage || '',
+                            pkg.lineNo || pkg.LineNo || '',
+                            pkg.seqNo || pkg.SeqNo || '',
+                            pkg.status || pkg.StatusName || '',
+                            pkg.confirmChk || pkg.CONFIRMCHK || '',
+                            factory
+                        ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+                    ];
+                    data = csvRows.join('\n');
+                    filename = `packages_${factory}_${startDate}.csv`;
+                    mimeType = 'text/csv';
+                    break;
+            }
+            
+            const blob = new Blob([data], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast(`Exported ${state.currentPackages.length} packages to ${filename}`, 'success', 'Export Complete');
+        }
+        
+        function downloadCSV(csvData, filename) {
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // ==================== STATS FUNCTIONS ====================
+        function updateStats() {
+            // Calculate success rate
+            const successRate = state.stats.totalRequests > 0 
+                ? Math.round((state.stats.successfulRequests / state.stats.totalRequests) * 100)
+                : 0;
+            
+            // Calculate trends
+            const totalTrend = state.previousStats.totalPackages > 0 
+                ? Math.round(((state.stats.totalPackages - state.previousStats.totalPackages) / state.previousStats.totalPackages) * 100)
+                : 0;
+            
+            const confirmedTrend = state.previousStats.confirmedPackages > 0 
+                ? Math.round(((state.stats.confirmedPackages - state.previousStats.confirmedPackages) / state.previousStats.confirmedPackages) * 100)
+                : 0;
+            
+            const pendingTrend = state.previousStats.pendingPackages > 0 
+                ? Math.round(((state.stats.pendingPackages - state.previousStats.pendingPackages) / state.previousStats.pendingPackages) * 100)
+                : 0;
+            
+            const successTrend = state.previousStats.successRate > 0 
+                ? Math.round(((successRate - state.previousStats.successRate) / state.previousStats.successRate) * 100)
+                : 0;
+            
+            // Update sidebar stats
+            document.getElementById('statTotalSidebar').textContent = state.stats.totalPackages.toLocaleString();
+            document.getElementById('statConfirmedSidebar').textContent = state.stats.confirmedPackages.toLocaleString();
+            document.getElementById('statPendingSidebar').textContent = state.stats.pendingPackages.toLocaleString();
+            document.getElementById('statSuccessRateSidebar').textContent = `${successRate}%`;
+            
+            // Update trend indicators
+            updateTrendIndicator('statTrendTotal', totalTrend);
+            updateTrendIndicator('statTrendConfirmed', confirmedTrend);
+            updateTrendIndicator('statTrendPending', pendingTrend);
+            updateTrendIndicator('statTrendSuccess', successTrend);
+        }
+        
+        function updateTrendIndicator(elementId, trend) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (trend > 0) {
+                element.textContent = `+${trend}%`;
+                element.className = 'stat-trend';
+            } else if (trend < 0) {
+                element.textContent = `${trend}%`;
+                element.className = 'stat-trend down';
+            } else {
+                element.textContent = '0%';
+                element.className = 'stat-trend';
+            }
+        }
+        
+        // ==================== UTILITY FUNCTIONS ====================
+        function clearResults() {
+            state.currentPackages = [];
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <div class="empty-title">No Data Yet</div>
+                    <div class="empty-description">
+                        Enter your search criteria above and click "Fetch Packages" to retrieve MES package data.
+                    </div>
+                </div>
+            `;
+            document.getElementById('resultCount').textContent = '0 packages';
+            showToast('Results cleared', 'info', 'Cleared');
+        }
+        
+        function resetFilters() {
+            document.getElementById('startDate').value = CONFIG.DEFAULT_START_DATE;
+            document.getElementById('factory').value = 'P2C1';
+            document.getElementById('outputFormat').value = 'json';
+            document.getElementById('copyFormatSelector').style.display = 'none';
+            updateDateRangeDisplay();
+            showToast('Filters reset to defaults', 'info', 'Reset Complete');
+        }
+    </script>
 </body>
 </html>
