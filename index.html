@@ -1,9 +1,10 @@
+<!-- START OF FILE mes_production_v7.7_final_with_shortcuts_fixed.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Production V7.8 (Batch Mode Fixed)</title>
+    <title>MES Production V7.7 (Perfect UI)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -11,9 +12,9 @@
     <style>
         /* ========== CSS CHUNG ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); min-height: 100vh; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; }
-        .header { background: linear-gradient(90deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 25px 40px; text-align: center; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 25px 40px; text-align: center; }
         .header h1 { font-size: 28px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; }
         .header p { opacity: 0.9; font-size: 14px; }
         .content { padding: 30px; display: flex; flex-direction: column; gap: 30px; }
@@ -29,7 +30,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .step-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
-        .step-title { font-size: 18px; color: #1a2980; font-weight: bold; display: flex; gap: 10px; align-items: center; }
+        .step-title { font-size: 18px; color: #1e3c72; font-weight: bold; display: flex; gap: 10px; align-items: center; }
         .step-number { background: #2196F3; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         
         /* ========== FORM & INPUTS ========== */
@@ -56,16 +57,17 @@
         .filter-select { padding: 12px 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-weight: bold; color: #555; cursor: pointer; background: white; }
         
         /* ========== LINE GROUP HEADER ========== */
-        .line-header { background: linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%); color: #e65100; padding: 10px 15px; font-weight: 800; border-left: 5px solid #ff9800; margin-top: 15px; margin-bottom: 5px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-size: 16px; }
+        .line-header { background: #fff3e0; color: #e65100; padding: 10px 15px; font-weight: 800; border-left: 5px solid #ff9800; margin-top: 15px; margin-bottom: 5px; border-radius: 4px; display: flex; align-items: center; gap: 10px; font-size: 16px; }
         .line-header::before { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-right: 10px; }
         .line-header::after { content: ""; flex: 1; height: 1px; background: #ffe0b2; margin-left: 10px; }
         
         /* ========== PACKAGE LIST (NEW LAYOUT) ========== */
         .package-list-container { max-height: 550px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 5px; }
         
+        /* Giao diện thẻ Package mới: GRID 3 CỘT (Ảnh - Info - Status) */
         .package-card { 
             display: grid; 
-            grid-template-columns: 110px 1fr 100px 120px;
+            grid-template-columns: 110px 1fr 100px 120px; /* Thêm cột batch mode */
             gap: 0;
             border: 1px solid #e0e0e0; 
             border-radius: 8px; 
@@ -80,6 +82,7 @@
         .package-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-color: #bbb; }
         .package-card.selected { border: 2px solid #2196F3; background: #e3f2fd; }
 
+        /* CỘT 1: ẢNH TO */
         .pkg-img-col {
             background: #f1f1f1;
             border-right: 1px solid #eee;
@@ -95,37 +98,41 @@
             display: block;
         }
 
+        /* CỘT 2: THÔNG TIN */
         .pkg-info-col {
             padding: 10px 15px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 6px;
+            gap: 6px; /* Tăng khoảng cách */
         }
-        .pkg-id { font-weight: 800; color: #1a2980; font-size: 14px; word-break: break-all; margin-bottom: 2px; }
-        .pkg-style { font-weight: bold; font-size: 17px; color: #333; line-height: 1.3; }
+        .pkg-id { font-weight: 800; color: #1565c0; font-size: 14px; word-break: break-all; margin-bottom: 2px; }
+        .pkg-style { font-weight: bold; font-size: 17px; color: #333; line-height: 1.3; } /* Tăng font style */
         .pkg-sub { font-size: 13px; color: #666; display: flex; flex-wrap: wrap; gap: 8px; }
         .pkg-tag { 
             background: #f5f5f5; 
-            padding: 4px 8px;
+            padding: 4px 8px; /* Tăng khoảng cách lề một chút cho thoáng */
             border-radius: 4px; 
             border: 1px solid #eee; 
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 14px; /* Tăng từ 12px lên 14px (hoặc 15px tùy ý bạn) */
+            font-weight: 500; /* Thêm độ đậm nhẹ cho chữ rõ hơn */
         }
+        /* CỘT 3: TRẠNG THÁI (Đã chỉnh căn giữa) */
         .pkg-status-col {
             padding: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            align-items: center; /* Căn giữa ngang */
+            justify-content: center; /* Căn giữa dọc */
             background: rgba(255,255,255,0.5);
             border-left: 1px dashed #eee;
         }
 
+        /* ========== OT BADGE ========== */
         .ot-badge { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; font-size: 12px; font-weight: 800; padding: 2px 4px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
         
-        .qty-display { font-size: 24px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
+        /* ========== PACKAGE STATUS ========== */
+        .qty-display { font-size: 24px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; } /* Tăng font số */
         .status-text { font-size: 11px; font-weight: 600; opacity: 0.9; }
         .st-done .qty-display { color: #2e7d32; background: #e8f5e9; } .st-done .status-text { color: #2e7d32; }
         .st-over .qty-display { color: #1565c0; background: #e3f2fd; } .st-over .status-text { color: #1565c0; }
@@ -134,9 +141,11 @@
         .status-loading { color: #2196F3; font-size: 12px; font-style: italic; }
         .mini-loader { width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #2196F3; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         
+        /* ========== SUMMARY BANNER ========== */
         .summary-banner { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
         .summary-val { font-size: 18px; font-weight: bold; }
         
+        /* ========== SPLIT TOOLBAR (FIXED LAYOUT) ========== */
         .split-toolbar { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
         .split-toolbar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .split-toolbar-header h4 { margin: 0; color: #e65100; font-size: 16px; }
@@ -144,13 +153,15 @@
         .custom-hour-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-weight: bold; }
         .btn-separator { width: 2px; height: 30px; background: #ddd; margin: 0 5px; }
         
-        .manual-summary { margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #263238 0%, #37474f 100%); color: white; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; transition: background 0.3s; }
+        /* ========== MANUAL INPUT SECTION ========== */
+        .manual-summary { margin-top: 20px; padding: 20px; background: #263238; color: white; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; transition: background 0.3s; }
         .manual-summary-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
         .summary-block { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
         .summary-num { font-size: 32px; font-weight: bold; line-height: 1; }
         .summary-label { font-size: 14px; color: #aaa; font-weight: normal; }
         .remaining-badge { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
         
+        /* ========== TIME SLOT GRID ========== */
         .manual-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
         .slot-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; background: white; transition: 0.3s; min-height: 120px; }
         .slot-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -170,9 +181,10 @@
         .status-warning { background-color: #fffde7 !important; border-color: #FBC02D !important; }
         .status-error { background-color: #ffebee !important; border-color: #e53935 !important; }
         
+        /* ========== BUTTONS ========== */
         .btn { padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .btn-primary { background: linear-gradient(90deg, #1a2980 0%, #26d0ce 100%); color: white; }
+        .btn-primary { background: linear-gradient(90deg, #2196F3 0%, #21CBF3 100%); color: white; }
         .btn-success { background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%); color: white; }
         .btn-warning { background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%); color: white; }
         .btn-info { background: linear-gradient(90deg, #00BCD4 0%, #00acc1 100%); color: white; }
@@ -181,18 +193,21 @@
         .btn-secondary { background: #7f8c8d; color: white; }
         .btn-sm { padding: 5px 10px; font-size: 12px; }
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .btn-full { width: 100%; justify-content: center; }
+        .btn-full { width: 100%; justify-content: center; } /* Class mới cho nút full width */
         
-        .package-info-card { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        /* ========== PACKAGE INFO ========== */
+        .package-info-card { background: #f0f7ff; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 15px 0; }
         .package-info-row { display: flex; margin-bottom: 8px; }
-        .package-info-label { font-weight: 600; min-width: 140px; color: #1a2980; }
+        .package-info-label { font-weight: 600; min-width: 140px; color: #1565c0; }
         
+        /* ========== HIDDEN UTILITY ========== */
         .hidden { display: none !important; }
         
+        /* ========== STEP 3: MACHINE SELECTION ========== */
         .context-header { background: #fff3e0; border-left: 5px solid #ff9800; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         .context-title { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
         .context-value { font-size: 16px; font-weight: bold; color: #e65100; margin-top: 5px; line-height: 1.4; word-break: break-all; }
-        .context-line { font-size: 15px; color: #1a2980; margin-top: 5px; font-weight: 600; border-top: 1px dashed #ffb74d; padding-top: 5px; }
+        .context-line { font-size: 15px; color: #1565c0; margin-top: 5px; font-weight: 600; border-top: 1px dashed #ffb74d; padding-top: 5px; }
         
         .auto-select-banner { margin: 15px 0; padding: 12px 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #4CAF50; }
         .auto-select-text { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #2e7d32; margin-bottom: 5px; }
@@ -203,6 +218,7 @@
         
         .selection-info { margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 5px solid #2196F3; }
         
+        /* ========== MACHINE LIST ========== */
         .machine-list { list-style: none; margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
         .machine-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; position: relative; }
         .machine-item:hover { background: #f5f5f5; }
@@ -214,10 +230,11 @@
         .fa-toggle-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; border-radius: 50%; transition: all 0.2s; background: transparent; border: none; color: #4CAF50; }
         .machine-one-badge { background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 8px; }
         
+        /* ========== PREVIEW TABLE ========== */
         .preview-container { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-top: 20px; border: 2px solid #e3f2fd; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
         .preview-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e3f2fd; }
         .preview-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .preview-table thead { background: linear-gradient(90deg, #1a2980 0%, #26d0ce 100%); color: white; }
+        .preview-table thead { background: linear-gradient(90deg, #2196F3 0%, #21CBF3 100%); color: white; }
         .preview-table th { padding: 15px 12px; text-align: center; font-weight: 600; font-size: 14px; border-right: 1px solid rgba(255,255,255,0.1); }
         .preview-table th:last-child { border-right: none; }
         .preview-table tbody tr { transition: all 0.2s; }
@@ -226,16 +243,18 @@
         .preview-table td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px; }
         .preview-table .total-row { background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%) !important; font-weight: bold; border-top: 2px solid #4CAF50; }
         
+        /* ========== MODALS ========== */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
         .modal-overlay.open { opacity: 1; visibility: visible; }
         .modal-box { background: white; width: 95%; max-width: 900px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; transform: translateY(-20px); transition: transform 0.3s ease-out; }
         .modal-overlay.open .modal-box { transform: translateY(0); }
-        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1a2980 0%, #26d0ce 100%); color: white; border-radius: 15px 15px 0 0; }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); color: white; border-radius: 15px 15px 0 0; }
         .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
         .modal-footer { padding: 20px 25px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; background: #f8f9fa; border-radius: 0 0 15px 15px; flex-wrap: wrap; }
         
+        /* ========== DETAIL MODAL (IMPROVED) ========== */
         .detail-module { margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
-        .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 18px; font-weight: bold; color: #1a2980; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+        .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 18px; font-weight: bold; color: #1565c0; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
         .detail-module-count { background: #2196F3; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
         .detail-rows-container { max-height: 300px; overflow-y: auto; }
         .detail-row { padding: 10px 18px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: background 0.2s; }
@@ -244,15 +263,17 @@
         .serial-tag { background: #e0e0e0; padding: 4px 10px; border-radius: 20px; font-family: monospace; color: #333; font-weight: 600; font-size: 13px; }
         .detail-checkbox { cursor: pointer; }
         
+        /* ========== CONFIRM MODAL ========== */
         .confirm-modal { max-width: 600px !important; }
         .confirm-modal .modal-header { background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%); }
         .confirm-details { margin: 20px 0; }
         .confirm-item { display: flex; margin-bottom: 12px; padding: 10px 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #2196F3; }
         .confirm-label { font-weight: 600; color: #555; min-width: 120px; }
-        .confirm-value { flex: 1; font-weight: bold; color: #1a2980; }
+        .confirm-value { flex: 1; font-weight: bold; color: #1565c0; }
         .confirm-highlight { color: #e65100; font-size: 18px; }
         .confirm-warning { background: #fff3e0; border-left-color: #FF9800; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; align-items: flex-start; gap: 10px; }
         
+        /* ========== RESULT PAGE ========== */
         .result-success-animation { display: flex; justify-content: center; margin: 20px 0 30px; }
         .checkmark-circle { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); }
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6); } 100% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } }
@@ -263,16 +284,18 @@
         .detail-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
         .detail-item { display: flex; align-items: center; padding: 10px 15px; background: rgba(255,255,255,0.7); border-radius: 8px; transition: all 0.2s; }
         .detail-label { font-weight: 600; color: #555; min-width: 140px; display: flex; align-items: center; gap: 8px; }
-        .detail-value { flex: 1; font-weight: bold; color: #1a2980; font-size: 16px; }
+        .detail-value { flex: 1; font-weight: bold; color: #1565c0; font-size: 16px; }
         .status-pill { padding: 8px 18px; border-radius: 30px; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
         .pill-success { background: #4CAF50; color: white; }
         .pill-error { background: #f44336; color: white; }
         .pill-gray { background: #607D8B; color: white; }
         .pill-info { background: #2196F3; color: white; }
         
+        /* ========== LOADER ========== */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
+        /* ========== TURNSTILE WIDGET ========== */
         .turnstile-floating { position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); border: 1px solid rgba(59, 130, 246, 0.4); width: 320px; overflow: hidden; transition: all 0.4s; }
         .turnstile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: linear-gradient(to right, #eff6ff, #fff); border-bottom: 1px solid rgba(59, 130, 246, 0.1); }
         .turnstile-title { font-size: 0.85rem; font-weight: 700; color: #2563eb; }
@@ -285,18 +308,20 @@
         .turnstile-minimized-icon { display: none; font-size: 1.5rem; justify-content: center; align-items: center; height: 100%; color: white; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); }
         .turnstile-floating.minimized .turnstile-minimized-icon { display: flex; }
         
+        /* ========== SCROLLBAR ========== */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #aaa; }
     
+        /* ========== BATCH MODE STYLES ========== */
         .batch-mode-toggle {
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(26, 41, 128, 0.3);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         
         .batch-mode-toggle h3 {
@@ -363,20 +388,20 @@
         }
         
         .batch-info-banner {
-            background: #e3f2fd;
-            border-left: 5px solid #2196F3;
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
             padding: 12px 15px;
             border-radius: 5px;
             margin-top: 10px;
             font-size: 13px;
-            color: #1565c0;
         }
         
         .batch-info-banner i {
-            color: #2196F3;
+            color: #ff9800;
             margin-right: 8px;
         }
         
+        /* Package Card - Batch Mode */
         .pkg-batch-col {
             padding: 10px;
             display: flex;
@@ -425,6 +450,7 @@
             display: block;
         }
         
+        /* Batch Summary */
         .batch-summary {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border: 2px solid #2196F3;
@@ -439,7 +465,7 @@
         }
         
         .batch-summary h4 {
-            color: #1a2980;
+            color: #1565c0;
             margin-bottom: 12px;
             font-size: 16px;
         }
@@ -465,11 +491,12 @@
             display: block;
             font-size: 24px;
             font-weight: bold;
-            color: #1a2980;
+            color: #1565c0;
         }
         
+        /* Batch Action Button */
         .btn-batch {
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 15px 30px;
             border: none;
@@ -480,7 +507,7 @@
             width: 100%;
             margin-top: 15px;
             transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(26, 41, 128, 0.4);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             display: none;
         }
         
@@ -490,7 +517,7 @@
         
         .btn-batch:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(26, 41, 128, 0.6);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
         
         .btn-batch:disabled {
@@ -500,6 +527,7 @@
             box-shadow: none;
         }
         
+        /* Batch Preview Modal */
         .batch-preview-item {
             background: #f8f9fa;
             border-radius: 8px;
@@ -529,7 +557,7 @@
         
         .batch-preview-id {
             font-weight: bold;
-            color: #1a2980;
+            color: #1565c0;
             font-size: 14px;
         }
         
@@ -555,48 +583,14 @@
             font-size: 11px;
             font-family: monospace;
         }
-        
-        .batch-results-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .batch-result-card {
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .batch-result-success {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border: 1px solid #4CAF50;
-        }
-        
-        .batch-result-fail {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            border: 1px solid #f44336;
-        }
-        
-        .batch-result-number {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .batch-result-label {
-            font-size: 12px;
-            color: #666;
-        }
 
 </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-industry"></i> MES Production V7.8</h1>
-            <p>Batch Mode Pro & Smart Automation</p>
+            <h1><i class="fas fa-industry"></i> MES Production V7.7</h1>
+            <p>Smart Grouping & Gallery Mode (Perfect UI)</p>
         </div>
         
         <div class="content">
@@ -616,12 +610,12 @@
 
                 <div class="config-section">
                     <div class="form-group">
-                        <label><i class="fas fa-key"></i> API Key:</label>
+                        <label>API Key:</label>
                         <input type="password" id="apiKey" class="form-control" placeholder="Nhập API Key quản trị" onchange="saveConfig()">
                     </div>
                     
                     <div class="form-group">
-                        <label><i class="fas fa-factory"></i> Factory & Date:</label>
+                        <label>Factory & Date:</label>
                         <div style="display: flex; gap: 10px;">
                             <select id="factory" class="form-control" style="flex:1" onchange="loadPackages()">
                                 <option value="P2C1">P2C1</option>
@@ -644,7 +638,7 @@
 
                 <!-- BATCH MODE TOGGLE -->
                 <div class="batch-mode-toggle">
-                    <h3><i class="fas fa-layer-group"></i> Chế độ gửi hàng loạt (Batch Mode Pro)</h3>
+                    <h3><i class="fas fa-layer-group"></i> Chế độ gửi hàng loạt</h3>
                     <div class="toggle-switch-container">
                         <label class="toggle-switch">
                             <input type="checkbox" id="batchModeToggle" onchange="toggleBatchMode()">
@@ -665,7 +659,7 @@
                     
                     <!-- PACKAGE SELECTION -->
                     <div class="form-group">
-                        <label><i class="fas fa-box-open"></i> Chọn Package:</label>
+                        <label>Chọn Package:</label>
                         
                         <!-- FILTER ROW (BUYER & LINE) -->
                         <div class="filter-row">
@@ -777,7 +771,7 @@
                         </button>
                     
                     <!-- Batch Mode Button -->
-                    <button class="btn-batch" id="batchProcessBtn" onclick="showBatchPreview()" disabled>
+                    <button class="btn-batch" id="batchProcessBtn" onclick="processBatchMode()" disabled>
                         <i class="fas fa-rocket"></i> XỬ LÝ & GỬI HÀNG LOẠT
                     </button>
                     </div>
@@ -906,7 +900,7 @@
                     <p style="margin-top:5px; font-size:16px;">
                         <b id="selectedMachineName">N/A</b>
                         <br>
-                        <span style="color:#1a2980;">OPSERIAL: <b id="selectedMachineSerial">N/A</b></span>
+                        <span style="color:#1565c0;">OPSERIAL: <b id="selectedMachineSerial">N/A</b></span>
                         <br>
                         <span id="faStatusText" style="color:#4CAF50; font-weight:bold;">
                             <i class="fas fa-robot"></i> SẼ GỬI LỆNH FA
@@ -1002,7 +996,7 @@
         </div>
     </div>
 
-    <!-- DETAIL MODAL -->
+    <!-- DETAIL MODAL (IMPROVED) -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1057,36 +1051,14 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeBatchPreviewModal()">Hủy</button>
-                <button class="btn btn-success" onclick="confirmBatchProcess()">
-                    <i class="fas fa-paper-plane"></i> Xác nhận & Gửi Hàng Loạt
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- BATCH RESULTS MODAL -->
-    <div class="modal-overlay" id="batchResultsModal">
-        <div class="modal-box" style="max-width: 700px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-chart-bar"></i> Kết quả xử lý Batch</h3>
-                <button class="btn btn-sm btn-danger" onclick="closeBatchResultsModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="batchResultsContent">
-                <div class="loader"></div> Đang tải...
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="closeBatchResultsModal()">
-                    <i class="fas fa-check"></i> Đóng
-                </button>
+                <button class="btn btn-success" onclick="confirmBatchProcess()">Xác nhận & Gửi Hàng Loạt</button>
             </div>
         </div>
     </div>
 
     <script>
         // ========== API ENDPOINTS & CONFIG ==========
-        const WORKER_URL = "https://mes-proxy.vercel.app/api";
+        const WORKER_URL = "https://mes-proxy.vercel.app/api"; // PROXY URL
         const PROD_API = "https://hourly-target.chiscoong-cloudflare-com.workers.dev/api/production";
         const PACKAGE_API = "https://today-package.chiscoong-cloudflare-com.workers.dev/api/packages";
         const MODULE_API = "https://module-requests.chiscoong-cloudflare-com.workers.dev/opdetails";
@@ -1115,19 +1087,19 @@
         let faStatus = {};
         let globalFaEnabled = true;
         let manualFaRequested = true;
-        let selectedWorkMode = 7.5;
+        let selectedWorkMode = 7.5; // THÊM BIẾN NÀY
 
         const timeSlots = [
             "07:15 - 08:15", "08:15 - 09:15", "09:15 - 10:15", "10:15 - 11:15", 
             "11:15 - 12:15", "12:15 - 13:15", "13:15 - 14:15", "14:15 - 15:15", 
             "15:15 - 16:15", "16:15 - 17:15", "17:15 - 18:15", "18:15 - 19:15", "19:15 - 20:15"
         ];
-        const OT_INDEX_START = 9;
+        const OT_INDEX_START = 9; // 16:15 bắt đầu OT
 
         // ========== BATCH MODE VARIABLES ==========
         let isBatchMode = false;
         let batchSelectedPackages = [];
-        let batchPackageDetails = {};
+        let batchPackageDetails = {}; // Lưu chi tiết package cho batch mode
 
         // ========== TURNSTILE LOGIC ==========
         const widgetEl = document.getElementById('turnstileWidget');
@@ -1187,6 +1159,7 @@
         // ========== SHORTCUT KEY HANDLING ==========
         document.addEventListener('keydown', function(e) {
             const isTextInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+            const isNumberInput = e.target.type === 'number';
             
             if (document.getElementById('step1').classList.contains('active')) {
                 if (e.key === 'Enter' && !isTextInput) {
@@ -1256,7 +1229,7 @@
             document.querySelectorAll('.work-mode-card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`mode-${mode}`).classList.add('selected');
             document.getElementById('workHoursInput').value = mode;
-            selectedWorkMode = mode;
+            selectedWorkMode = mode; // CẬP NHẬT BIẾN
             if(selectedPackageId) recalculateTarget();
         }
 
@@ -1318,7 +1291,7 @@
                         hasOT: false,
                         remarks: remarks,
                         searchString: `${pid} ${p.styleText} ${p.lineName} ${color} ${remarks}`.toLowerCase(),
-                        fullData: p
+                        fullData: p // Lưu toàn bộ dữ liệu
                     };
                 });
 
@@ -1499,10 +1472,9 @@
                     container.appendChild(header);
                 }
                 
+                // TẠO URL ẢNH
                 const thumbUrl = generateThumbnailUrl(p.id, p.fileName);
-                const isOTMode = selectedWorkMode === 11;
-                const defaultHours = isOTMode ? '11' : '7.5';
-                
+
                 const card = document.createElement('div');
                 card.className = 'package-card';
                 card.dataset.pkgId = p.id;
@@ -1512,6 +1484,10 @@
                 card.dataset.line = p.line;
                 card.dataset.remarks = p.remarks;
                 card.dataset.fileName = p.fileName;
+                
+                // Tính toán mode dựa trên selectedWorkMode
+                const isOTMode = selectedWorkMode === 11;
+                const defaultHours = isOTMode ? '11' : '7.5';
                 
                 card.innerHTML = `
                     <div class="pkg-img-col">
@@ -1569,6 +1545,7 @@
         }
 
         function selectPackageFromCard(p, cardElem) {
+            // Nếu đang ở batch mode, không select đơn lẻ
             if (isBatchMode) {
                 const checkbox = cardElem.querySelector('.pkg-checkbox');
                 checkbox.checked = !checkbox.checked;
@@ -1576,6 +1553,7 @@
                 return;
             }
             
+            // Normal mode: select package như cũ
             document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
             cardElem.classList.add('selected');
             
@@ -1609,15 +1587,20 @@
             isBatchMode = document.getElementById('batchModeToggle').checked;
             
             document.getElementById('batchModeLabel').textContent = 
-                isBatchMode ? 'Bật (Batch Mode Pro)' : 'Tắt (Chế độ thường)';
+                isBatchMode ? 'Bật (Chế độ hàng loạt)' : 'Tắt (Chế độ thường)';
             
             document.getElementById('batchInfoBanner').style.display = isBatchMode ? 'block' : 'none';
             document.getElementById('batchSummary').classList.toggle('active', isBatchMode);
             document.getElementById('nextToStep2Btn').style.display = isBatchMode ? 'none' : 'inline-block';
             document.getElementById('batchProcessBtn').classList.toggle('active', isBatchMode);
             
+            // Reset selections
             if (!isBatchMode) {
-                resetBatchSelection();
+                document.querySelectorAll('.pkg-checkbox').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.pkg-hours-input').forEach(inp => {
+                    inp.value = '';
+                    inp.disabled = true;
+                });
                 document.querySelectorAll('.package-card').forEach(card => {
                     card.classList.remove('selected');
                 });
@@ -1680,6 +1663,7 @@
                     totalQuantity += target;
                     totalHours += hours;
                     
+                    // Lưu chi tiết package
                     const pkgData = allPackages.find(p => p.id === pkgId);
                     if (pkgData) {
                         batchPackageDetails[pkgId] = {
@@ -1711,16 +1695,12 @@
         function divideQuantityByHours(totalQty, hours) {
             // Làm tròn đến 0.5h
             const roundedHours = Math.round(hours * 2) / 2;
-            
-            // Tính số slot (mỗi slot = 1 giờ)
-            const totalSlots = Math.floor(roundedHours);
-            const hasHalfHour = roundedHours - totalSlots >= 0.5;
-            
-            const baseQty = Math.floor(totalQty / (totalSlots + (hasHalfHour ? 1 : 0)));
-            let remainder = totalQty - (baseQty * (totalSlots + (hasHalfHour ? 1 : 0)));
+            // Số slots = hours × 2 (mỗi 0.5h = 1 slot)
+            const totalSlots = Math.ceil(roundedHours * 2);
+            const baseQty = Math.floor(totalQty / totalSlots);
+            let remainder = totalQty - (baseQty * totalSlots);
             
             const result = [];
-            
             for (let i = 0; i < totalSlots; i++) {
                 let qty = baseQty;
                 if (remainder > 0) {
@@ -1730,36 +1710,23 @@
                 result.push(qty);
             }
             
-            if (hasHalfHour) {
-                let halfHourQty = baseQty;
-                if (remainder > 0) {
-                    halfHourQty++;
-                    remainder--;
-                }
-                result.push(halfHourQty);
-            }
-            
-            const currentSum = result.reduce((a, b) => a + b, 0);
-            if (currentSum !== totalQty && result.length > 0) {
-                const diff = totalQty - currentSum;
-                result[result.length - 1] += diff;
-            }
-            
             return result;
         }
 
-        async function showBatchPreview() {
+        async function processBatchMode() {
             if (batchSelectedPackages.length === 0) {
                 Swal.fire('⚠️ Chưa chọn gói', 'Vui lòng chọn ít nhất 1 gói và nhập số giờ!', 'warning');
                 return;
             }
             
+            // Hiển thị preview modal
             document.getElementById('batchPreviewModal').classList.add('open');
             const content = document.getElementById('batchPreviewContent');
             content.innerHTML = '<div class="loader"></div> Đang tạo preview...';
             
+            // Tạo preview HTML
             let previewHtml = '<div style="max-height: 500px; overflow-y: auto;">';
-            previewHtml += '<h4 style="margin-bottom: 15px; color: #1a2980;">📋 Xem trước dữ liệu sẽ gửi:</h4>';
+            previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0;">📋 Xem trước dữ liệu sẽ gửi:</h4>';
             
             batchSelectedPackages.forEach(item => {
                 const distribution = divideQuantityByHours(item.target, item.hours);
@@ -1795,7 +1762,7 @@
             
             previewHtml += `
                 <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
-                    <h5 style="margin: 0 0 10px 0; color: #1a2980;">📊 Tổng kết:</h5>
+                    <h5 style="margin: 0 0 10px 0; color: #1565c0;">📊 Tổng kết:</h5>
                     <div style="display: flex; justify-content: space-between;">
                         <div><strong>Số gói:</strong> ${batchSelectedPackages.length}</div>
                         <div><strong>Tổng SL:</strong> ${batchSelectedPackages.reduce((sum, p) => sum + p.target, 0)}</div>
@@ -1812,24 +1779,14 @@
             document.getElementById('batchPreviewModal').classList.remove('open');
         }
 
-        function closeBatchResultsModal() {
-            document.getElementById('batchResultsModal').classList.remove('open');
-        }
-
-        // ========== BATCH PROCESSING WITH REAL API (FIXED) ==========
         async function confirmBatchProcess() {
             closeBatchPreviewModal();
             
-            const apiKey = document.getElementById('apiKey').value;
-            if (!apiKey) {
-                Swal.fire('❌ Lỗi', 'Vui lòng nhập API Key trước khi gửi!', 'error');
-                return;
-            }
-            
+            // Hiển thị loading
             Swal.fire({
                 title: '⏳ Đang xử lý hàng loạt...',
-                html: `Đang gửi ${batchSelectedPackages.length} gói lên hệ thống...<br>
-                      <small>Vui lòng giữ nguyên màn hình</small>`,
+                html: `Đang gửi ${batchSelectedPackages.length} gói...<br>
+                      <small>Vui lòng không đóng trình duyệt</small>`,
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -1838,280 +1795,145 @@
             
             let successCount = 0;
             let failCount = 0;
-            const results = [];
             const errors = [];
+            const apiKey = document.getElementById('apiKey').value;
             
-            // XỬ LÝ GỬI THẬT
-            for (const [index, item] of batchSelectedPackages.entries()) {
+            // Kiểm tra turnstile token
+            if (!isLocalhost && (!turnstileToken || Date.now() - tokenTimestamp > TOKEN_MAX_AGE)) {
+                await refreshTurnstileToken();
+            }
+            
+            // Xử lý từng package
+            for (const item of batchSelectedPackages) {
                 try {
-                    // 1. Chia sản lượng
+                    // 1. Chuẩn bị dữ liệu sản lượng phân bổ theo giờ
                     const distribution = divideQuantityByHours(item.target, item.hours);
-                    const productionData = createProductionDataFromDistribution(distribution, item.hours);
                     
-                    // 2. Tìm máy tự động (cải tiến)
-                    const machineInfo = await getAutoMachineForPackage(item.pkgId, apiKey);
+                    // 2. Tạo production_data object
+                    const productionData = {};
+                    let slotIndex = 0;
                     
-                    if (!machineInfo || !machineInfo.opserial) {
-                        throw new Error(`Không tìm thấy Operation/Máy phù hợp`);
-                    }
-                    
-                    // 3. Gửi dữ liệu (Gửi thật)
-                    // Lưu ý: isBatch = true để bỏ qua check token
-                    const result = await sendProductionDataToMES({
-                        mxpackage: item.pkgId,
-                        opserial: machineInfo.opserial,
-                        production_data: productionData,
-                        apiKey: apiKey,
-                        sendFA: false, // Batch mode không gửi FA
-                        isBatch: true  // Cờ báo hiệu đây là gửi batch
+                    // Phân bổ sản lượng vào các timeslot
+                    timeSlots.forEach((slot, idx) => {
+                        // Bỏ qua các slot nghỉ
+                        const isLunch = idx === 4;
+                        const isDinner = idx === 12;
+                        
+                        if (isLunch || (item.hours > 8 && isDinner)) {
+                            return; // Bỏ qua slot nghỉ
+                        }
+                        
+                        if (slotIndex < distribution.length) {
+                            productionData[slot] = distribution[slotIndex];
+                            slotIndex++;
+                        }
                     });
                     
-                    if (result.success) {
-                        successCount++;
-                        results.push({
-                            pkgId: item.pkgId,
-                            success: true,
-                            message: `✅ Đã gửi ${Object.values(productionData).reduce((a,b)=>a+b,0)} SL`,
-                            machine: `Máy ${machineInfo.opserial} (${machineInfo.name})`
-                        });
-                    } else {
-                        throw new Error(result.message || "Server trả về lỗi không xác định");
+                    // 3. Gửi dữ liệu sản lượng lên API
+                    const payload = {
+                        mxpackage: item.pkgId,
+                        opserial: "1", // Sử dụng máy mặc định cho batch mode
+                        production_data: productionData,
+                        action: 'update'
+                    };
+                    
+                    // Thêm turnstile token nếu có
+                    if (turnstileToken && !isLocalhost) {
+                        payload.cf_turnstile_response = turnstileToken;
                     }
                     
-                    // Delay nhẹ để tránh DDOS server
-                    if (index < batchSelectedPackages.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 800));
+                    // Gọi API gửi sản lượng
+                    const prodRes = await fetch(PROD_API, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': apiKey
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const prodJson = await prodRes.json();
+                    
+                    if (!prodRes.ok || !prodJson.success) {
+                        throw new Error(prodJson.message || `HTTP ${prodRes.status}`);
                     }
+                    
+                    // 4. (Tùy chọn) Gửi lệnh FA nếu cần
+                    let faSuccess = false;
+                    if (globalFaEnabled) {
+                        try {
+                            const faResult = await sendFaCommand(apiKey, item.pkgId, "1");
+                            faSuccess = faResult.success;
+                        } catch (faError) {
+                            console.warn(`Không thể gửi FA cho ${item.pkgId}:`, faError);
+                        }
+                    }
+                    
+                    successCount++;
+                    
+                    // Log kết quả
+                    console.log(`✅ Đã gửi: ${item.pkgId} - ${item.target}pcs - ${item.hours}h`);
                     
                 } catch (error) {
-                    console.error(`Lỗi xử lý gói ${item.pkgId}:`, error);
+                    console.error(`❌ Lỗi gửi ${item.pkgId}:`, error);
                     failCount++;
-                    errors.push(`<b>${item.pkgId}</b>: ${error.message}`);
-                    results.push({
-                        pkgId: item.pkgId,
-                        success: false,
-                        message: `❌ ${error.message}`
-                    });
+                    errors.push(`${item.pkgId}: ${error.message || error}`);
                 }
             }
             
             Swal.close();
-            showBatchResults(successCount, failCount, results, errors);
-        }
-
-        function createProductionDataFromDistribution(distribution, hours) {
-            const productionData = {};
-            const lunchSlot = 4;
-            const dinnerSlot = 12;
             
-            let distributionIndex = 0;
-            
-            for (let i = 0; i < 13; i++) {
-                const timeSlot = timeSlots[i];
-                
-                if (i === lunchSlot) {
-                    productionData[timeSlot] = 0;
-                    continue;
-                }
-                
-                if (hours <= 7.5 && i >= 9) {
-                    break;
-                }
-                
-                if (hours >= 11 && i === dinnerSlot) {
-                    productionData[timeSlot] = 0;
-                    continue;
-                }
-                
-                if (distributionIndex < distribution.length) {
-                    productionData[timeSlot] = distribution[distributionIndex];
-                    distributionIndex++;
-                } else {
-                    productionData[timeSlot] = 0; // Fill 0 nếu hết phân bổ nhưng còn slot
-                }
-            }
-            
-            return productionData;
-        }
-
-        async function getAutoMachineForPackage(packageId, apiKey) {
-            try {
-                const url = `${MODULE_API}?mxpackage=${packageId}&mode=operations&apikey=${apiKey}`;
-                const res = await fetch(url);
-                const json = await res.json();
-                
-                if (!json.success || !json.data || !json.data.operations) {
-                    return null;
-                }
-                
-                const operations = json.data.operations.filter(op => op.opserial != null && op.opserial !== "");
-                
-                if (operations.length === 0) return null;
-
-                // Ưu tiên 1: Tìm máy có Serial "1"
-                const machineOne = operations.find(op => parseInt(op.opserial) === 1);
-                if (machineOne) {
-                    return {
-                        opserial: String(machineOne.opserial),
-                        name: machineOne.remarks || machineOne.opname,
-                        isFA: machineOne.iottype === 'FA'
-                    };
-                }
-                
-                // Ưu tiên 2: Tìm máy có Serial nhỏ nhất
-                operations.sort((a, b) => parseInt(a.opserial) - parseInt(b.opserial));
-                
-                const firstMachine = operations[0];
-                return {
-                    opserial: String(firstMachine.opserial),
-                    name: firstMachine.remarks || firstMachine.opname,
-                    isFA: firstMachine.iottype === 'FA'
-                };
-                
-            } catch (error) {
-                console.error(`Error getting machine for ${packageId}:`, error);
-                return null;
-            }
-        }
-
-        async function sendProductionDataToMES({ mxpackage, opserial, production_data, apiKey, sendFA = false, isBatch = false }) {
-            try {
-                const payload = {
-                    mxpackage: mxpackage,
-                    opserial: opserial,
-                    production_data: production_data,
-                    action: 'update'
-                };
-                
-                // QUAN TRỌNG: Nếu là Batch Mode, KHÔNG gửi turnstile token cũ
-                if (!isBatch && !isLocalhost && turnstileToken) {
-                    payload.cf_turnstile_response = turnstileToken;
-                }
-                
-                const response = await fetch(PROD_API, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': apiKey
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    return {
-                        success: true,
-                        message: result.message || "Gửi thành công",
-                        data: result.data
-                    };
-                } else {
-                    return {
-                        success: false,
-                        message: result.message || `Lỗi server: ${response.status}`,
-                        status: response.status
-                    };
-                }
-                
-            } catch (error) {
-                return {
-                    success: false,
-                    message: `Lỗi kết nối: ${error.message}`
-                };
-            }
-        }
-
-        function showBatchResults(successCount, failCount, results, errors) {
-            document.getElementById('batchResultsModal').classList.add('open');
-            const content = document.getElementById('batchResultsContent');
-            
-            let resultsHtml = `
-                <div style="text-align: center;">
-                    <h4 style="color: ${failCount === 0 ? '#4CAF50' : '#FF9800'}; margin-bottom: 20px;">
+            // Hiển thị kết quả
+            const resultHtml = `
+                <div style="text-align: left;">
+                    <h4 style="color: ${failCount === 0 ? '#4CAF50' : '#FF9800'}">
                         ${failCount === 0 ? '✅ Hoàn thành!' : '⚠️ Hoàn thành một phần'}
                     </h4>
-                    
-                    <div class="batch-results-grid">
-                        <div class="batch-result-card batch-result-success">
-                            <div class="batch-result-number" style="color: #4CAF50;">${successCount}</div>
-                            <div class="batch-result-label">Thành công</div>
-                        </div>
-                        <div class="batch-result-card batch-result-fail">
-                            <div class="batch-result-number" style="color: #F44336;">${failCount}</div>
-                            <div class="batch-result-label">Thất bại</div>
-                        </div>
-                    </div>
-            `;
-            
-            if (results.length > 0) {
-                resultsHtml += `
-                    <div style="margin-top: 20px; text-align: left;">
-                        <h5 style="margin: 0 0 10px 0; color: #1a2980;">📋 Chi tiết kết quả:</h5>
-                        <div style="max-height: 300px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 10px;">
-                `;
-                
-                results.forEach(result => {
-                    resultsHtml += `
-                        <div style="display: flex; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 12px;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: bold; color: #1a2980;">${result.pkgId}</div>
-                                <div style="color: ${result.success ? '#4CAF50' : '#F44336'}; font-size: 11px;">
-                                    ${result.message}
-                                </div>
-                            </div>
-                            ${result.machine ? `<span style="background: #e3f2fd; padding: 2px 8px; border-radius: 10px; font-size: 10px; color: #2196F3;">${result.machine}</span>` : ''}
-                        </div>
-                    `;
-                });
-                
-                resultsHtml += `</div></div>`;
-            }
-            
-            if (errors.length > 0) {
-                resultsHtml += `
-                    <div style="margin-top: 15px; text-align: left;">
-                        <h6 style="margin: 0 0 5px 0; color: #E65100;">📝 Chi tiết lỗi:</h6>
-                        <div style="font-size: 11px; color: #666; background: #FFF3E0; padding: 10px; border-radius: 5px; max-height: 150px; overflow-y: auto;">
+                    <p>✅ Thành công: <b style="color: green;">${successCount}</b> gói</p>
+                    ${failCount > 0 ? `<p>❌ Thất bại: <b style="color: red;">${failCount}</b> gói</p>` : ''}
+                    ${errors.length > 0 ? `
+                        <div style="background: #ffebee; padding: 10px; border-radius: 5px; margin-top: 10px; max-height: 200px; overflow-y: auto;">
+                            <strong>Chi tiết lỗi:</strong><br>
                             ${errors.join('<br>')}
                         </div>
+                    ` : ''}
+                    <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 5px;">
+                        <small><i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> Batch mode sử dụng máy mặc định (OPSERIAL=1) cho tất cả gói.</small>
                     </div>
-                `;
-            }
-            
-            resultsHtml += `
-                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                    <p style="font-size: 12px; color: #666;">
-                        <i class="fas fa-info-circle"></i> 
-                        ${successCount > 0 ? 'Dữ liệu đã được gửi lên hệ thống MES.' : 'Không có dữ liệu nào được gửi thành công.'}
-                        ${failCount > 0 ? 'Vui lòng kiểm tra lại các gói bị lỗi.' : ''}
-                    </p>
                 </div>
-            </div>`;
+            `;
             
-            content.innerHTML = resultsHtml;
-            
-            // Reset sau khi hiển thị kết quả
-            setTimeout(() => {
-                if (successCount > 0) {
-                    resetBatchSelection();
-                    setTimeout(() => {
-                        loadPackages();
-                    }, 2000);
-                }
-            }, 1000);
-        }
-
-        function resetBatchSelection() {
-            document.querySelectorAll('.pkg-checkbox:checked').forEach(cb => {
-                cb.checked = false;
-                const hoursInput = cb.closest('.pkg-batch-col').querySelector('.pkg-hours-input');
-                hoursInput.value = '';
-                hoursInput.disabled = true;
+            Swal.fire({
+                title: 'Kết quả xử lý',
+                html: resultHtml,
+                icon: failCount === 0 ? 'success' : 'warning',
+                confirmButtonText: 'OK',
+                width: 600
+            }).then(() => {
+                // Reset sau khi hoàn thành
+                document.querySelectorAll('.pkg-checkbox:checked').forEach(cb => {
+                    cb.checked = false;
+                    const hoursInput = cb.closest('.pkg-batch-col').querySelector('.pkg-hours-input');
+                    hoursInput.value = '';
+                    hoursInput.disabled = true;
+                });
+                updateBatchSummary();
+                
+                // Quay về step 1
+                goToStep(1);
             });
-            updateBatchSummary();
         }
 
-        // ========== CÁC HÀM CƠ BẢN (giữ nguyên từ phiên bản trước) ==========
+        // ========== CÁC HÀM CÒN LẠI GIỮ NGUYÊN ==========
+        // [Các hàm recalculateTarget, generateManualGrid, checkPerf, resetManualInputs, 
+        // autoDistributeCustom, autoDistribute, processManualData, updatePreviewTable,
+        // scanFAMachines, toggleGlobalFA, updateFAStatusText, toggleMachineFA, 
+        // selectMachine, clearMachineSelection, toggleManualInput, confirmManualSerial,
+        // viewPackageDetails, copySerials, copyRemarks, closeModal,
+        // showConfirmModal, closeConfirmModal, confirmSendToMES, sendToMES, goToStep]
+        // ... (giữ nguyên các hàm còn lại từ file gốc)
+
+        // ========== INPUT MANAGEMENT ==========
         function recalculateTarget() {
             const hours = parseFloat(document.getElementById('workHoursInput').value);
             hourlyTarget = dailyTarget > 0 ? Math.ceil(dailyTarget / hours) : 36;
@@ -2171,6 +1993,7 @@
                 card.classList.add(val >= hourlyTarget ? 'status-success' : (val >= hourlyTarget*0.7 ? 'status-warning' : 'status-error'));
             }
             
+            // REAL-TIME OT DETECTION
             let total = 0;
             let hasOT = false;
 
@@ -2178,6 +2001,7 @@
                 const inputVal = parseInt(inputEl.value) || 0;
                 if(!inputEl.disabled) {
                     total += inputVal;
+                    // Kiểm tra OT (từ slot 9 trở đi)
                     if (i >= OT_INDEX_START && inputVal > 0) hasOT = true;
                 }
             });
@@ -2190,7 +2014,7 @@
                 manualSummary.style.background = 'linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%)';
             } else {
                 totalDisplay.innerText = total;
-                manualSummary.style.background = 'linear-gradient(135deg, #263238 0%, #37474f 100%)';
+                manualSummary.style.background = '#263238';
             }
             
             totalDisplay.style.color = total > dailyTarget ? '#ff5252' : '#ffffff';
@@ -2216,7 +2040,7 @@
             });
             
             document.getElementById('manualTotalDisplay').innerText = '0';
-            document.querySelector('.manual-summary').style.background = 'linear-gradient(135deg, #263238 0%, #37474f 100%)';
+            document.querySelector('.manual-summary').style.background = '#263238';
             document.querySelectorAll('.slot-card').forEach(card => {
                 card.classList.remove('status-success', 'status-warning', 'status-error');
             });
@@ -2225,9 +2049,11 @@
             document.getElementById('manualRemainingDisplay').style.color = '#4CAF50';
             document.getElementById('manualRemainingDisplay').previousElementSibling.innerText = "Còn lại:";
             
+            // Reset target display
             document.getElementById('manualTargetDisplay').innerText = dailyTarget;
         }
 
+        // ========== AUTO DISTRIBUTION ==========
         function autoDistributeCustom() {
             const h = parseFloat(document.getElementById('customSplitHours').value);
             const mode = parseFloat(document.getElementById('workHoursInput').value);
@@ -2869,7 +2695,6 @@
                     action: 'update' 
                 };
                 
-                // Gửi đơn lẻ vẫn dùng Token bình thường
                 if(turnstileToken && !isLocalhost) payload.cf_turnstile_response = turnstileToken;
                 
                 const prodPromise = fetch(PROD_API, { 
@@ -2999,3 +2824,4 @@
     </script>
 </body>
 </html>
+<!-- END OF FILE mes_production_v7.7_final_with_shortcuts_fixed.html -->
