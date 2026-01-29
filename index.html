@@ -1,10 +1,9 @@
-<!-- START OF FILE mes_production_v7.8_batch_mode_final.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Production V7.8 (Batch Mode Pro)</title>
+    <title>MES Production V7.8 (Batch Mode Fixed)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -64,10 +63,9 @@
         /* ========== PACKAGE LIST (NEW LAYOUT) ========== */
         .package-list-container { max-height: 550px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; background: white; padding: 5px; }
         
-        /* Giao diện thẻ Package mới: GRID 3 CỘT (Ảnh - Info - Status) */
         .package-card { 
             display: grid; 
-            grid-template-columns: 110px 1fr 100px 120px; /* Thêm cột batch mode */
+            grid-template-columns: 110px 1fr 100px 120px;
             gap: 0;
             border: 1px solid #e0e0e0; 
             border-radius: 8px; 
@@ -82,7 +80,6 @@
         .package-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-color: #bbb; }
         .package-card.selected { border: 2px solid #2196F3; background: #e3f2fd; }
 
-        /* CỘT 1: ẢNH TO */
         .pkg-img-col {
             background: #f1f1f1;
             border-right: 1px solid #eee;
@@ -98,7 +95,6 @@
             display: block;
         }
 
-        /* CỘT 2: THÔNG TIN */
         .pkg-info-col {
             padding: 10px 15px;
             display: flex;
@@ -117,7 +113,6 @@
             font-size: 14px;
             font-weight: 500;
         }
-        /* CỘT 3: TRẠNG THÁI */
         .pkg-status-col {
             padding: 10px;
             display: flex;
@@ -128,10 +123,8 @@
             border-left: 1px dashed #eee;
         }
 
-        /* ========== OT BADGE ========== */
         .ot-badge { display: inline-block; background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%); color: white; font-size: 12px; font-weight: 800; padding: 2px 4px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
         
-        /* ========== PACKAGE STATUS ========== */
         .qty-display { font-size: 24px; font-weight: 800; line-height: 1.2; padding: 2px 8px; border-radius: 6px; margin-bottom: 2px; display: inline-block; }
         .status-text { font-size: 11px; font-weight: 600; opacity: 0.9; }
         .st-done .qty-display { color: #2e7d32; background: #e8f5e9; } .st-done .status-text { color: #2e7d32; }
@@ -141,11 +134,9 @@
         .status-loading { color: #2196F3; font-size: 12px; font-style: italic; }
         .mini-loader { width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #2196F3; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         
-        /* ========== SUMMARY BANNER ========== */
         .summary-banner { display: flex; justify-content: space-between; align-items: center; font-size: 16px; }
         .summary-val { font-size: 18px; font-weight: bold; }
         
-        /* ========== SPLIT TOOLBAR ========== */
         .split-toolbar { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
         .split-toolbar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .split-toolbar-header h4 { margin: 0; color: #e65100; font-size: 16px; }
@@ -153,7 +144,6 @@
         .custom-hour-input { width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-weight: bold; }
         .btn-separator { width: 2px; height: 30px; background: #ddd; margin: 0 5px; }
         
-        /* ========== MANUAL INPUT SECTION ========== */
         .manual-summary { margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #263238 0%, #37474f 100%); color: white; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; transition: background 0.3s; }
         .manual-summary-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
         .summary-block { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
@@ -161,7 +151,6 @@
         .summary-label { font-size: 14px; color: #aaa; font-weight: normal; }
         .remaining-badge { background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
         
-        /* ========== TIME SLOT GRID ========== */
         .manual-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; }
         .slot-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; position: relative; background: white; transition: 0.3s; min-height: 120px; }
         .slot-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -181,7 +170,6 @@
         .status-warning { background-color: #fffde7 !important; border-color: #FBC02D !important; }
         .status-error { background-color: #ffebee !important; border-color: #e53935 !important; }
         
-        /* ========== BUTTONS ========== */
         .btn { padding: 12px 25px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 10px; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-primary { background: linear-gradient(90deg, #1a2980 0%, #26d0ce 100%); color: white; }
@@ -195,15 +183,12 @@
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-full { width: 100%; justify-content: center; }
         
-        /* ========== PACKAGE INFO ========== */
         .package-info-card { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 15px 0; }
         .package-info-row { display: flex; margin-bottom: 8px; }
         .package-info-label { font-weight: 600; min-width: 140px; color: #1a2980; }
         
-        /* ========== HIDDEN UTILITY ========== */
         .hidden { display: none !important; }
         
-        /* ========== STEP 3: MACHINE SELECTION ========== */
         .context-header { background: #fff3e0; border-left: 5px solid #ff9800; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         .context-title { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
         .context-value { font-size: 16px; font-weight: bold; color: #e65100; margin-top: 5px; line-height: 1.4; word-break: break-all; }
@@ -218,7 +203,6 @@
         
         .selection-info { margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 5px solid #2196F3; }
         
-        /* ========== MACHINE LIST ========== */
         .machine-list { list-style: none; margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
         .machine-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; position: relative; }
         .machine-item:hover { background: #f5f5f5; }
@@ -230,7 +214,6 @@
         .fa-toggle-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; border-radius: 50%; transition: all 0.2s; background: transparent; border: none; color: #4CAF50; }
         .machine-one-badge { background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-left: 8px; }
         
-        /* ========== PREVIEW TABLE ========== */
         .preview-container { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-top: 20px; border: 2px solid #e3f2fd; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
         .preview-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e3f2fd; }
         .preview-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
@@ -243,7 +226,6 @@
         .preview-table td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px; }
         .preview-table .total-row { background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%) !important; font-weight: bold; border-top: 2px solid #4CAF50; }
         
-        /* ========== MODALS ========== */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
         .modal-overlay.open { opacity: 1; visibility: visible; }
         .modal-box { background: white; width: 95%; max-width: 900px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; transform: translateY(-20px); transition: transform 0.3s ease-out; }
@@ -252,7 +234,6 @@
         .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
         .modal-footer { padding: 20px 25px; border-top: 1px solid #eee; display: flex; gap: 10px; justify-content: flex-end; background: #f8f9fa; border-radius: 0 0 15px 15px; flex-wrap: wrap; }
         
-        /* ========== DETAIL MODAL ========== */
         .detail-module { margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
         .detail-module-header { background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%); padding: 12px 18px; font-weight: bold; color: #1a2980; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
         .detail-module-count { background: #2196F3; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
@@ -263,7 +244,6 @@
         .serial-tag { background: #e0e0e0; padding: 4px 10px; border-radius: 20px; font-family: monospace; color: #333; font-weight: 600; font-size: 13px; }
         .detail-checkbox { cursor: pointer; }
         
-        /* ========== CONFIRM MODAL ========== */
         .confirm-modal { max-width: 600px !important; }
         .confirm-modal .modal-header { background: linear-gradient(90deg, #FF9800 0%, #FFC107 100%); }
         .confirm-details { margin: 20px 0; }
@@ -273,7 +253,6 @@
         .confirm-highlight { color: #e65100; font-size: 18px; }
         .confirm-warning { background: #fff3e0; border-left-color: #FF9800; padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; align-items: flex-start; gap: 10px; }
         
-        /* ========== RESULT PAGE ========== */
         .result-success-animation { display: flex; justify-content: center; margin: 20px 0 30px; }
         .checkmark-circle { width: 80px; height: 80px; border-radius: 50%; background: #4CAF50; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); }
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } 50% { transform: scale(1.05); box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6); } 100% { transform: scale(1); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); } }
@@ -291,11 +270,9 @@
         .pill-gray { background: #607D8B; color: white; }
         .pill-info { background: #2196F3; color: white; }
         
-        /* ========== LOADER ========== */
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* ========== TURNSTILE WIDGET ========== */
         .turnstile-floating { position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); border: 1px solid rgba(59, 130, 246, 0.4); width: 320px; overflow: hidden; transition: all 0.4s; }
         .turnstile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: linear-gradient(to right, #eff6ff, #fff); border-bottom: 1px solid rgba(59, 130, 246, 0.1); }
         .turnstile-title { font-size: 0.85rem; font-weight: 700; color: #2563eb; }
@@ -308,13 +285,11 @@
         .turnstile-minimized-icon { display: none; font-size: 1.5rem; justify-content: center; align-items: center; height: 100%; color: white; background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); }
         .turnstile-floating.minimized .turnstile-minimized-icon { display: flex; }
         
-        /* ========== SCROLLBAR ========== */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #aaa; }
     
-        /* ========== BATCH MODE STYLES ========== */
         .batch-mode-toggle {
             background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
             color: white;
@@ -402,7 +377,6 @@
             margin-right: 8px;
         }
         
-        /* Package Card - Batch Mode */
         .pkg-batch-col {
             padding: 10px;
             display: flex;
@@ -451,7 +425,6 @@
             display: block;
         }
         
-        /* Batch Summary */
         .batch-summary {
             background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
             border: 2px solid #2196F3;
@@ -495,7 +468,6 @@
             color: #1a2980;
         }
         
-        /* Batch Action Button */
         .btn-batch {
             background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
             color: white;
@@ -528,7 +500,6 @@
             box-shadow: none;
         }
         
-        /* Batch Preview Modal */
         .batch-preview-item {
             background: #f8f9fa;
             border-radius: 8px;
@@ -585,7 +556,6 @@
             font-family: monospace;
         }
         
-        /* Batch Results */
         .batch-results-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1846,7 +1816,7 @@
             document.getElementById('batchResultsModal').classList.remove('open');
         }
 
-        // ========== BATCH PROCESSING WITH REAL API ==========
+        // ========== BATCH PROCESSING WITH REAL API (FIXED) ==========
         async function confirmBatchProcess() {
             closeBatchPreviewModal();
             
@@ -1858,8 +1828,8 @@
             
             Swal.fire({
                 title: '⏳ Đang xử lý hàng loạt...',
-                html: `Đang gửi ${batchSelectedPackages.length} gói...<br>
-                      <small>Vui lòng không đóng trình duyệt</small>`,
+                html: `Đang gửi ${batchSelectedPackages.length} gói lên hệ thống...<br>
+                      <small>Vui lòng giữ nguyên màn hình</small>`,
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -1871,23 +1841,29 @@
             const results = [];
             const errors = [];
             
+            // XỬ LÝ GỬI THẬT
             for (const [index, item] of batchSelectedPackages.entries()) {
                 try {
+                    // 1. Chia sản lượng
                     const distribution = divideQuantityByHours(item.target, item.hours);
                     const productionData = createProductionDataFromDistribution(distribution, item.hours);
                     
+                    // 2. Tìm máy tự động (cải tiến)
                     const machineInfo = await getAutoMachineForPackage(item.pkgId, apiKey);
                     
                     if (!machineInfo || !machineInfo.opserial) {
-                        throw new Error(`Không tìm thấy máy`);
+                        throw new Error(`Không tìm thấy Operation/Máy phù hợp`);
                     }
                     
+                    // 3. Gửi dữ liệu (Gửi thật)
+                    // Lưu ý: isBatch = true để bỏ qua check token
                     const result = await sendProductionDataToMES({
                         mxpackage: item.pkgId,
                         opserial: machineInfo.opserial,
                         production_data: productionData,
                         apiKey: apiKey,
-                        sendFA: false // Batch mode không gửi FA
+                        sendFA: false, // Batch mode không gửi FA
+                        isBatch: true  // Cờ báo hiệu đây là gửi batch
                     });
                     
                     if (result.success) {
@@ -1896,20 +1872,21 @@
                             pkgId: item.pkgId,
                             success: true,
                             message: `✅ Đã gửi ${Object.values(productionData).reduce((a,b)=>a+b,0)} SL`,
-                            machine: `Máy ${machineInfo.opserial}`
+                            machine: `Máy ${machineInfo.opserial} (${machineInfo.name})`
                         });
                     } else {
-                        throw new Error(result.message);
+                        throw new Error(result.message || "Server trả về lỗi không xác định");
                     }
                     
+                    // Delay nhẹ để tránh DDOS server
                     if (index < batchSelectedPackages.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 800));
                     }
                     
                 } catch (error) {
-                    console.error(`Failed batch processing for ${item.pkgId}:`, error);
+                    console.error(`Lỗi xử lý gói ${item.pkgId}:`, error);
                     failCount++;
-                    errors.push(`${item.pkgId}: ${error.message}`);
+                    errors.push(`<b>${item.pkgId}</b>: ${error.message}`);
                     results.push({
                         pkgId: item.pkgId,
                         success: false,
@@ -1950,7 +1927,7 @@
                     productionData[timeSlot] = distribution[distributionIndex];
                     distributionIndex++;
                 } else {
-                    productionData[timeSlot] = 0;
+                    productionData[timeSlot] = 0; // Fill 0 nếu hết phân bổ nhưng còn slot
                 }
             }
             
@@ -1967,8 +1944,11 @@
                     return null;
                 }
                 
-                const operations = json.data.operations.filter(op => op.opserial != null);
+                const operations = json.data.operations.filter(op => op.opserial != null && op.opserial !== "");
                 
+                if (operations.length === 0) return null;
+
+                // Ưu tiên 1: Tìm máy có Serial "1"
                 const machineOne = operations.find(op => parseInt(op.opserial) === 1);
                 if (machineOne) {
                     return {
@@ -1978,16 +1958,15 @@
                     };
                 }
                 
-                if (operations.length > 0) {
-                    const firstMachine = operations[0];
-                    return {
-                        opserial: String(firstMachine.opserial),
-                        name: firstMachine.remarks || firstMachine.opname,
-                        isFA: firstMachine.iottype === 'FA'
-                    };
-                }
+                // Ưu tiên 2: Tìm máy có Serial nhỏ nhất
+                operations.sort((a, b) => parseInt(a.opserial) - parseInt(b.opserial));
                 
-                return null;
+                const firstMachine = operations[0];
+                return {
+                    opserial: String(firstMachine.opserial),
+                    name: firstMachine.remarks || firstMachine.opname,
+                    isFA: firstMachine.iottype === 'FA'
+                };
                 
             } catch (error) {
                 console.error(`Error getting machine for ${packageId}:`, error);
@@ -1995,7 +1974,7 @@
             }
         }
 
-        async function sendProductionDataToMES({ mxpackage, opserial, production_data, apiKey, sendFA = false }) {
+        async function sendProductionDataToMES({ mxpackage, opserial, production_data, apiKey, sendFA = false, isBatch = false }) {
             try {
                 const payload = {
                     mxpackage: mxpackage,
@@ -2004,7 +1983,8 @@
                     action: 'update'
                 };
                 
-                if (turnstileToken && !isLocalhost) {
+                // QUAN TRỌNG: Nếu là Batch Mode, KHÔNG gửi turnstile token cũ
+                if (!isBatch && !isLocalhost && turnstileToken) {
                     payload.cf_turnstile_response = turnstileToken;
                 }
                 
@@ -2889,6 +2869,7 @@
                     action: 'update' 
                 };
                 
+                // Gửi đơn lẻ vẫn dùng Token bình thường
                 if(turnstileToken && !isLocalhost) payload.cf_turnstile_response = turnstileToken;
                 
                 const prodPromise = fetch(PROD_API, { 
@@ -3018,4 +2999,3 @@
     </script>
 </body>
 </html>
-<!-- END OF FILE mes_production_v7.8_batch_mode_final.html -->
