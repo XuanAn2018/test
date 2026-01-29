@@ -827,6 +827,7 @@
                     if (!nextBtn.disabled) {
                         goToStep(2);
                     }
+                    return; // ✅ THÊM: Ngăn chặn xử lý tiếp
                 }
             }
             
@@ -835,6 +836,7 @@
                 if (e.key === 'Enter' && e.ctrlKey) {
                     e.preventDefault();
                     processManualData();
+                    return; // ✅ THÊM: Ngăn chặn trigger showConfirmModal() ở step 3
                 }
             }
             
@@ -843,6 +845,7 @@
                 if (e.key === 'Enter' && e.ctrlKey) {
                     e.preventDefault();
                     showConfirmModal();
+                    return; // ✅ THÊM: Best practice - thoát sau khi xử lý xong
                 }
             }
             
