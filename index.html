@@ -1,10 +1,10 @@
-<!-- START OF FILE mes_production_v7.8_final_large_text.html -->
+<!-- START OF FILE mes_production_v7.8_fixed.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Production V7.8 (Large Text Modal)</title>
+    <title>MES Production V7.8 (Fixed Logic)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -527,148 +527,92 @@
             box-shadow: none;
         }
         
-        /* ========== BATCH PREVIEW MODAL - LARGE TEXT ========== */
+        /* ========== BATCH PREVIEW MODAL - COMPACT LAYOUT ========== */
         .batch-preview-modal .modal-box {
             max-width: 850px !important;
         }
         
-        .batch-preview-modal .batch-preview-header {
+        .batch-preview-modal .compact-preview-header {
             display: flex;
             align-items: flex-start;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 15px;
         }
         
-        .batch-preview-modal .batch-preview-img {
-            width: 80px;
-            height: 80px;
+        .batch-preview-modal .compact-preview-img {
+            width: 60px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid #ddd;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            flex-shrink: 0;
         }
         
-        .batch-preview-modal .batch-preview-details {
+        .batch-preview-modal .compact-preview-details {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
         
-        .batch-preview-modal .batch-preview-id {
+        .batch-preview-modal .compact-preview-id {
             font-weight: bold;
             color: #1565c0;
-            font-size: 20px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
-            margin-bottom: 5px;
+            font-size: 16px !important;
             word-break: break-all;
+            line-height: 1.2;
         }
         
-        .batch-preview-modal .batch-preview-style {
+        .batch-preview-modal .compact-preview-style {
             font-weight: bold;
             color: #333;
-            font-size: 18px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
-            margin-bottom: 10px;
+            font-size: 15px !important;
+            line-height: 1.2;
         }
         
-        .batch-preview-modal .batch-preview-stats {
+        .batch-preview-modal .compact-preview-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
-            font-size: 16px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
+            gap: 10px;
+            font-size: 13px !important;
             color: #555;
-            margin-top: 5px;
+            margin-top: 3px;
         }
         
-        .batch-preview-modal .batch-preview-stats span {
-            font-weight: 600;
+        .batch-preview-modal .compact-preview-meta span {
+            font-weight: 500;
             background: #f0f4f8;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 3px 8px;
+            border-radius: 4px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
         }
         
-        .batch-preview-modal .batch-preview-color {
-            font-size: 16px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
-            color: #7b1fa2;
-            font-weight: 600;
-            margin-top: 5px;
-        }
-        
-        .batch-preview-modal .batch-preview-remarks {
-            font-size: 14px;
-            color: #666;
-            margin-top: 8px;
-            padding: 8px;
-            background: #f9f9f9;
-            border-radius: 5px;
-            border-left: 3px solid #ff9800;
-        }
-        
-        .batch-preview-modal .batch-preview-distribution {
-            font-size: 16px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
+        .batch-preview-modal .compact-preview-distribution {
+            font-size: 14px !important;
             font-weight: 500;
-            margin-top: 12px;
-            padding: 12px;
+            margin-top: 10px;
+            padding: 10px;
             background: #e3f2fd;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #bbdefb;
         }
         
-        .batch-preview-modal .batch-preview-distribution strong {
-            font-size: 16px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
+        .batch-preview-modal .compact-preview-distribution strong {
+            font-size: 14px !important;
             color: #1565c0;
             display: block;
             margin-bottom: 5px;
         }
         
-        .batch-preview-modal .batch-preview-total {
-            font-size: 18px !important;  /* TĂNG KÍCH THƯỚC CHỮ */
-            font-weight: bold;
-            margin-top: 8px;
-            padding: 8px;
-            background: #e8f5e9;
-            border-radius: 6px;
-            border: 1px solid #c8e6c9;
-        }
-        
-        .batch-preview-modal .batch-preview-item {
+        .batch-preview-modal .compact-preview-item {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 2px solid #e3f2fd;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        
-        .batch-preview-modal .summary-section {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border: 2px solid #2196F3;
-        }
-        
-        .batch-preview-modal .summary-section h5 {
-            color: #1565c0;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-        }
-        
-        .batch-preview-modal .summary-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .batch-preview-modal .summary-stats div {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .batch-preview-modal .summary-stats .stat-value {
-            font-size: 22px;
-            color: #1565c0;
-            display: block;
-            margin-top: 5px;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid #e3f2fd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         }
 
 </style>
@@ -677,7 +621,7 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-industry"></i> MES Production V7.8</h1>
-            <p>Smart Grouping & Gallery Mode with Large Text Modal</p>
+            <p>Smart Grouping & Gallery Mode (Fixed Logic)</p>
         </div>
         
         <div class="content">
@@ -1124,7 +1068,7 @@
         </div>
     </div>
 
-    <!-- BATCH PREVIEW MODAL (V7.8 - LARGE TEXT) -->
+    <!-- BATCH PREVIEW MODAL (V7.8 - FIXED LOGIC) -->
     <div class="modal-overlay" id="batchPreviewModal">
         <div class="modal-box" style="max-width: 850px;">
             <div class="modal-header">
@@ -1779,11 +1723,12 @@
             document.getElementById('batchProcessBtn').disabled = totalPackages === 0;
         }
 
+        // ========== FIXED: HÀM CHIA SẢN LƯỢNG THEO SỐ SLOT (MỖI SLOT = 1 GIỜ) ==========
         function divideQuantityByHours(totalQty, hours) {
             // Làm tròn đến 0.5h
             const roundedHours = Math.round(hours * 2) / 2;
-            // Số slots = hours × 2 (mỗi 0.5h = 1 slot)
-            const totalSlots = Math.ceil(roundedHours * 2);
+            // Số slots = số giờ (mỗi slot = 1 giờ)
+            const totalSlots = Math.ceil(roundedHours);
             const baseQty = Math.floor(totalQty / totalSlots);
             let remainder = totalQty - (baseQty * totalSlots);
             
@@ -1800,68 +1745,81 @@
             return result;
         }
 
+        // ========== FIXED: HÀM XÁC ĐỊNH SLOT OT DỰA TRÊN SỐ GIỜ ==========
+        function getOTSlotsForHours(hours) {
+            // Slot OT bắt đầu từ slot 9 (16:15-17:15)
+            const otSlots = [];
+            
+            if (hours > 8) {
+                // Nếu > 8 giờ => có OT
+                // Tính số slot OT = tổng giờ - 8.5 (trừ giờ hành chính và nghỉ trưa)
+                const otSlotCount = Math.ceil(hours) - 8;
+                
+                for (let i = 0; i < otSlotCount; i++) {
+                    if (9 + i < timeSlots.length) {
+                        otSlots.push(9 + i); // Slot 9, 10, 11, 12
+                    }
+                }
+            }
+            
+            return otSlots;
+        }
+
         async function processBatchMode() {
             if (batchSelectedPackages.length === 0) {
                 Swal.fire('⚠️ Chưa chọn gói', 'Vui lòng chọn ít nhất 1 gói và nhập số giờ!', 'warning');
                 return;
             }
             
-            // Hiển thị preview modal với large text
+            // Hiển thị preview modal với layout compact
             const modal = document.getElementById('batchPreviewModal');
             modal.classList.add('open');
+            modal.classList.add('batch-preview-modal');
             
             const content = document.getElementById('batchPreviewContent');
             content.innerHTML = '<div class="loader"></div> Đang tạo preview...';
             
-            // Tạo preview HTML với kích thước chữ lớn
+            // Tạo preview HTML với layout compact
             let previewHtml = '<div style="max-height: 500px; overflow-y: auto;">';
-            previewHtml += '<h4 style="margin-bottom: 20px; color: #1565c0; font-size: 20px; font-weight: bold;">📋 XEM TRƯỚC DỮ LIỆU BATCH MODE</h4>';
+            previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 XEM TRƯỚC DỮ LIỆU BATCH MODE</h4>';
             
             batchSelectedPackages.forEach(item => {
+                // SỬA: Mỗi slot = 1 giờ, không phải 0.5 giờ
                 const distribution = divideQuantityByHours(item.target, item.hours);
                 const sum = distribution.reduce((a,b) => a+b, 0);
                 const thumbUrl = generateThumbnailUrl(item.pkgId, item.fileName);
+                const otSlots = getOTSlotsForHours(item.hours);
                 
                 previewHtml += `
-                    <div class="batch-preview-item">
-                        <div class="batch-preview-header">
-                            <img src="${thumbUrl}" class="batch-preview-img" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd;" onerror="this.src='https://placehold.co/80x80?text=No+Img'">
-                            <div class="batch-preview-details">
-                                <div style="font-size: 20px; font-weight: bold; color: #1565c0; margin-bottom: 5px; word-break: break-all;">
+                    <div class="compact-preview-item">
+                        <div class="compact-preview-header">
+                            <img src="${thumbUrl}" class="compact-preview-img" onerror="this.src='https://placehold.co/60x60?text=No+Img'">
+                            <div class="compact-preview-details">
+                                <div class="compact-preview-id">
                                     ${item.pkgId}
                                 </div>
-                                <div style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px;">
+                                <div class="compact-preview-style">
                                     ${item.style}
                                 </div>
-                                <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 16px; color: #555; margin-top: 5px;">
-                                    <span style="font-weight: 600; background: #f0f4f8; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-industry"></i> Line ${item.line}
-                                    </span>
-                                    <span style="font-weight: 600; background: #f0f4f8; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-bullseye"></i> Target: ${item.target}
-                                    </span>
-                                    <span style="font-weight: 600; background: #f0f4f8; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-clock"></i> Giờ: ${item.hours}
-                                    </span>
-                                    ${item.color ? `
-                                    <span style="font-weight: 600; background: #f0f4f8; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-palette"></i> ${item.color}
-                                    </span>` : ''}
+                                <div class="compact-preview-meta">
+                                    <span><i class="fas fa-industry"></i> Line ${item.line}</span>
+                                    <span><i class="fas fa-bullseye"></i> Target: ${item.target}</span>
+                                    <span><i class="fas fa-clock"></i> Giờ: ${item.hours}</span>
+                                    ${item.color ? `<span><i class="fas fa-palette"></i> ${item.color}</span>` : ''}
+                                    ${otSlots.length > 0 ? `<span style="background: #f3e5f5;"><i class="fas fa-bolt"></i> OT: ${otSlots.map(s => s-8).join(',')}h</span>` : ''}
                                 </div>
                             </div>
                         </div>
                         ${item.remarks ? `
-                        <div style="font-size: 14px; color: #666; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 6px; border-left: 4px solid #ff9800;">
+                        <div style="font-size: 12px; color: #666; margin-top: 8px; padding: 6px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #ff9800;">
                             <i class="fas fa-sticky-note"></i> <strong>Remarks:</strong> ${item.remarks}
                         </div>` : ''}
-                        <div style="font-size: 16px; font-weight: 500; margin-top: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px; border: 1px solid #bbdefb;">
-                            <strong style="font-size: 16px; color: #1565c0; display: block; margin-bottom: 8px;">
-                                Phân bổ sản lượng:
-                            </strong> 
-                            <div style="font-size: 15px; font-family: monospace; margin-bottom: 10px;">
+                        <div class="compact-preview-distribution">
+                            <strong>Phân bổ sản lượng (${distribution.length} slot${distribution.length > 1 ? 's' : ''}):</strong> 
+                            <div style="font-size: 13px; font-family: monospace; margin: 5px 0;">
                                 ${distribution.join(', ')}
                             </div>
-                            <div style="font-size: 16px; font-weight: bold; margin-top: 10px; padding: 8px; background: #e8f5e9; border-radius: 6px; border: 1px solid #c8e6c9; color: ${sum === item.target ? '#2e7d32' : '#e65100'};">
+                            <div style="font-size: 14px; font-weight: bold; margin-top: 8px; padding: 6px; background: #e8f5e9; border-radius: 4px; border: 1px solid #c8e6c9; color: ${sum === item.target ? '#2e7d32' : '#e65100'};">
                                 ✓ TỔNG: <b>${sum}</b> cái ${sum === item.target ? '(✅ CHÍNH XÁC)' : '(⚠️ SAI SỐ: ' + (item.target - sum) + ')'}
                             </div>
                         </div>
@@ -1874,22 +1832,22 @@
             const totalHours = batchSelectedPackages.reduce((sum, p) => sum + p.hours, 0).toFixed(1);
             
             previewHtml += `
-                <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid #2196F3;">
-                    <h5 style="color: #1565c0; margin: 0 0 15px 0; font-size: 18px; font-weight: bold;">
+                <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #2196F3;">
+                    <h5 style="color: #1565c0; margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">
                         📊 TỔNG KẾT BATCH
                     </h5>
-                    <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 600;">
+                    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600;">
                         <div style="text-align: center; flex: 1;">
                             <div>Số gói</div>
-                            <div style="font-size: 22px; color: #1565c0; margin-top: 5px;">${batchSelectedPackages.length}</div>
+                            <div style="font-size: 20px; color: #1565c0; margin-top: 3px;">${batchSelectedPackages.length}</div>
                         </div>
                         <div style="text-align: center; flex: 1;">
                             <div>Tổng SL</div>
-                            <div style="font-size: 22px; color: #1565c0; margin-top: 5px;">${totalQty}</div>
+                            <div style="font-size: 20px; color: #1565c0; margin-top: 3px;">${totalQty}</div>
                         </div>
                         <div style="text-align: center; flex: 1;">
                             <div>Tổng giờ</div>
-                            <div style="font-size: 22px; color: #1565c0; margin-top: 5px;">${totalHours}</div>
+                            <div style="font-size: 20px; color: #1565c0; margin-top: 3px;">${totalHours}</div>
                         </div>
                     </div>
                 </div>
@@ -1930,28 +1888,36 @@
             // Xử lý từng package
             for (const item of batchSelectedPackages) {
                 try {
-                    // 1. Chuẩn bị dữ liệu sản lượng phân bổ theo giờ
+                    // 1. Chuẩn bị dữ liệu sản lượng phân bổ theo giờ (ĐÃ SỬA)
                     const distribution = divideQuantityByHours(item.target, item.hours);
                     
                     // 2. Tạo production_data object
                     const productionData = {};
                     let slotIndex = 0;
                     
-                    // Phân bổ sản lượng vào các timeslot
-                    timeSlots.forEach((slot, idx) => {
-                        // Bỏ qua các slot nghỉ
-                        const isLunch = idx === 4;
-                        const isDinner = idx === 12;
-                        
-                        if (isLunch || (item.hours > 8 && isDinner)) {
-                            return; // Bỏ qua slot nghỉ
+                    // Xác định slot nào được sử dụng
+                    let usedSlots = [];
+                    
+                    // Nếu là OT (giờ > 8), bắt đầu từ slot OT
+                    if (item.hours > 8) {
+                        // Bắt đầu từ slot OT đầu tiên (slot 9 = 16:15-17:15)
+                        const startSlot = 9;
+                        for (let i = 0; i < distribution.length; i++) {
+                            if (startSlot + i < timeSlots.length) {
+                                const slotTime = timeSlots[startSlot + i];
+                                productionData[slotTime] = distribution[i];
+                                slotIndex++;
+                            }
                         }
-                        
-                        if (slotIndex < distribution.length) {
-                            productionData[slot] = distribution[slotIndex];
+                    } else {
+                        // Giờ hành chính: bắt đầu từ slot 0, bỏ qua slot nghỉ trưa (4)
+                        for (let i = 0; i < 9 && slotIndex < distribution.length; i++) {
+                            if (i === 4) continue; // Bỏ qua slot nghỉ trưa
+                            const slotTime = timeSlots[i];
+                            productionData[slotTime] = distribution[slotIndex];
                             slotIndex++;
                         }
-                    });
+                    }
                     
                     // 3. Gửi dữ liệu sản lượng lên API
                     const payload = {
@@ -2010,21 +1976,21 @@
             // Hiển thị kết quả
             const resultHtml = `
                 <div style="text-align: left;">
-                    <h4 style="color: ${failCount === 0 ? '#4CAF50' : '#FF9800'}; font-size: 20px;">
+                    <h4 style="color: ${failCount === 0 ? '#4CAF50' : '#FF9800'}; font-size: 18px;">
                         ${failCount === 0 ? '✅ HOÀN THÀNH!' : '⚠️ HOÀN THÀNH MỘT PHẦN'}
                     </h4>
-                    <p style="font-size: 16px;">✅ Thành công: <b style="color: green; font-size: 18px;">${successCount}</b> gói</p>
-                    ${failCount > 0 ? `<p style="font-size: 16px;">❌ Thất bại: <b style="color: red; font-size: 18px;">${failCount}</b> gói</p>` : ''}
+                    <p style="font-size: 15px;">✅ Thành công: <b style="color: green; font-size: 16px;">${successCount}</b> gói</p>
+                    ${failCount > 0 ? `<p style="font-size: 15px;">❌ Thất bại: <b style="color: red; font-size: 16px;">${failCount}</b> gói</p>` : ''}
                     ${errors.length > 0 ? `
-                        <div style="background: #ffebee; padding: 15px; border-radius: 8px; margin-top: 15px; max-height: 200px; overflow-y: auto;">
-                            <strong style="font-size: 16px;">Chi tiết lỗi:</strong><br>
-                            <div style="font-size: 14px; margin-top: 5px;">
+                        <div style="background: #ffebee; padding: 12px; border-radius: 6px; margin-top: 12px; max-height: 150px; overflow-y: auto;">
+                            <strong style="font-size: 14px;">Chi tiết lỗi:</strong><br>
+                            <div style="font-size: 12px; margin-top: 5px;">
                                 ${errors.join('<br>')}
                             </div>
                         </div>
                     ` : ''}
-                    <div style="margin-top: 20px; padding: 15px; background: #f0f4f8; border-radius: 8px;">
-                        <small style="font-size: 14px;"><i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> Batch mode sử dụng máy mặc định (OPSERIAL=1) cho tất cả gói.</small>
+                    <div style="margin-top: 15px; padding: 10px; background: #f0f4f8; border-radius: 6px;">
+                        <small style="font-size: 12px;"><i class="fas fa-info-circle"></i> <strong>Lưu ý:</strong> Batch mode sử dụng máy mặc định (OPSERIAL=1) cho tất cả gói.</small>
                     </div>
                 </div>
             `;
@@ -2034,7 +2000,7 @@
                 html: resultHtml,
                 icon: failCount === 0 ? 'success' : 'warning',
                 confirmButtonText: 'OK',
-                width: 600
+                width: 500
             }).then(() => {
                 // Reset sau khi hoàn thành
                 document.querySelectorAll('.pkg-checkbox:checked').forEach(cb => {
@@ -2941,4 +2907,4 @@
     </script>
 </body>
 </html>
-<!-- END OF FILE mes_production_v7.8_final_large_text.html -->
+<!-- END OF FILE mes_production_v7.8_fixed.html -->
