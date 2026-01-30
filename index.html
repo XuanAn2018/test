@@ -1,10 +1,10 @@
-<!-- START OF FILE mes_production_v7.8_fixed.html -->
+<!-- START OF FILE mes_production_v7.9.1_precision_batch.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MES Production V7.8 (Fixed Logic)</title>
+    <title>MES Production V7.9.1 - Precision Batch Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -401,6 +401,51 @@
             margin-right: 8px;
         }
         
+        /* ========== SHIFT SELECTOR STYLES ========== */
+        .shift-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .shift-btn {
+            flex: 1;
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .shift-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .shift-btn.selected {
+            border-color: #2196F3;
+            background: #e3f2fd;
+            font-weight: bold;
+        }
+        
+        .shift-btn.morning.selected {
+            border-color: #FF9800;
+            background: #FFF3E0;
+        }
+        
+        .shift-btn.ot.selected {
+            border-color: #9C27B0;
+            background: #F3E5F5;
+        }
+        
         /* Package Card - Batch Mode */
         .pkg-batch-col {
             padding: 10px;
@@ -620,8 +665,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-industry"></i> MES Production V7.8</h1>
-            <p>Smart Grouping & Gallery Mode (Fixed Logic)</p>
+            <h1><i class="fas fa-industry"></i> MES Production V7.9.1</h1>
+            <p>Precision Batch Control với Shift Selector</p>
         </div>
         
         <div class="content">
@@ -681,9 +726,9 @@
                     </div>
                     <div class="batch-info-banner" id="batchInfoBanner" style="display: none;">
                         <i class="fas fa-info-circle"></i>
-                        <strong>Hướng dẫn:</strong> Tick chọn các gói cần gửi, nhập số giờ làm việc (0.5 - 11 giờ), hệ thống sẽ tự động chia đều sản lượng.
+                        <strong>Hướng dẫn:</strong> Tick chọn các gói cần gửi, chọn ca làm việc, nhập số giờ làm việc.
                         <br>
-                        <small>⚠️ Lưu ý: Giờ nghỉ trưa (11:30-13:00) và giờ ăn tối (17:00-17:30) sẽ tự động bỏ qua.</small>
+                        <small>⚠️ Lưu ý: ☀️ Ca Sáng (max 11h) | 🌙 Ca OT (max 4h). Giờ nghỉ trưa tự động bỏ qua.</small>
                     </div>
                 </div>
 
@@ -1068,11 +1113,11 @@
         </div>
     </div>
 
-    <!-- BATCH PREVIEW MODAL (V7.8 - FIXED LOGIC) -->
+    <!-- BATCH PREVIEW MODAL (V7.9.1 - PRECISION CONTROL) -->
     <div class="modal-overlay" id="batchPreviewModal">
-        <div class="modal-box" style="max-width: 850px;">
+        <div class="modal-box batch-preview-modal">
             <div class="modal-header">
-                <h3><i class="fas fa-layer-group"></i> Xem trước Batch Mode - V7.8</h3>
+                <h3><i class="fas fa-layer-group"></i> Xem trước Batch Mode - V7.9.1</h3>
                 <button class="btn btn-sm btn-danger" onclick="closeBatchPreviewModal()">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1118,7 +1163,7 @@
         let faStatus = {};
         let globalFaEnabled = true;
         let manualFaRequested = true;
-        let selectedWorkMode = 7.5; // THÊM BIẾN NÀY
+        let selectedWorkMode = 7.5;
 
         const timeSlots = [
             "07:15 - 08:15", "08:15 - 09:15", "09:15 - 10:15", "10:15 - 11:15", 
@@ -1130,7 +1175,8 @@
         // ========== BATCH MODE VARIABLES ==========
         let isBatchMode = false;
         let batchSelectedPackages = [];
-        let batchPackageDetails = {}; // Lưu chi tiết package cho batch mode
+        let batchPackageDetails = {};
+        let batchShiftInfo = {}; // Lưu thông tin shift cho từng package
 
         // ========== TURNSTILE LOGIC ==========
         const widgetEl = document.getElementById('turnstileWidget');
@@ -1260,7 +1306,7 @@
             document.querySelectorAll('.work-mode-card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`mode-${mode}`).classList.add('selected');
             document.getElementById('workHoursInput').value = mode;
-            selectedWorkMode = mode; // CẬP NHẬT BIẾN
+            selectedWorkMode = mode;
             if(selectedPackageId) recalculateTarget();
         }
 
@@ -1322,7 +1368,7 @@
                         hasOT: false,
                         remarks: remarks,
                         searchString: `${pid} ${p.styleText} ${p.lineName} ${color} ${remarks}`.toLowerCase(),
-                        fullData: p // Lưu toàn bộ dữ liệu
+                        fullData: p
                     };
                 });
 
@@ -1543,6 +1589,17 @@
                         <input type="checkbox" 
                                class="pkg-checkbox" 
                                onclick="event.stopPropagation(); handleBatchCheckbox(this);">
+                        
+                        <!-- SHIFT SELECTOR -->
+                        <div class="shift-selector" style="display: none;" id="shift-selector-${p.id}">
+                            <button type="button" class="shift-btn morning" onclick="selectShift(this, '${p.id}', 'morning')">
+                                <i class="fas fa-sun"></i> Sáng
+                            </button>
+                            <button type="button" class="shift-btn ot" onclick="selectShift(this, '${p.id}', 'ot')">
+                                <i class="fas fa-moon"></i> OT
+                            </button>
+                        </div>
+                        
                         <input type="number" 
                                class="pkg-hours-input" 
                                min="0.5" 
@@ -1550,7 +1607,7 @@
                                step="0.5" 
                                placeholder="${defaultHours}"
                                disabled
-                               oninput="validateHours(this); updateBatchSummary();"
+                               oninput="validateHours(this, '${p.id}'); updateBatchSummary();"
                                onclick="event.stopPropagation();">
                         <span class="hours-warning">⚠️ Max: 11h</span>
                     </div>`;
@@ -1573,6 +1630,51 @@
             });
 
             renderPackageList(textFiltered);
+        }
+
+        // ========== SHIFT SELECTOR FUNCTIONS ==========
+        function selectShift(button, pkgId, shiftType) {
+            const selector = document.getElementById(`shift-selector-${pkgId}`);
+            const buttons = selector.querySelectorAll('.shift-btn');
+            
+            // Bỏ chọn tất cả
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            
+            // Chọn nút được click
+            button.classList.add('selected');
+            
+            // Lưu thông tin shift
+            batchShiftInfo[pkgId] = shiftType;
+            
+            // Validate giờ dựa trên shift type
+            const hoursInput = selector.nextElementSibling;
+            if (hoursInput && hoursInput.classList.contains('pkg-hours-input')) {
+                validateHours(hoursInput, pkgId);
+            }
+            
+            updateBatchSummary();
+        }
+
+        function validateHours(input, pkgId) {
+            const value = parseFloat(input.value);
+            const warning = input.nextElementSibling;
+            
+            // Lấy shift type (mặc định là 'morning' nếu chưa chọn)
+            const shiftType = batchShiftInfo[pkgId] || 'morning';
+            const maxHours = shiftType === 'ot' ? 4 : 11;
+            
+            if (value > maxHours) {
+                input.value = maxHours;
+                if (warning) {
+                    warning.textContent = `⚠️ Max: ${maxHours}h (${shiftType === 'ot' ? 'OT shift' : 'Morning shift'})`;
+                    warning.classList.add('show');
+                    setTimeout(() => warning.classList.remove('show'), 2000);
+                }
+            } else if (value < 0.5 && input.value !== '') {
+                input.value = 0.5;
+            }
+            
+            updateBatchSummary();
         }
 
         function selectPackageFromCard(p, cardElem) {
@@ -1632,12 +1734,21 @@
                     inp.value = '';
                     inp.disabled = true;
                 });
+                document.querySelectorAll('.shift-selector').forEach(selector => {
+                    selector.style.display = 'none';
+                    selector.querySelectorAll('.shift-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                });
                 document.querySelectorAll('.package-card').forEach(card => {
                     card.classList.remove('selected');
                 });
                 document.getElementById('packageInfo').classList.add('hidden');
                 document.getElementById('nextToStep2Btn').disabled = true;
                 document.getElementById('viewDetailsBtn').classList.add('hidden');
+                
+                // Xóa thông tin shift
+                batchShiftInfo = {};
             }
             
             updateBatchSummary();
@@ -1645,30 +1756,32 @@
 
         function handleBatchCheckbox(checkbox) {
             const card = checkbox.closest('.package-card');
+            const pkgId = card.dataset.pkgId;
             const hoursInput = card.querySelector('.pkg-hours-input');
+            const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
+            
             hoursInput.disabled = !checkbox.checked;
+            shiftSelector.style.display = checkbox.checked ? 'flex' : 'none';
             
-            if (checkbox.checked && !hoursInput.value) {
-                const defaultHours = selectedWorkMode === 11 ? '11' : '7.5';
-                hoursInput.value = defaultHours;
-            }
-            
-            updateBatchSummary();
-        }
-
-        function validateHours(input) {
-            const value = parseFloat(input.value);
-            const warning = input.nextElementSibling;
-            
-            if (value > 11) {
-                input.value = 11;
-                if (warning) {
-                    warning.classList.add('show');
-                    setTimeout(() => warning.classList.remove('show'), 2000);
+            if (checkbox.checked) {
+                // Mặc định chọn shift "morning"
+                if (!batchShiftInfo[pkgId]) {
+                    const morningBtn = shiftSelector.querySelector('.morning');
+                    if (morningBtn) {
+                        morningBtn.classList.add('selected');
+                        batchShiftInfo[pkgId] = 'morning';
+                    }
                 }
-            } else if (value < 0.5 && input.value !== '') {
-                input.value = 0.5;
+                
+                if (!hoursInput.value) {
+                    const defaultHours = selectedWorkMode === 11 ? '11' : '7.5';
+                    hoursInput.value = defaultHours;
+                }
+            } else {
+                // Xóa thông tin shift khi bỏ chọn
+                delete batchShiftInfo[pkgId];
             }
+            
             updateBatchSummary();
         }
 
@@ -1688,6 +1801,7 @@
                 const target = parseInt(card.dataset.target);
                 const hoursInput = card.querySelector('.pkg-hours-input');
                 const hours = parseFloat(hoursInput.value) || 0;
+                const shiftType = batchShiftInfo[pkgId] || 'morning';
                 
                 if (hours > 0) {
                     totalPackages++;
@@ -1699,7 +1813,8 @@
                     if (pkgData) {
                         batchPackageDetails[pkgId] = {
                             ...pkgData,
-                            hours: hours
+                            hours: hours,
+                            shiftType: shiftType
                         };
                     }
                     
@@ -1707,6 +1822,7 @@
                         pkgId: pkgId,
                         target: target,
                         hours: hours,
+                        shiftType: shiftType,
                         style: card.dataset.style,
                         color: card.dataset.color,
                         line: card.dataset.line,
@@ -1723,8 +1839,8 @@
             document.getElementById('batchProcessBtn').disabled = totalPackages === 0;
         }
 
-        // ========== FIXED: HÀM CHIA SẢN LƯỢNG THEO SỐ SLOT (MỖI SLOT = 1 GIỜ) ==========
-        function divideQuantityByHours(totalQty, hours) {
+        // ========== FIXED: HÀM CHIA SẢN LƯỢNG THEO SỐ SLOT VÀ SHIFT ==========
+        function divideQuantityByHours(totalQty, hours, shiftType = 'morning') {
             // Làm tròn đến 0.5h
             const roundedHours = Math.round(hours * 2) / 2;
             // Số slots = số giờ (mỗi slot = 1 giờ)
@@ -1732,32 +1848,41 @@
             const baseQty = Math.floor(totalQty / totalSlots);
             let remainder = totalQty - (baseQty * totalSlots);
             
-            const result = [];
+            const distribution = [];
             for (let i = 0; i < totalSlots; i++) {
                 let qty = baseQty;
                 if (remainder > 0) {
                     qty++;
                     remainder--;
                 }
-                result.push(qty);
+                distribution.push(qty);
             }
             
-            return result;
+            // Trả về kèm thông tin startSlot
+            return {
+                distribution: distribution,
+                startSlot: shiftType === 'ot' ? 9 : 0 // OT bắt đầu từ slot 9
+            };
         }
 
-        // ========== FIXED: HÀM XÁC ĐỊNH SLOT OT DỰA TRÊN SỐ GIỜ ==========
-        function getOTSlotsForHours(hours) {
-            // Slot OT bắt đầu từ slot 9 (16:15-17:15)
+        // ========== FIXED: HÀM XÁC ĐỊNH SLOT OT DỰA TRÊN SỐ GIỜ VÀ SHIFT ==========
+        function getOTSlotsForHours(hours, shiftType = 'morning') {
             const otSlots = [];
             
-            if (hours > 8) {
-                // Nếu > 8 giờ => có OT
-                // Tính số slot OT = tổng giờ - 8.5 (trừ giờ hành chính và nghỉ trưa)
-                const otSlotCount = Math.ceil(hours) - 8;
-                
+            if (shiftType === 'ot') {
+                // Nếu là ca OT, tất cả slot đều là OT
+                const otSlotCount = Math.ceil(hours);
                 for (let i = 0; i < otSlotCount; i++) {
                     if (9 + i < timeSlots.length) {
                         otSlots.push(9 + i); // Slot 9, 10, 11, 12
+                    }
+                }
+            } else if (hours > 8) {
+                // Nếu ca sáng mà > 8 giờ => có OT từ slot 9
+                const otSlotCount = Math.ceil(hours) - 8;
+                for (let i = 0; i < otSlotCount; i++) {
+                    if (9 + i < timeSlots.length) {
+                        otSlots.push(9 + i);
                     }
                 }
             }
@@ -1774,21 +1899,21 @@
             // Hiển thị preview modal với layout compact
             const modal = document.getElementById('batchPreviewModal');
             modal.classList.add('open');
-            modal.classList.add('batch-preview-modal');
             
             const content = document.getElementById('batchPreviewContent');
             content.innerHTML = '<div class="loader"></div> Đang tạo preview...';
             
             // Tạo preview HTML với layout compact
             let previewHtml = '<div style="max-height: 500px; overflow-y: auto;">';
-            previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 XEM TRƯỚC DỮ LIỆU BATCH MODE</h4>';
+            previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 XEM TRƯỚC DỮ LIỆU BATCH MODE - V7.9.1</h4>';
             
             batchSelectedPackages.forEach(item => {
-                // SỬA: Mỗi slot = 1 giờ, không phải 0.5 giờ
-                const distribution = divideQuantityByHours(item.target, item.hours);
+                const distributionResult = divideQuantityByHours(item.target, item.hours, item.shiftType);
+                const distribution = distributionResult.distribution;
+                const startSlot = distributionResult.startSlot;
                 const sum = distribution.reduce((a,b) => a+b, 0);
                 const thumbUrl = generateThumbnailUrl(item.pkgId, item.fileName);
-                const otSlots = getOTSlotsForHours(item.hours);
+                const otSlots = getOTSlotsForHours(item.hours, item.shiftType);
                 
                 previewHtml += `
                     <div class="compact-preview-item">
@@ -1805,6 +1930,10 @@
                                     <span><i class="fas fa-industry"></i> Line ${item.line}</span>
                                     <span><i class="fas fa-bullseye"></i> Target: ${item.target}</span>
                                     <span><i class="fas fa-clock"></i> Giờ: ${item.hours}</span>
+                                    <span style="background: ${item.shiftType === 'ot' ? '#f3e5f5' : '#fff3e0'};">
+                                        <i class="fas ${item.shiftType === 'ot' ? 'fa-moon' : 'fa-sun'}"></i> 
+                                        ${item.shiftType === 'ot' ? 'Ca OT' : 'Ca Sáng'}
+                                    </span>
                                     ${item.color ? `<span><i class="fas fa-palette"></i> ${item.color}</span>` : ''}
                                     ${otSlots.length > 0 ? `<span style="background: #f3e5f5;"><i class="fas fa-bolt"></i> OT: ${otSlots.map(s => s-8).join(',')}h</span>` : ''}
                                 </div>
@@ -1815,7 +1944,7 @@
                             <i class="fas fa-sticky-note"></i> <strong>Remarks:</strong> ${item.remarks}
                         </div>` : ''}
                         <div class="compact-preview-distribution">
-                            <strong>Phân bổ sản lượng (${distribution.length} slot${distribution.length > 1 ? 's' : ''}):</strong> 
+                            <strong>Phân bổ sản lượng (${distribution.length} slot${distribution.length > 1 ? 's' : ''}, bắt đầu từ slot ${startSlot+1}):</strong> 
                             <div style="font-size: 13px; font-family: monospace; margin: 5px 0;">
                                 ${distribution.join(', ')}
                             </div>
@@ -1830,11 +1959,13 @@
             // Tổng kết
             const totalQty = batchSelectedPackages.reduce((sum, p) => sum + p.target, 0);
             const totalHours = batchSelectedPackages.reduce((sum, p) => sum + p.hours, 0).toFixed(1);
+            const morningCount = batchSelectedPackages.filter(p => p.shiftType === 'morning').length;
+            const otCount = batchSelectedPackages.filter(p => p.shiftType === 'ot').length;
             
             previewHtml += `
                 <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #2196F3;">
                     <h5 style="color: #1565c0; margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">
-                        📊 TỔNG KẾT BATCH
+                        📊 TỔNG KẾT BATCH - V7.9.1
                     </h5>
                     <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 600;">
                         <div style="text-align: center; flex: 1;">
@@ -1849,6 +1980,10 @@
                             <div>Tổng giờ</div>
                             <div style="font-size: 20px; color: #1565c0; margin-top: 3px;">${totalHours}</div>
                         </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 13px;">
+                        <span><i class="fas fa-sun" style="color: #FF9800;"></i> Ca Sáng: ${morningCount}</span>
+                        <span><i class="fas fa-moon" style="color: #9C27B0;"></i> Ca OT: ${otCount}</span>
                     </div>
                 </div>
             `;
@@ -1888,34 +2023,20 @@
             // Xử lý từng package
             for (const item of batchSelectedPackages) {
                 try {
-                    // 1. Chuẩn bị dữ liệu sản lượng phân bổ theo giờ (ĐÃ SỬA)
-                    const distribution = divideQuantityByHours(item.target, item.hours);
+                    // 1. Chuẩn bị dữ liệu sản lượng phân bổ theo giờ và shift
+                    const distributionResult = divideQuantityByHours(item.target, item.hours, item.shiftType);
+                    const distribution = distributionResult.distribution;
+                    const startSlot = distributionResult.startSlot;
                     
                     // 2. Tạo production_data object
                     const productionData = {};
-                    let slotIndex = 0;
                     
-                    // Xác định slot nào được sử dụng
-                    let usedSlots = [];
-                    
-                    // Nếu là OT (giờ > 8), bắt đầu từ slot OT
-                    if (item.hours > 8) {
-                        // Bắt đầu từ slot OT đầu tiên (slot 9 = 16:15-17:15)
-                        const startSlot = 9;
-                        for (let i = 0; i < distribution.length; i++) {
-                            if (startSlot + i < timeSlots.length) {
-                                const slotTime = timeSlots[startSlot + i];
-                                productionData[slotTime] = distribution[i];
-                                slotIndex++;
-                            }
-                        }
-                    } else {
-                        // Giờ hành chính: bắt đầu từ slot 0, bỏ qua slot nghỉ trưa (4)
-                        for (let i = 0; i < 9 && slotIndex < distribution.length; i++) {
-                            if (i === 4) continue; // Bỏ qua slot nghỉ trưa
-                            const slotTime = timeSlots[i];
-                            productionData[slotTime] = distribution[slotIndex];
-                            slotIndex++;
+                    // Xác định slot nào được sử dụng dựa trên shift
+                    for (let i = 0; i < distribution.length; i++) {
+                        const slotIndex = startSlot + i;
+                        if (slotIndex < timeSlots.length) {
+                            const slotTime = timeSlots[slotIndex];
+                            productionData[slotTime] = distribution[i];
                         }
                     }
                     
@@ -1962,7 +2083,7 @@
                     successCount++;
                     
                     // Log kết quả
-                    console.log(`✅ Đã gửi: ${item.pkgId} - ${item.target}pcs - ${item.hours}h`);
+                    console.log(`✅ Đã gửi: ${item.pkgId} - ${item.target}pcs - ${item.hours}h - ${item.shiftType === 'ot' ? 'Ca OT' : 'Ca Sáng'}`);
                     
                 } catch (error) {
                     console.error(`❌ Lỗi gửi ${item.pkgId}:`, error);
@@ -2005,9 +2126,20 @@
                 // Reset sau khi hoàn thành
                 document.querySelectorAll('.pkg-checkbox:checked').forEach(cb => {
                     cb.checked = false;
+                    const card = cb.closest('.package-card');
+                    const pkgId = card.dataset.pkgId;
                     const hoursInput = cb.closest('.pkg-batch-col').querySelector('.pkg-hours-input');
+                    const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
+                    
                     hoursInput.value = '';
                     hoursInput.disabled = true;
+                    shiftSelector.style.display = 'none';
+                    shiftSelector.querySelectorAll('.shift-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    
+                    // Xóa thông tin shift
+                    delete batchShiftInfo[pkgId];
                 });
                 updateBatchSummary();
                 
@@ -2194,7 +2326,7 @@
                     if (i === 4) { weights.push(0); continue; }
                     if (i === 8) { weights.push(0.5); totalWeight += 0.5; } 
                     else { weights.push(1); totalWeight += 1; }
-                }
+            }
             } else {
                 for(let i=0; i<13; i++) {
                     if (i === 4 || i === 12) { weights.push(0); continue; }
@@ -2907,4 +3039,4 @@
     </script>
 </body>
 </html>
-<!-- END OF FILE mes_production_v7.8_fixed.html -->
+<!-- END OF FILE mes_production_v7.9.1_precision_batch.html -->
