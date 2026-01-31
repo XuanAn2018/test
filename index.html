@@ -1325,7 +1325,7 @@
                     <div class="pkg-batch-col">
                         <input type="checkbox" 
                                class="pkg-checkbox" 
-                               onclick="event.stopPropagation(); handleBatchCheckbox(this);"
+                               onclick="handleCheckboxClick(event, '${p.id}')"
                                ${isSelected ? 'checked' : ''}>
                         
                         <input type="number" 
@@ -1336,8 +1336,7 @@
                                placeholder="Giờ"
                                value="${hoursValue}"
                                ${isSelected ? '' : 'disabled'}
-                               oninput="validateHours(this, '${p.id}'); updateBatchSummary();"
-                               onclick="event.stopPropagation();">
+                               oninput="validateHours(this, '${p.id}'); updateBatchSummary();">
                         <span class="hours-warning" id="warning-${p.id}">⚠️ Max: 7.5h</span>
                     </div>
                     
@@ -1345,11 +1344,11 @@
                         <!-- SHIFT SELECTOR -->
                         <div class="shift-selector" style="${isSelected ? 'flex' : 'none'}" id="shift-selector-${p.id}">
                             <button type="button" class="shift-btn morning ${shiftType === 'morning' ? 'selected' : ''}" 
-                                    onclick="selectShift(this, '${p.id}', 'morning')">
+                                    onclick="handleShiftClick(event, '${p.id}', 'morning')">
                                 <i class="fas fa-sun"></i> Sáng
                             </button>
                             <button type="button" class="shift-btn ot ${shiftType === 'ot' ? 'selected' : ''}" 
-                                    onclick="selectShift(this, '${p.id}', 'ot')">
+                                    onclick="handleShiftClick(event, '${p.id}', 'ot')">
                                 <i class="fas fa-moon"></i> OT
                             </button>
                         </div>
@@ -1357,13 +1356,25 @@
                         <!-- OT MODE SELECTOR (chỉ hiện khi chọn OT) -->
                         <div class="ot-mode-selector" style="${(isSelected && shiftType === 'ot') ? 'flex' : 'none'}" id="ot-mode-selector-${p.id}">
                             <button type="button" class="ot-mode-btn ${otMode === '4h' ? 'selected' : ''}" 
-                                    onclick="selectOTMode(this, '${p.id}', '4h')">4h cuối</button>
+                                    onclick="handleOTModeClick(event, '${p.id}', '4h')">4h cuối</button>
                             <button type="button" class="ot-mode-btn ${otMode === '11h' ? 'selected' : ''}" 
-                                    onclick="selectOTMode(this, '${p.id}', '11h')">11h đều</button>
+                                    onclick="handleOTModeClick(event, '${p.id}', '11h')">11h đều</button>
                         </div>
                     </div>`;
                 
-                card.onclick = () => selectPackageFromCard(p, card);
+                // Thêm event listener cho card - CHỈ kích hoạt khi click vào vùng không phải interactive element
+                card.addEventListener('click', function(e) {
+                    // Kiểm tra xem click có phải trên checkbox, input, hoặc button không
+                    if (e.target.matches('.pkg-checkbox, .pkg-hours-input, .shift-btn, .ot-mode-btn, .shift-btn *, .ot-mode-btn *')) {
+                        return; // Không làm gì cả, để các element con xử lý
+                    }
+                    
+                    // Nếu click vào card (không phải interactive element), toggle checkbox
+                    const checkbox = this.querySelector('.pkg-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    handleCheckboxClick(e, p.id);
+                });
+                
                 container.appendChild(card);
             });
             
@@ -1372,30 +1383,12 @@
             updateBatchSummary();
         }
 
-        function filterPackages() {
-            const term = document.getElementById('packageSearch').value.toLowerCase();
-            const buyerVal = document.getElementById('buyerFilter').value;
-            const lineVal = document.getElementById('lineFilter').value;
-
-            const textFiltered = allPackages.filter(p => {
-                if (buyerVal !== 'all' && p.buyer !== buyerVal) return false;
-                if (lineVal !== 'all' && p.line !== lineVal) return false;
-                return p.searchString.includes(term);
-            });
-
-            renderPackageList(textFiltered);
-        }
-
-        // ========== BATCH CONTROLS ==========
-        function selectPackageFromCard(p, cardElem) {
-            const checkbox = cardElem.querySelector('.pkg-checkbox');
-            checkbox.checked = !checkbox.checked;
-            handleBatchCheckbox(checkbox);
-        }
-
-        function handleBatchCheckbox(checkbox) {
+        // ========== EVENT HANDLERS (FIXED) ==========
+        function handleCheckboxClick(event, pkgId) {
+            event.stopPropagation(); // Ngăn event bubble lên card
+            
+            const checkbox = event.target;
             const card = checkbox.closest('.package-card');
-            const pkgId = card.dataset.pkgId;
             const hoursInput = card.querySelector('.pkg-hours-input');
             const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
             
@@ -1445,7 +1438,10 @@
             updateBatchSummary();
         }
 
-        function selectShift(button, pkgId, shiftType) {
+        function handleShiftClick(event, pkgId, shiftType) {
+            event.stopPropagation(); // Ngăn event bubble
+            
+            const button = event.target.closest('.shift-btn');
             const selector = document.getElementById(`shift-selector-${pkgId}`);
             const buttons = selector.querySelectorAll('.shift-btn');
             const otModeSelector = document.getElementById(`ot-mode-selector-${pkgId}`);
@@ -1467,7 +1463,8 @@
                 // Mặc định chọn 4h cuối nếu chưa có
                 if (!batchOTModeInfo[pkgId]) {
                     batchOTModeInfo[pkgId] = '4h';
-                    otModeSelector.querySelector('.ot-mode-btn:first-child').classList.add('selected');
+                    const fourHourBtn = otModeSelector.querySelector('.ot-mode-btn:first-child');
+                    if (fourHourBtn) fourHourBtn.classList.add('selected');
                 }
                 // Set default hours và warning
                 const otMode = batchOTModeInfo[pkgId];
@@ -1497,7 +1494,10 @@
             updateBatchSummary();
         }
 
-        function selectOTMode(button, pkgId, otMode) {
+        function handleOTModeClick(event, pkgId, otMode) {
+            event.stopPropagation(); // Ngăn event bubble
+            
+            const button = event.target.closest('.ot-mode-btn');
             const selector = document.getElementById(`ot-mode-selector-${pkgId}`);
             const buttons = selector.querySelectorAll('.ot-mode-btn');
             const hoursInput = selector.closest('.package-card').querySelector('.pkg-hours-input');
@@ -1526,6 +1526,128 @@
             }
             
             validateHours(hoursInput, pkgId);
+            updateBatchSummary();
+        }
+
+        function filterPackages() {
+            const term = document.getElementById('packageSearch').value.toLowerCase();
+            const buyerVal = document.getElementById('buyerFilter').value;
+            const lineVal = document.getElementById('lineFilter').value;
+
+            const textFiltered = allPackages.filter(p => {
+                if (buyerVal !== 'all' && p.buyer !== buyerVal) return false;
+                if (lineVal !== 'all' && p.line !== lineVal) return false;
+                return p.searchString.includes(term);
+            });
+
+            renderPackageList(textFiltered);
+        }
+
+        // ========== BATCH CONTROLS ==========
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const allCheckboxes = document.querySelectorAll('.pkg-checkbox');
+            const isChecked = selectAllCheckbox.checked;
+            
+            allCheckboxes.forEach(checkbox => {
+                if (checkbox.checked !== isChecked) {
+                    checkbox.checked = isChecked;
+                    // Tạo event giả để trigger handleCheckboxClick
+                    const event = new Event('click');
+                    checkbox.dispatchEvent(event);
+                }
+            });
+        }
+
+        function updateSelectAllCheckbox() {
+            const allCheckboxes = document.querySelectorAll('.pkg-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (allCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === allCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+
+        function setAllToMorning() {
+            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
+            
+            checkedCheckboxes.forEach(checkbox => {
+                const card = checkbox.closest('.package-card');
+                const pkgId = card.dataset.pkgId;
+                const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
+                const hoursInput = card.querySelector('.pkg-hours-input');
+                
+                if (shiftSelector) {
+                    const morningBtn = shiftSelector.querySelector('.morning');
+                    if (morningBtn && !morningBtn.classList.contains('selected')) {
+                        // Trigger click event
+                        morningBtn.click();
+                    }
+                }
+                
+                if (hoursInput && hoursInput.value !== '7.5') {
+                    hoursInput.value = '7.5';
+                    validateHours(hoursInput, pkgId);
+                }
+            });
+        }
+
+        function setAllToOT4h() {
+            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
+            
+            checkedCheckboxes.forEach(checkbox => {
+                const card = checkbox.closest('.package-card');
+                const pkgId = card.dataset.pkgId;
+                const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
+                const hoursInput = card.querySelector('.pkg-hours-input');
+                
+                if (shiftSelector) {
+                    const otBtn = shiftSelector.querySelector('.ot');
+                    if (otBtn && !otBtn.classList.contains('selected')) {
+                        // Trigger click event
+                        otBtn.click();
+                    }
+                }
+                
+                const otModeSelector = document.getElementById(`ot-mode-selector-${pkgId}`);
+                if (otModeSelector) {
+                    const fourHourBtn = otModeSelector.querySelector('.ot-mode-btn:first-child');
+                    if (fourHourBtn && !fourHourBtn.classList.contains('selected')) {
+                        // Trigger click event
+                        fourHourBtn.click();
+                    }
+                }
+                
+                if (hoursInput && hoursInput.value !== '4') {
+                    hoursInput.value = '4';
+                    validateHours(hoursInput, pkgId);
+                }
+            });
+        }
+
+        function resetAllSelections() {
+            const allCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
+            
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                // Tạo event giả để trigger handleCheckboxClick
+                const event = new Event('click');
+                checkbox.dispatchEvent(event);
+            });
+            
+            batchShiftInfo = {};
+            batchOTModeInfo = {};
             updateBatchSummary();
         }
 
@@ -1569,106 +1691,6 @@
                 }
             }
             
-            updateBatchSummary();
-        }
-
-        function toggleSelectAll() {
-            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            const allCheckboxes = document.querySelectorAll('.pkg-checkbox');
-            const isChecked = selectAllCheckbox.checked;
-            
-            allCheckboxes.forEach(checkbox => {
-                if (checkbox.checked !== isChecked) {
-                    checkbox.checked = isChecked;
-                    handleBatchCheckbox(checkbox);
-                }
-            });
-        }
-
-        function updateSelectAllCheckbox() {
-            const allCheckboxes = document.querySelectorAll('.pkg-checkbox');
-            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
-            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            
-            if (allCheckboxes.length === 0) {
-                selectAllCheckbox.checked = false;
-                selectAllCheckbox.indeterminate = false;
-            } else if (checkedCheckboxes.length === allCheckboxes.length) {
-                selectAllCheckbox.checked = true;
-                selectAllCheckbox.indeterminate = false;
-            } else if (checkedCheckboxes.length > 0) {
-                selectAllCheckbox.checked = false;
-                selectAllCheckbox.indeterminate = true;
-            } else {
-                selectAllCheckbox.checked = false;
-                selectAllCheckbox.indeterminate = false;
-            }
-        }
-
-        function setAllToMorning() {
-            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
-            
-            checkedCheckboxes.forEach(checkbox => {
-                const card = checkbox.closest('.package-card');
-                const pkgId = card.dataset.pkgId;
-                const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
-                const hoursInput = card.querySelector('.pkg-hours-input');
-                
-                if (shiftSelector) {
-                    const morningBtn = shiftSelector.querySelector('.morning');
-                    if (morningBtn && !morningBtn.classList.contains('selected')) {
-                        morningBtn.click();
-                    }
-                }
-                
-                if (hoursInput && hoursInput.value !== '7.5') {
-                    hoursInput.value = '7.5';
-                    validateHours(hoursInput, pkgId);
-                }
-            });
-        }
-
-        function setAllToOT4h() {
-            const checkedCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
-            
-            checkedCheckboxes.forEach(checkbox => {
-                const card = checkbox.closest('.package-card');
-                const pkgId = card.dataset.pkgId;
-                const shiftSelector = document.getElementById(`shift-selector-${pkgId}`);
-                const hoursInput = card.querySelector('.pkg-hours-input');
-                
-                if (shiftSelector) {
-                    const otBtn = shiftSelector.querySelector('.ot');
-                    if (otBtn && !otBtn.classList.contains('selected')) {
-                        otBtn.click();
-                    }
-                }
-                
-                const otModeSelector = document.getElementById(`ot-mode-selector-${pkgId}`);
-                if (otModeSelector) {
-                    const fourHourBtn = otModeSelector.querySelector('.ot-mode-btn:first-child');
-                    if (fourHourBtn && !fourHourBtn.classList.contains('selected')) {
-                        fourHourBtn.click();
-                    }
-                }
-                
-                if (hoursInput && hoursInput.value !== '4') {
-                    hoursInput.value = '4';
-                    validateHours(hoursInput, pkgId);
-                }
-            });
-        }
-
-        function resetAllSelections() {
-            const allCheckboxes = document.querySelectorAll('.pkg-checkbox:checked');
-            
-            allCheckboxes.forEach(checkbox => {
-                checkbox.checked = false;
-                handleBatchCheckbox(checkbox);
-            });
-            
-            batchShiftInfo = {};
-            batchOTModeInfo = {};
             updateBatchSummary();
         }
 
