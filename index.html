@@ -79,7 +79,7 @@
 
         .package-card {
             display: grid;
-            grid-template-columns: 80px 1fr 100px 220px; /* Ảnh - Info - Status - Command */
+            grid-template-columns: 80px 1fr 100px 250px; /* Ảnh - Info - Status - Command (tăng width) */
             background: white; border: 1px solid #e0e0e0; border-radius: 8px;
             margin-bottom: 10px; transition: all 0.2s; min-height: 90px;
             position: relative;
@@ -87,18 +87,13 @@
         .package-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-color: #bbb; }
         .package-card.selected { border: 2px solid var(--primary); background: #f0f7ff; }
 
-        /* COL 1: Image - ĐÃ SỬA CHECKBOX */
+        /* COL 1: Image - ĐÃ XÓA CHECKBOX */
         .col-img { 
             position: relative; background: #f5f5f5; display: flex; align-items: center; justify-content: center; 
             border-right: 1px solid #eee; overflow: hidden;
         }
         .pkg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         .package-card.selected .pkg-img { opacity: 1; }
-        .checkbox-wrapper { 
-            position: absolute; top: 5px; right: 5px; z-index: 2; 
-            background: rgba(255, 255, 255, 0.9); padding: 2px; border-radius: 4px;
-        }
-        .pkg-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
 
         /* COL 2: Info */
         .col-info { padding: 10px 15px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
@@ -134,31 +129,44 @@
         .ot-badge { 
             position: absolute; top: 5px; right: 5px; 
             background: var(--ot-color); color: white; 
-            font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: bold;
+            font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold;
+            text-transform: uppercase;
         }
         .mini-loader { width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
 
-        /* COL 4: COMMAND CENTER (ĐÃ FIX) */
+        /* COL 4: COMMAND CENTER (ĐÃ SỬA - THÊM CHECKBOX) */
         .col-cmd { 
             padding: 10px; background: #fafafa; border-left: 1px solid #e0e0e0; 
             display: flex; flex-direction: column; justify-content: center; gap: 8px;
+            position: relative;
         }
         .col-cmd.mode-ot { background: #f3e5f5; border-left-color: var(--ot-color); }
         .disabled-overlay { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+        
+        /* Checkbox wrapper trong command center */
+        .cmd-checkbox-wrapper { 
+            position: absolute; top: 5px; left: 5px; z-index: 2;
+        }
+        .cmd-checkbox { 
+            width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);
+        }
 
         /* UI Controls - ĐÃ FIX EVENT BUBBLING */
-        .segment-control { display: flex; background: #e0e0e0; border-radius: 6px; padding: 2px; user-select: none; }
+        .segment-control { 
+            display: flex; background: #e0e0e0; border-radius: 6px; padding: 2px; user-select: none;
+            margin-top: 5px; /* Tạo khoảng cách cho checkbox */
+        }
         .segment-btn { flex: 1; border: none; background: transparent; padding: 6px 0; font-size: 12px; font-weight: 600; color: #666; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
         .segment-btn:hover { background: rgba(255,255,255,0.5); }
         .segment-btn.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .segment-btn.active.hc { color: #e65100; font-weight: 800; }
         .segment-btn.active.ot { color: var(--ot-color); font-weight: 800; }
 
-        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-top: 5px; }
         .hour-input { width: 60px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 13px; }
         .hour-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1); }
         
-        .quick-options { display: flex; gap: 5px; width: 100%; }
+        .quick-options { display: flex; gap: 5px; width: 100%; margin-top: 5px; }
         .btn-tiny { flex: 1; font-size: 10px; padding: 4px 0; border: 1px solid var(--ot-color); color: var(--ot-color); background: white; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
         .btn-tiny:hover { background: rgba(156, 39, 176, 0.1); }
         .btn-tiny.active { background: var(--ot-color); color: white; }
@@ -245,13 +253,13 @@
         
         /* ========== RESPONSIVE ========== */
         @media (max-width: 1100px) {
-            .package-card { grid-template-columns: 70px 1fr 90px 200px; }
+            .package-card { grid-template-columns: 70px 1fr 90px 230px; }
             .summary-area { width: 280px; }
         }
         @media (max-width: 900px) {
             .content-wrapper { flex-direction: column; }
             .summary-area { width: 100%; border-left: none; border-top: 1px solid #ddd; }
-            .package-card { grid-template-columns: 60px 1fr 80px 180px; }
+            .package-card { grid-template-columns: 60px 1fr 80px 200px; }
         }
     </style>
 </head>
@@ -723,10 +731,10 @@
             }
         }
 
-        // Update UI
+        // Update UI - ĐỔI "OT" THÀNH "OVERTIME"
         statusEl.className = `col-status ${statusClass}`;
         statusEl.innerHTML = `
-            ${p.hasOT ? '<div class="ot-badge">OT</div>' : ''}
+            ${p.hasOT ? '<div class="ot-badge">Overtime</div>' : ''}
             <div class="status-display">
                 <div class="qty-fraction">${p.actual} / ${p.target}</div>
                 <div class="status-text">${statusText}</div>
@@ -773,11 +781,6 @@
                         <img src="${thumbUrl}" class="pkg-img" 
                              onerror="this.src='https://placehold.co/100?text=No+Img'"
                              alt="${p.style}">
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" class="pkg-checkbox" 
-                                   onclick="handleCheckboxClick(event, '${p.id}')"
-                                   ${isSelected ? 'checked' : ''}>
-                        </div>
                     </div>
                     <div class="col-info">
                         <div class="pkg-id">${p.id}</div>
@@ -795,6 +798,11 @@
                         }
                     </div>
                     <div class="col-cmd ${config.shift === 'ot' ? 'mode-ot' : ''} ${isSelected ? '' : 'disabled-overlay'}" id="cmd-${p.id}">
+                        <div class="cmd-checkbox-wrapper">
+                            <input type="checkbox" class="cmd-checkbox" 
+                                   onclick="handleCheckboxClick(event, '${p.id}')"
+                                   ${isSelected ? 'checked' : ''}>
+                        </div>
                         <div class="segment-control">
                             <button class="segment-btn hc ${config.shift === 'morning' ? 'active' : ''}" 
                                     onclick="handleShiftClick(event, '${p.id}', 'morning')">
@@ -867,9 +875,15 @@
         
         // Make sure package is selected
         if (!batchSelected.has(pkgId)) {
-            const checkbox = document.querySelector(`#card-${pkgId} .pkg-checkbox`);
-            checkbox.checked = true;
-            handleCheckboxClick({ target: checkbox }, pkgId);
+            const checkbox = document.querySelector(`#cmd-${pkgId} .cmd-checkbox`);
+            if (checkbox) {
+                checkbox.checked = true;
+                handleCheckboxClick({ target: checkbox }, pkgId);
+            }
+        }
+        
+        if (!batchConfigs[pkgId]) {
+            batchConfigs[pkgId] = { shift: 'morning', otMode: '4h', hours: 7.5 };
         }
         
         batchConfigs[pkgId].shift = shiftType;
@@ -892,6 +906,8 @@
     function handleOTModeClick(event, pkgId, otMode) {
         event.stopPropagation();
         
+        if (!batchConfigs[pkgId]) return;
+        
         batchConfigs[pkgId].otMode = otMode;
         batchConfigs[pkgId].hours = otMode === '4h' ? 4 : 11;
         
@@ -903,7 +919,11 @@
         const hours = parseFloat(value) || 0;
         if (hours <= 0) return;
         
-        batchConfigs[pkgId].hours = hours;
+        if (!batchConfigs[pkgId]) {
+            batchConfigs[pkgId] = { shift: 'morning', otMode: '4h', hours: hours };
+        } else {
+            batchConfigs[pkgId].hours = hours;
+        }
         updateSummary();
     }
 
@@ -915,15 +935,19 @@
         const input = document.getElementById(`input-${pkgId}`);
         const otOpts = document.getElementById(`ot-opts-${pkgId}`);
         
+        if (!cmd) return;
+        
         // Update shift buttons
-        cmd.querySelector('.hc').classList.toggle('active', cfg.shift === 'morning');
-        cmd.querySelector('.ot').classList.toggle('active', cfg.shift === 'ot');
+        const hcBtn = cmd.querySelector('.hc');
+        const otBtn = cmd.querySelector('.ot');
+        if (hcBtn) hcBtn.classList.toggle('active', cfg.shift === 'morning');
+        if (otBtn) otBtn.classList.toggle('active', cfg.shift === 'ot');
         
         // Update OT mode
         cmd.classList.toggle('mode-ot', cfg.shift === 'ot');
-        otOpts.classList.toggle('hidden', cfg.shift !== 'ot');
+        if (otOpts) otOpts.classList.toggle('hidden', cfg.shift !== 'ot');
         
-        if (cfg.shift === 'ot') {
+        if (cfg.shift === 'ot' && otOpts) {
             otOpts.querySelectorAll('.btn-tiny').forEach(btn => btn.classList.remove('active'));
             const activeBtn = otOpts.querySelector(`.btn-tiny${cfg.otMode === '4h' ? ':first-child' : ':last-child'}`);
             if (activeBtn) activeBtn.classList.add('active');
@@ -942,7 +966,9 @@
         
         visibleCards.forEach(card => {
             const pkgId = card.id.replace('card-', '');
-            const checkbox = card.querySelector('.pkg-checkbox');
+            const checkbox = card.querySelector('.cmd-checkbox');
+            
+            if (!checkbox) return;
             
             if (allSelected && batchSelected.has(pkgId)) {
                 checkbox.checked = false;
@@ -1023,7 +1049,7 @@
         });
     }
 
-    // ========== 9. LOGIC CHIA SẢN LƯỢNG (FIXED) ==========
+    // ========== 9. LOGIC CHIA SẢN LƯỢNG (FIXED - SỬA SAI SỐ) ==========
     function divideQuantityByHours(totalQty, hours, shiftType = 'morning', otMode = '4h') {
         // Làm tròn đến 0.5h
         const roundedHours = Math.round(hours * 2) / 2;
@@ -1038,34 +1064,47 @@
                 distribution: [],
                 productionData: {},
                 totalHours: 0,
-                slotsUsed: 0
+                slotsUsed: 0,
+                error: "Không có slot hoặc sản lượng"
             };
         }
         
-        // Chia sản lượng
-        let baseQty = Math.floor(totalQty / totalSlots);
-        let remainder = totalQty - (baseQty * totalSlots);
+        // PHƯƠNG PHÁP MỚI: Đảm bảo tổng sản lượng chính xác
+        let distribution = [];
         
-        const distribution = [];
-        
-        // Slot đầy đủ
-        for (let i = 0; i < fullSlots; i++) {
-            let qty = baseQty;
-            if (remainder > 0) {
-                qty++;
-                remainder--;
-            }
-            distribution.push(qty);
-        }
-        
-        // Slot 0.5 giờ (nếu có)
         if (hasHalfSlot) {
-            let halfSlotQty = Math.floor(baseQty / 2);
-            if (remainder > 0) {
-                halfSlotQty++;
-                remainder--;
+            // Nếu có slot 0.5h: chia thành các slot 1h và 1 slot 0.5h
+            const baseQtyPerFullSlot = Math.floor(totalQty / (fullSlots + 0.5));
+            const halfSlotQty = Math.floor(baseQtyPerFullSlot / 2);
+            let remainingQty = totalQty - (baseQtyPerFullSlot * fullSlots) - halfSlotQty;
+            
+            // Phân bổ cho các slot đầy đủ
+            for (let i = 0; i < fullSlots; i++) {
+                let qty = baseQtyPerFullSlot;
+                if (remainingQty > 0) {
+                    qty++;
+                    remainingQty--;
+                }
+                distribution.push(qty);
             }
-            distribution.push(halfSlotQty);
+            
+            // Phân bổ cho slot 0.5h
+            let finalHalfQty = halfSlotQty + remainingQty;
+            distribution.push(finalHalfQty);
+            
+        } else {
+            // Nếu tất cả slot đều đầy đủ (1h)
+            const baseQty = Math.floor(totalQty / totalSlots);
+            let remainder = totalQty - (baseQty * totalSlots);
+            
+            for (let i = 0; i < totalSlots; i++) {
+                let qty = baseQty;
+                if (remainder > 0) {
+                    qty++;
+                    remainder--;
+                }
+                distribution.push(qty);
+            }
         }
         
         // Xác định slots sẽ điền
@@ -1113,11 +1152,18 @@
             }
         });
         
+        // Tính tổng để kiểm tra
+        const totalDistributed = distribution.reduce((a, b) => a + b, 0);
+        const isExact = totalDistributed === totalQty;
+        
         return {
             distribution: distribution,
             productionData: productionData,
             totalHours: roundedHours,
-            slotsUsed: slotsToFill.length
+            slotsUsed: slotsToFill.length,
+            totalDistributed: totalDistributed,
+            isExact: isExact,
+            difference: totalQty - totalDistributed
         };
     }
 
@@ -1188,13 +1234,15 @@
         let previewHtml = '<div style="max-height: 500px; overflow-y: auto;">';
         previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 XEM TRƯỚC BATCH MODE</h4>';
         previewHtml += '<div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 6px; border: 1px solid #4CAF50; font-size: 13px;">';
-        previewHtml += '<strong><i class="fas fa-info-circle"></i> LOGIC PHÂN BỔ:</strong> ';
-        previewHtml += '☀️ <b>Ca Sáng</b>: Tối đa 7.5h (bỏ qua slot 5 nghỉ trưa) • ';
+        previewHtml += '<strong><i class="fas fa-info-circle"></i> LOGIC PHÂN BỔ MỚI:</strong> ';
+        previewHtml += '✅ <b>Đảm bảo tổng sản lượng = Target</b><br>';
+        previewHtml += '☀️ <b>Ca Sáng</b>: Tối đa 7.5h (bỏ slot 5 nghỉ trưa) • ';
         previewHtml += '🌙 <b>Ca OT 4h</b>: Chỉ slot 9-12 • ';
         previewHtml += '🌙 <b>Ca OT 11h</b>: Ưu tiên OT trước, rồi đến sáng';
         previewHtml += '</div>';
         
         // FA Status
+        globalFaEnabled = document.getElementById('globalFaToggle').checked;
         previewHtml += `<div style="margin-bottom: 15px; padding: 10px; background: ${globalFaEnabled ? '#e8f5e9' : '#fff3e0'}; border-radius: 6px; border: 1px solid ${globalFaEnabled ? '#4CAF50' : '#FF9800'}; font-size: 13px;">
             <strong><i class="fas fa-robot"></i> TRẠNG THÁI GỬI FA:</strong> 
             ${globalFaEnabled ? '✅ SẼ GỬI lệnh FA cho tất cả gói' : '⚠️ KHÔNG gửi lệnh FA (chỉ gửi sản lượng)'}
@@ -1202,6 +1250,8 @@
         
         let totalSum = 0;
         let totalTarget = 0;
+        let exactCount = 0;
+        let diffCount = 0;
         
         batchSelected.forEach(pkgId => {
             const pkg = allPackages.find(p => p.id === pkgId);
@@ -1213,10 +1263,18 @@
             const distribution = result.distribution;
             const totalHours = result.totalHours;
             const slotsUsed = result.slotsUsed;
-            const sum = distribution.reduce((a, b) => a + b, 0);
+            const sum = result.totalDistributed;
+            const isExact = result.isExact;
+            const difference = result.difference;
             
             totalSum += sum;
             totalTarget += pkg.target;
+            
+            if (isExact) {
+                exactCount++;
+            } else {
+                diffCount++;
+            }
             
             const thumbUrl = generateThumbnailUrl(pkg.id, pkg.fileName);
             
@@ -1260,8 +1318,8 @@
                         <div style="font-size: 13px; font-family: monospace; margin: 5px 0; padding: 8px; background: white; border-radius: 4px;">
                             ${distribution.join(', ')}
                         </div>
-                        <div style="font-size: 14px; font-weight: bold; margin-top: 8px; padding: 8px; background: #e8f5e9; border-radius: 4px; border: 1px solid #c8e6c9; color: ${sum === pkg.target ? '#2e7d32' : '#e65100'};">
-                            ✓ TỔNG: <b>${sum}</b> cái ${sum === pkg.target ? '(✅ CHÍNH XÁC)' : '(⚠️ SAI SỐ: ' + (pkg.target - sum) + ')'}
+                        <div style="font-size: 14px; font-weight: bold; margin-top: 8px; padding: 8px; background: ${isExact ? '#e8f5e9' : '#fff3e0'}; border-radius: 4px; border: 1px solid ${isExact ? '#c8e6c9' : '#ffcc80'}; color: ${isExact ? '#2e7d32' : '#e65100'};">
+                            ✓ TỔNG: <b>${sum}</b> cái ${isExact ? '(✅ CHÍNH XÁC)' : '(⚠️ SAI SỐ: ' + difference + ')'}
                         </div>
                     </div>
                 </div>`;
@@ -1294,6 +1352,8 @@
             batchConfigs[id]?.shift === 'ot' && batchConfigs[id]?.otMode === '11h'
         ).length;
         
+        const isTotalExact = totalSum === totalTarget;
+        
         previewHtml += `
             <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px; border-radius: 8px; margin-top: 15px; border: 2px solid #2196F3;">
                 <h5 style="color: #1565c0; margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">📊 TỔNG KẾT BATCH</h5>
@@ -1324,9 +1384,13 @@
                 <div style="margin-top: 10px; padding: 8px; background: ${globalFaEnabled ? '#e8f5e9' : '#fff3e0'}; border-radius: 6px; border: 1px solid ${globalFaEnabled ? '#4CAF50' : '#FF9800'};">
                     <strong><i class="fas fa-robot"></i> GỬI FA:</strong> ${globalFaEnabled ? '✅ CÓ gửi lệnh FA' : '⚠️ KHÔNG gửi lệnh FA'}
                 </div>
-                <div style="margin-top: 10px; padding: 8px; background: ${totalSum === totalTarget ? '#e8f5e9' : '#fff3e0'}; border-radius: 6px; border: 1px solid ${totalSum === totalTarget ? '#c8e6c9' : '#ffcc80'}; text-align: center;">
-                    <strong>TỔNG SẢN LƯỢNG:</strong> <span style="font-size: 18px; color: ${totalSum === totalTarget ? '#2e7d32' : '#e65100'}">${totalSum}</span> / ${totalTarget} 
-                    ${totalSum === totalTarget ? '✅' : `⚠️ (Sai số: ${totalTarget - totalSum})`}
+                <div style="margin-top: 10px; padding: 8px; background: ${exactCount === batchSelected.size ? '#e8f5e9' : (diffCount > 0 ? '#fff3e0' : '#ffebee')}; border-radius: 6px; border: 1px solid ${exactCount === batchSelected.size ? '#c8e6c9' : (diffCount > 0 ? '#ffcc80' : '#ffcdd2')};">
+                    <strong><i class="fas fa-calculator"></i> ĐỘ CHÍNH XÁC:</strong> ${exactCount}/${batchSelected.size} gói chính xác
+                    ${diffCount > 0 ? ` (${diffCount} gói có sai số)` : ''}
+                </div>
+                <div style="margin-top: 10px; padding: 8px; background: ${isTotalExact ? '#e8f5e9' : '#fff3e0'}; border-radius: 6px; border: 1px solid ${isTotalExact ? '#c8e6c9' : '#ffcc80'}; text-align: center;">
+                    <strong>TỔNG SẢN LƯỢNG:</strong> <span style="font-size: 18px; color: ${isTotalExact ? '#2e7d32' : '#e65100'}">${totalSum}</span> / ${totalTarget} 
+                    ${isTotalExact ? '✅' : `⚠️ (Tổng sai số: ${totalTarget - totalSum})`}
                 </div>
             </div>
         `;
