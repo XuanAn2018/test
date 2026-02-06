@@ -3,1552 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MES Pro - Batch Production Master</title>
+    <title>MES Production Master</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        /* ========== CSS VARIABLES ========== */
         :root {
-            --primary: #1976D2;
-            --primary-dark: #0D47A1;
-            --primary-light: #E3F2FD;
-            --secondary: #9C27B0;
-            --secondary-light: #F3E5F5;
-            --success: #2e7d32;
-            --success-light: #E8F5E9;
-            --warning: #ef6c00;
-            --warning-light: #FFF3E0;
-            --error: #d32f2f;
-            --error-light: #FFEBEE;
-            --gray-50: #fafafa;
-            --gray-100: #f5f5f5;
-            --gray-200: #eeeeee;
-            --gray-300: #e0e0e0;
-            --gray-400: #bdbdbd;
-            --gray-500: #9e9e9e;
-            --gray-600: #757575;
-            --gray-700: #616161;
-            --gray-800: #424242;
-            --gray-900: #212121;
+            /* Professional Palette */
+            --sidebar-width: 280px;
+            --header-height: 60px;
             
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.2);
-            --shadow-hover: 0 8px 25px rgba(0,0,0,0.25);
+            --bg-app: #F3F4F6;        /* Light Gray Background */
+            --bg-sidebar: #111827;    /* Dark Navy Sidebar */
+            --bg-card: #FFFFFF;
             
-            --radius-sm: 4px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --radius-xl: 16px;
+            --primary: #3B82F6;       /* Royal Blue */
+            --primary-dark: #2563EB;
+            --success: #10B981;       /* Emerald Green */
+            --warning: #F59E0B;       /* Amber */
+            --danger: #EF4444;        /* Red */
+            --purple: #8B5CF6;        /* Violet for OT */
             
-            --transition-fast: 0.15s ease;
-            --transition-base: 0.3s ease;
-            --transition-slow: 0.5s ease;
+            --text-main: #1F2937;
+            --text-light: #6B7280;
+            --text-sidebar: #9CA3AF;
             
-            --gradient-primary: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
-            --gradient-secondary: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
-            --gradient-success: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-            --gradient-warning: linear-gradient(135deg, #FF9800 0%, #EF6C00 100%);
-            --gradient-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            --border: #E5E7EB;
+            --radius: 8px;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --font-family: 'Inter', sans-serif;
         }
-        
-        /* ========== RESET & BASE ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-            background: var(--gradient-bg);
-            min-height: 100vh;
-            padding: 10px;
-            color: var(--gray-900);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            height: 100%;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
+            font-family: var(--font-family);
+            background: var(--bg-app);
+            color: var(--text-main);
+            height: 100vh;
             overflow: hidden;
+            font-size: 14px;
+            display: flex;
+        }
+
+        /* ========== LEFT SIDEBAR (FIXED) ========== */
+        .app-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            color: white;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 20px);
-            transition: all var(--transition-base);
-        }
-        
-        /* ========== HEADER ========== */
-        .header {
-            background: white;
-            border-bottom: 1px solid var(--gray-200);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
             flex-shrink: 0;
+            z-index: 20;
+            transition: all 0.3s;
         }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
-        }
-        
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-dark);
+
+        .sidebar-header {
+            height: var(--header-height);
             display: flex;
             align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+            color: white;
             gap: 10px;
-            flex-wrap: wrap;
         }
-        
-        .header h1 i {
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
         }
-        
-        .header-badge {
-            background: var(--gradient-secondary);
-            color: white;
-            padding: 6px 15px;
-            border-radius: 30px;
-            font-size: 12px;
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-sidebar);
             font-weight: 700;
+            margin-bottom: 12px;
             letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: var(--shadow-sm);
-            white-space: nowrap;
         }
-        
-        /* ========== TOOLBAR ========== */
-        .toolbar {
-            padding: 15px 20px;
-            background: var(--gray-50);
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: end;
-            transition: all var(--transition-base);
-            flex-shrink: 0;
+
+        /* Stats Cards in Sidebar */
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-sidebar); }
+        .stat-row strong { color: white; }
         
-        .form-group {
+        .shift-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .shift-item { text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; }
+        .shift-item i { display: block; margin-bottom: 4px; font-size: 16px; }
+
+        /* Action Buttons */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* ========== MAIN CONTENT (RIGHT) ========== */
+        .app-main {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            flex: 1;
-            min-width: 180px;
-        }
-        
-        .form-group label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--gray-700);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .form-control {
-            padding: 10px 14px;
-            border: 2px solid var(--gray-300);
-            border-radius: var(--radius-md);
-            font-size: 14px;
-            font-weight: 500;
-            outline: none;
-            transition: all var(--transition-fast);
-            background: white;
-            width: 100%;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-        
-        /* ========== BUTTONS ========== */
-        .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 14px;
-            transition: all var(--transition-base);
-            position: relative;
             overflow: hidden;
-            white-space: nowrap;
+            position: relative;
         }
-        
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-        
-        .btn-success {
-            background: var(--gradient-success);
-            color: white;
-        }
-        
-        .btn-warning {
-            background: var(--gradient-warning);
-            color: white;
-        }
-        
-        .btn-ot {
-            background: var(--gradient-secondary);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: var(--gray-300);
-            color: var(--gray-800);
-        }
-        
-        .btn-sm {
-            padding: 8px 14px;
-            font-size: 13px;
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        /* ========== CONTENT LAYOUT ========== */
-        .content-wrapper {
+
+        /* Header */
+        .app-header {
+            height: var(--header-height);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
             display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-            min-height: 0;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
         }
-        
-        .package-list-area {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: white;
-            position: relative;
-            min-height: 0;
-        }
-        
-        /* ========== SUMMARY BANNER ========== */
-        .summary-banner {
+
+        /* Toolbar / Config Bar */
+        .config-bar {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            background: var(--gradient-card);
-            color: var(--success);
-            padding: 15px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 20px;
-            border: 2px solid var(--success-light);
-            box-shadow: var(--shadow-sm);
-            animation: slideIn 0.5s ease;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 16px;
+            align-items: end;
         }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 6px;
         }
-        
-        .summary-val {
-            font-size: 16px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        /* ========== SEARCH & FILTER ========== */
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        
-        .search-input {
-            flex: 1;
-            padding: 12px 18px;
-            padding-left: 45px;
-            border: 2px solid var(--gray-300);
-            border-radius: var(--radius-lg);
+
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             font-size: 14px;
-            font-weight: 500;
-            transition: all var(--transition-fast);
-            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 18px center;
-            min-width: 0;
+            transition: 0.2s;
         }
-        
-        .search-input:focus {
+        .form-control:focus {
+            background: white;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
+        /* Package List Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Filters */
         .filter-row {
             display: flex;
             gap: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             align-items: center;
-            flex-wrap: wrap;
         }
-        
-        .filter-chip {
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* PACKAGE CARD DESIGN */
+        .line-header {
+            font-weight: 700;
+            color: var(--text-light);
+            margin: 24px 0 12px 0;
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: var(--primary-light);
-            color: var(--primary-dark);
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 2px solid rgba(25, 118, 210, 0.2);
+            gap: 10px;
+            font-size: 13px;
         }
-        
-        /* ========== PACKAGE CARD ========== */
-        .line-header {
-            background: var(--gradient-primary);
-            color: white;
-            padding: 10px 16px;
-            font-weight: 700;
-            border-radius: var(--radius-md);
-            margin: 20px 0 12px 0;
-            font-size: 14px;
-            position: relative;
-            overflow: hidden;
-        }
-        
+        .line-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
         .package-card {
-            display: grid;
-            grid-template-columns: 90px 1fr 110px 260px;
             background: white;
-            border: 2px solid var(--gray-200);
-            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             margin-bottom: 12px;
-            transition: all var(--transition-base);
-            min-height: 100px;
-            position: relative;
-            cursor: pointer;
+            display: grid;
+            /* Grid layout: Image | Info | Status | Command */
+            grid-template-columns: 80px 1fr 120px 280px;
             overflow: hidden;
+            transition: all 0.2s;
+            position: relative;
         }
-        
+
         .package-card:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-            border-color: var(--primary-light);
-        }
-        
-        .package-card.selected {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             border-color: var(--primary);
-            background: var(--primary-light);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
         }
-        
-        /* Image Column */
+
+        .package-card.selected {
+            border: 2px solid var(--primary);
+            background: #EFF6FF;
+        }
+
+        /* Card Columns */
         .col-img {
-            position: relative;
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-right: 1px solid var(--gray-200);
-            overflow: hidden;
+            background: #F3F4F6;
+            display: flex; align-items: center; justify-content: center;
+            border-right: 1px solid var(--border);
         }
+        .pkg-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .col-info { padding: 12px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+        .pkg-id { font-family: monospace; color: var(--text-light); font-size: 12px; }
+        .pkg-style { font-weight: 700; color: var(--text-main); font-size: 15px; }
         
-        .pkg-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: all var(--transition-base);
-        }
-        
-        .package-card:hover .pkg-img {
-            transform: scale(1.05);
-        }
-        
-        /* Info Column */
-        .col-info {
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 6px;
-        }
-        
-        .pkg-id {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--primary);
-            font-family: 'SF Mono', Monaco, monospace;
-            letter-spacing: 0.3px;
-        }
-        
-        .pkg-style {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--gray-900);
-            line-height: 1.3;
-            margin-bottom: 4px;
-        }
-        
-        .tags {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 3px;
-        }
-        
-        .tag {
-            font-size: 11px;
-            padding: 5px 10px;
-            border-radius: var(--radius-sm);
-            background: var(--gray-100);
-            color: var(--gray-700);
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: all var(--transition-fast);
-        }
-        
-        .tag-target { background: var(--warning-light); color: var(--warning); }
-        .tag-line { background: var(--primary-light); color: var(--primary-dark); }
-        .tag-color { background: var(--secondary-light); color: var(--secondary); }
-        
-        /* Status Column */
+        .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+        .tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+        .tag-line { background: #E5E7EB; color: #374151; }
+        .tag-target { background: #DBEAFE; color: #1D4ED8; }
+        .tag-color { border: 1px solid #E5E7EB; color: #4B5563; }
+
         .col-status {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-left: 1px dashed var(--gray-300);
-            padding: 8px;
-            gap: 4px;
-            position: relative;
+            padding: 10px;
+            border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #F9FAFB;
         }
-        
-        .status-display {
-            text-align: center;
-            padding: 8px;
-            border-radius: var(--radius-md);
-            width: 100%;
-            background: rgba(255,255,255,0.9);
-        }
-        
-        .qty-fraction {
-            font-size: 16px;
-            font-weight: 800;
-            margin-bottom: 3px;
-        }
-        
-        .status-text {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
+        .qty-fraction { font-size: 16px; font-weight: 800; }
+        .status-text { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
         
         /* Status Colors */
-        .st-done .qty-fraction { color: var(--success); }
-        .st-done .status-text { color: var(--success); }
-        .st-done .status-display { background: rgba(46, 125, 50, 0.1); }
+        .st-done .qty-fraction, .st-done .status-text { color: var(--success); }
+        .st-miss .qty-fraction, .st-miss .status-text { color: var(--warning); }
+        .st-over .qty-fraction, .st-over .status-text { color: var(--primary); }
+        .st-pend .qty-fraction, .st-pend .status-text { color: var(--text-light); }
         
-        .st-miss .qty-fraction { color: var(--warning); }
-        .st-miss .status-text { color: var(--warning); }
-        .st-miss .status-display { background: rgba(239, 108, 0, 0.1); }
-        
-        .st-over .qty-fraction { color: #1976D2; }
-        .st-over .status-text { color: #1976D2; }
-        .st-over .status-display { background: rgba(25, 118, 210, 0.1); }
-        
-        .st-pend .qty-fraction { color: var(--gray-600); }
-        .st-pend .status-text { color: var(--gray-600); }
-        .st-pend .status-display { background: rgba(158, 158, 158, 0.1); }
-        
-        /* Overtime Badge */
         .ot-badge {
-            position: absolute;
-            top: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--gradient-secondary);
-            color: white;
-            font-size: 9px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-weight: 800;
-            text-transform: uppercase;
-            white-space: nowrap;
-            z-index: 1;
-            box-shadow: var(--shadow-sm);
-            letter-spacing: 0.3px;
+            position: absolute; top: 0; right: 0;
+            background: var(--purple); color: white;
+            font-size: 9px; padding: 2px 6px;
+            border-bottom-left-radius: 6px; font-weight: 700;
         }
-        
-        /* Command Center */
+
         .col-cmd {
             padding: 12px;
-            background: var(--gray-50);
-            border-left: 1px solid var(--gray-300);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 10px;
+            border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 8px; justify-content: center;
             position: relative;
-            transition: all var(--transition-base);
         }
         
-        .col-cmd.mode-ot {
-            background: var(--secondary-light);
-            border-left-color: var(--secondary);
-        }
-        
-        .col-cmd.disabled-overlay {
-            opacity: 0.7;
-            filter: grayscale(0.8);
-            pointer-events: none;
-        }
-        
-        /* Checkbox */
-        .cmd-checkbox-wrapper {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            z-index: 2;
-        }
-        
-        .cmd-checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--primary);
-            transition: all var(--transition-fast);
-        }
-        
-        /* Segment Control */
-        .segment-control {
-            display: flex;
-            background: var(--gray-200);
-            border-radius: var(--radius-md);
-            padding: 3px;
-            user-select: none;
-            margin-top: 4px;
-        }
-        
+        .col-cmd.disabled-overlay { opacity: 0.6; pointer-events: none; background: #F3F4F6; }
+        .col-cmd.mode-ot { background: #F5F3FF; }
+
+        .cmd-checkbox-wrapper { position: absolute; top: 12px; left: 12px; }
+        .cmd-checkbox { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+
+        .cmd-controls { margin-left: 24px; display: flex; flex-direction: column; gap: 6px; }
+
+        .segment-control { display: flex; background: #E5E7EB; padding: 3px; border-radius: 6px; }
         .segment-btn {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 8px 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--gray-700);
-            cursor: pointer;
-            border-radius: var(--radius-sm);
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            flex: 1; border: none; background: transparent; padding: 6px; font-size: 11px; font-weight: 600;
+            color: var(--text-light); cursor: pointer; border-radius: 4px;
         }
-        
-        .segment-btn:hover {
-            background: rgba(255,255,255,0.7);
-        }
-        
-        .segment-btn.active {
-            background: white;
-            box-shadow: var(--shadow-sm);
-            color: var(--primary-dark);
-        }
-        
-        .segment-btn.active.hc {
-            color: var(--warning);
-            background: var(--warning-light);
-        }
-        
-        .segment-btn.active.ot {
-            color: var(--secondary);
-            background: white;
-        }
-        
-        /* Input Row */
-        .input-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        
+        .segment-btn.active { background: white; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .segment-btn.active.hc { color: var(--warning); }
+        .segment-btn.active.ot { color: var(--purple); }
+
+        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .hour-input {
-            width: 65px;
-            padding: 6px;
-            text-align: center;
-            border: 2px solid var(--gray-300);
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-            font-size: 13px;
-            transition: all var(--transition-fast);
+            width: 60px; padding: 5px; text-align: center; border: 1px solid var(--border);
+            border-radius: 4px; font-weight: 700; color: var(--primary);
         }
-        
-        .hour-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-        
-        /* Quick Options */
-        .quick-options {
-            display: flex;
-            gap: 6px;
-            width: 100%;
-            margin-top: 8px;
-        }
-        
+
+        .quick-options { display: flex; gap: 5px; }
         .btn-tiny {
-            flex: 1;
-            font-size: 10px;
-            padding: 6px 0;
-            border: 2px solid var(--secondary);
-            color: var(--secondary);
-            background: white;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            font-weight: 700;
+            flex: 1; padding: 4px; font-size: 10px; border: 1px solid var(--purple); color: var(--purple);
+            background: white; border-radius: 4px; font-weight: 600; cursor: pointer;
         }
-        
-        .btn-tiny:hover {
-            background: rgba(156, 39, 176, 0.1);
+        .btn-tiny.active { background: var(--purple); color: white; }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s;
         }
-        
-        .btn-tiny.active {
-            background: var(--secondary);
-            color: white;
-            box-shadow: var(--shadow-sm);
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        .btn-ot { background: var(--purple); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .btn-process {
+            width: 100%; padding: 14px; font-size: 15px; font-weight: 700;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
         }
-        
-        /* ========== SUMMARY AREA ========== */
-        .summary-area {
-            width: 320px;
-            background: white;
-            border-left: 1px solid var(--gray-200);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            min-height: 0;
-            flex-shrink: 0;
-        }
-        
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .summary-header h3 {
-            margin: 0;
-            color: var(--primary-dark);
-            font-size: 16px;
-            font-weight: 700;
-        }
-        
-        .batch-actions {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .summary-card {
-            background: var(--gradient-primary);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            color: white;
-            margin-bottom: 15px;
-            box-shadow: var(--shadow-md);
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-        
-        .summary-item strong {
-            font-size: 15px;
-        }
-        
-        .shift-breakdown {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.3);
-            font-size: 12px;
-        }
-        
-        .shift-count {
-            text-align: center;
-        }
-        
-        .shift-count i {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 16px;
-        }
-        
-        /* FA Toggle */
-        .fa-toggle-container {
-            margin: 15px 0;
-            padding: 16px;
-            background: var(--gray-50);
-            border-radius: var(--radius-lg);
-            border: 2px solid var(--gray-200);
-            transition: all var(--transition-base);
-        }
-        
-        .fa-toggle-container:hover {
-            border-color: var(--primary-light);
-            background: white;
-        }
-        
-        .fa-toggle-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            color: var(--gray-900);
-            font-size: 14px;
-        }
-        
-        .fa-toggle-label input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--success);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-        
-        /* Manual Input Link */
-        .manual-link-container {
-            margin: 15px 0;
-            padding: 16px;
-            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-            border-radius: var(--radius-lg);
-            border: 2px solid #c8e6c9;
-            text-align: center;
-        }
-        
-        .manual-link-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all var(--transition-base);
-            text-decoration: none;
-        }
-        
-        .manual-link-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-        
-        .manual-link-desc {
-            font-size: 12px;
-            color: var(--gray-600);
-            margin-top: 8px;
-        }
-        
-        .action-btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: var(--radius-lg);
-            background: var(--gradient-primary);
-            color: white;
-            font-weight: 800;
-            font-family: 'Segoe UI Black', 'Roboto', sans-serif; /* THÊM DÒNG NÀY */
-            cursor: pointer;
-            font-size: 15px;
-            margin-top: auto;
-            transition: all var(--transition-base);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-        
-        .action-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-        
-        /* ========== MODALS ========== */
+        .btn-process:disabled { background: var(--text-sidebar); box-shadow: none; cursor: not-allowed; }
+
+        /* MODALS */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all var(--transition-base);
-            backdrop-filter: blur(5px);
-            padding: 20px;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 100; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: 0.3s;
         }
-        
-        .modal-overlay.open {
-            opacity: 1;
-            visibility: visible;
-        }
-        
+        .modal-overlay.open { opacity: 1; visibility: visible; }
         .modal-box {
-            background: white;
-            width: 100%;
-            max-width: 800px;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            flex-direction: column;
-            max-height: 85vh;
-            overflow: hidden;
-            transform: translateY(-30px) scale(0.95);
-            transition: all var(--transition-base);
+            background: white; width: 90%; max-width: 800px; border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); overflow: hidden;
+            transform: scale(0.95); transition: 0.3s; max-height: 90vh; display: flex; flex-direction: column;
         }
-        
-        .modal-overlay.open .modal-box {
-            transform: translateY(0) scale(1);
-        }
-        
-        .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--gradient-primary);
-            color: white;
-            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-            flex-shrink: 0;
-        }
-        
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-            min-height: 0;
-        }
-        
-        .modal-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--gray-200);
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            flex-shrink: 0;
-        }
-        
-        /* ========== RESULT MODAL STYLES ========== */
-        .result-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .result-stat {
-            background: var(--gray-50);
-            border-radius: var(--radius-lg);
-            padding: 15px;
-            text-align: center;
-            border: 2px solid var(--gray-200);
-        }
-        
-        .result-stat.success {
-            background: var(--success-light);
-            border-color: var(--success);
-            color: var(--success);
-        }
-        
-        .result-stat.error {
-            background: var(--error-light);
-            border-color: var(--error);
-            color: var(--error);
-        }
-        
-        .result-stat.warning {
-            background: var(--warning-light);
-            border-color: var(--warning);
-            color: var(--warning);
-        }
-        
-        .result-stat .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-        
-        .result-stat .stat-label {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .error-details {
-            background: var(--error-light);
-            border-radius: var(--radius-lg);
-            padding: 15px;
-            margin-top: 20px;
-            border: 2px solid var(--error);
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .error-item {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(211, 47, 47, 0.2);
-            font-size: 13px;
-            color: var(--gray-800);
-        }
-        
-        .error-item:last-child {
-            border-bottom: none;
-        }
-        
-        .process-info {
-            background: var(--gray-50);
-            border-radius: var(--radius-lg);
-            padding: 15px;
-            margin-top: 20px;
-            border: 2px solid var(--gray-300);
-            font-size: 13px;
-        }
-        
-        .process-info h4 {
-            color: var(--primary-dark);
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        /* ========== UTILS ========== */
-        .loader {
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--gray-300);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s infinite linear;
-        }
-        
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-        
+        .modal-overlay.open .modal-box { transform: scale(1); }
+        .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #F9FAFB; }
+        .modal-body { padding: 24px; overflow-y: auto; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* Loader */
+        .loader { width: 18px; height: 18px; border: 2px solid #E5E7EB; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        
-        /* ========== RESPONSIVE DESIGN ========== */
-        @media (max-width: 1200px) {
-            .package-card {
-                grid-template-columns: 80px 1fr 100px 240px;
-            }
-            .summary-area {
-                width: 300px;
-            }
-        }
-        
+
+        /* Progress Bar (Logic requires these classes) */
+        .progress-container { background: #EFF6FF; border: 1px solid #BFDBFE; padding: 20px; border-radius: 8px; }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 700; color: #1E3A8A; }
+        .progress-bar-wrapper { background: white; height: 24px; border-radius: 12px; overflow: hidden; border: 1px solid #DBEAFE; }
+        .progress-bar-fill { height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; transition: width 0.3s; }
+        .progress-details { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; }
+        .progress-current-item { margin-top: 5px; font-style: italic; font-size: 12px; color: var(--text-light); text-align: center; }
+
+        /* Responsive */
         @media (max-width: 1024px) {
-            .container {
-                height: calc(100vh - 10px);
-            }
+            .package-card { grid-template-columns: 80px 1fr 100px 240px; }
         }
-        
-        @media (max-width: 900px) {
-            .content-wrapper {
-                flex-direction: column;
-            }
-            .summary-area {
-                width: 100%;
-                border-left: none;
-                border-top: 1px solid var(--gray-200);
-                height: auto;
-                max-height: 400px;
-            }
-            .package-card {
-                grid-template-columns: 70px 1fr 90px 200px;
-            }
-        }
-        
         @media (max-width: 768px) {
-            body {
-                padding: 5px;
-            }
-            
-            .container {
-                height: calc(100vh - 10px);
-                border-radius: var(--radius-lg);
-            }
-            
-            .header {
-                padding: 12px 15px;
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
-            
-            .toolbar {
-                padding: 12px 15px;
-                gap: 10px;
-            }
-            
-            .form-group {
-                min-width: 100%;
-            }
-            
-            .package-card {
-                grid-template-columns: 60px 1fr;
-                grid-template-rows: auto auto;
-                min-height: auto;
-            }
-            
-            .col-cmd {
-                grid-column: 1 / -1;
-                border-left: none;
-                border-top: 1px solid var(--gray-200);
-            }
-            
-            .col-status {
-                grid-row: 1;
-                grid-column: 2;
-                border-left: none;
-                border-bottom: 1px solid var(--gray-200);
-            }
-            
-            .modal-overlay {
-                padding: 10px;
-            }
-            
-            .modal-box {
-                max-height: 90vh;
-            }
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .app-sidebar { width: 100%; height: auto; }
+            .app-main { height: auto; }
+            .config-bar { grid-template-columns: 1fr; }
+            .package-card { grid-template-columns: 70px 1fr; grid-template-rows: auto auto auto; }
+            .col-img { grid-row: 1 / span 3; }
+            .col-info { grid-column: 2; }
+            .col-status { grid-column: 2; flex-direction: row; justify-content: flex-start; gap: 10px; border-left: none; padding-top: 0; }
+            .col-cmd { grid-column: 2; border-left: none; padding-top: 0; }
+            .cmd-checkbox-wrapper { top: -40px; }
         }
-        
-        @media (max-width: 480px) {
-            .container {
-                height: 100vh;
-                border-radius: 0;
-                margin: 0;
-            }
-            
-            body {
-                padding: 0;
-            }
-            
-            .package-list-area {
-                padding: 15px;
-            }
-            
-            .package-card {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto auto;
-            }
-            
-            .col-img {
-                grid-row: 1;
-                height: 120px;
-            }
-            
-            .col-info {
-                grid-row: 2;
-            }
-            
-            .col-status {
-                grid-row: 3;
-                grid-column: 1;
-            }
-            
-            .col-cmd {
-                grid-row: 4;
-            }
-            
-            .summary-area {
-                padding: 15px;
-            }
-            
-            .modal-body {
-                padding: 15px;
-            }
-            
-            .result-summary {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* ========== ANDROID DESKTOP MODE FIX ========== */
-        @media (hover: none) and (pointer: coarse) {
-            .btn, .segment-btn, .btn-tiny {
-                min-height: 44px;
-                min-width: 44px;
-            }
-            
-            .cmd-checkbox {
-                min-width: 24px;
-                min-height: 24px;
-            }
-            
-            .hour-input {
-                min-height: 44px;
-                font-size: 16px;
-            }
-            
-            .form-control {
-                min-height: 44px;
-                font-size: 16px;
-            }
-            
-            .search-input {
-                min-height: 44px;
-            }
-            
-            .package-card {
-                min-height: 120px;
-            }
-        }
-        
-        /* ========== PRINT STYLES ========== */
-        @media print {
-            .toolbar, .summary-area, .modal-overlay, .btn {
-                display: none !important;
-            }
-            
-            .package-list-area {
-                width: 100%;
-                padding: 0;
-            }
-            
-            .container {
-                height: auto;
-                box-shadow: none;
-            }
-        }
-        /* NÚT HEADER ĐẸP HƠN */
-        .header-manual-btn {
-            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-size: 12px;
-            font-weight: 800;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: var(--shadow-sm);
-            transition: all var(--transition-fast);
-            border: 2px solid rgba(255,255,255,0.2);
-            letter-spacing: 0.3px;
-        }
-
-        .header-manual-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-            background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%);
-        }
-
-        .header-manual-btn:active {
-            transform: translateY(0);
-        }
-
-        /* RESPONSIVE CHO HEADER */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            
-            .header-manual-btn {
-                padding: 8px 14px;
-                font-size: 11px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header-manual-btn {
-                padding: 6px 12px;
-                font-size: 10px;
-            }
-            
-            .header-badge {
-                font-size: 11px;
-                padding: 5px 12px;
-            }
-        }
-        /* ========== PROGRESS BAR CONTAINER ========== */
-        .progress-container {
-            margin: 20px 0;
-            padding: 15px;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-radius: 12px;
-            border: 2px solid #2196F3;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
-        }
-
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .progress-text {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0D47A1;
-        }
-
-        .progress-percentage {
-            font-size: 22px;
-            font-weight: 800;
-            color: #1976D2;
-        }
-
-        .progress-bar-wrapper {
-            width: 100%;
-            height: 32px;
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
-            border-radius: 16px;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 13px;
-            min-width: 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.4),
-                transparent
-            );
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .progress-details {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #0D47A1;
-            display: flex;
-            justify-content: space-between;
-            font-weight: 600;
-        }
-
-        .progress-current-item {
-            font-size: 11px;
-            color: #1976D2;
-            margin-top: 5px;
-            font-style: italic;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        /* ========== FIX OVERFLOW CHO ANDROID ========== */
-        .pkg-id {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .pkg-style {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .tag {
-            white-space: nowrap;
-        }
-
-        .tag-color {
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .pkg-id { font-size: 11px; }
-            .pkg-style { font-size: 13px; }
-            .tag { font-size: 10px; padding: 4px 8px; }
-            .progress-text { font-size: 12px; }
-            .progress-percentage { font-size: 18px; }
-            .progress-bar-wrapper { height: 28px; }
-        }
-
-        @media (max-width: 480px) {
-            .pkg-id { font-size: 10px; }
-            .pkg-style { font-size: 12px; }
-            .tag { font-size: 9px; padding: 3px 6px; }
-            .tag-color { max-width: 80px; }
-            .col-info { padding: 10px; }
-            .progress-container { padding: 12px; }
-            .progress-text { font-size: 11px; }
-            .progress-percentage { font-size: 16px; }
-            .progress-bar-wrapper { height: 24px; }
-            .progress-bar-fill { font-size: 11px; }
-            .progress-details { font-size: 11px; }
-            .progress-current-item { font-size: 10px; }
-        }
-        
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <span style="font-size:13px; color:var(--gray-600); margin-left:8px;">Batch Mode Pro V2.5 ✨</span>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <!-- NÚT NHẬP LIỆU THỦ CÔNG -->
-            <a href="https://input-hourly-target.vercel.app/" target="_blank" class="header-manual-btn">
-                <i class="fas fa-keyboard"></i> Nhập Liệu Thủ Công
-            </a>
-            
-            <!-- BADGE CHẾ ĐỘ HÀNG LOẠT -->
-            <div class="header-badge"><i class="fas fa-bolt"></i> CHẾ ĐỘ HÀNG LOẠT</div>
-        </div>
+<!-- SIDEBAR (FIXED LEFT) -->
+<nav class="app-sidebar">
+    <div class="sidebar-header">
+        <i class="fas fa-industry"></i> MES PRO <span style="font-weight:400; font-size:12px; opacity:0.7">v2.5</span>
     </div>
 
-    <div class="toolbar">
-        <div class="form-group" style="flex: 2;">
-            <label><i class="fas fa-key"></i> API Key</label>
-            <input type="password" id="apiKey" class="form-control" placeholder="Nhập API Key..." onchange="saveConfig()">
-        </div>
-        <div class="form-group" style="flex: 1;">
-            <label><i class="fas fa-industry"></i> Factory</label>
-            <select id="factory" class="form-control" onchange="saveConfig()">
-                <option value="P2C1">P2C1</option>
-                <option value="P2A1">P2A1</option>
-                <option value="P2B1">P2B1</option>
-                <option value="P2D1">P2D1</option>
-            </select>
-        </div>
-        <div class="form-group" style="flex: 1;">
-            <label><i class="fas fa-calendar"></i> Date</label>
-            <input type="date" id="dateSelect" class="form-control" onchange="saveConfig()">
-        </div>
-        <button class="btn btn-primary" onclick="loadPackages()">
-            <i class="fas fa-sync-alt"></i> Tải dữ liệu
-        </button>
-    </div>
-
-    <div class="content-wrapper">
-        <!-- LEFT: LIST -->
-        <div class="package-list-area">
-            <!-- SUMMARY BANNER -->
-            <div id="loadingSummary" class="summary-banner hidden">
-                <span><i class="fas fa-cubes"></i> Gói: <b id="summaryPackageCount">0</b></span>
-                <span class="summary-val"><i class="fas fa-bullseye"></i> Target: <b id="summaryTarget">0</b></span>
-                <span class="summary-val" id="summaryActualContainer">
-                    <i class="fas fa-check"></i> Thực tế: <b id="summaryActual">0</b> (<span id="summaryPercent">0</span>%)
-                </span>
-            </div>
-            
-            <div class="filter-row">
-                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm Style, Line, ID..." oninput="filterPackages()">
-                <select id="lineFilter" class="form-control" style="width: 120px;" onchange="filterPackages()">
-                    <option value="all">Tất cả Line</option>
-                </select>
-                <select id="statusFilter" class="form-control" style="width: 130px;" onchange="filterPackages()">
-                    <option value="all">⚡ Tất cả</option>
-                    <option value="pending">⚪ Chưa nhập</option>
-                    <option value="done">🟢 Đủ Target</option>
-                    <option value="over">🔵 Vượt Target</option>
-                    <option value="miss">🟠 Thiếu Target</option>
-                </select>
-                <button class="btn btn-success btn-sm" id="selectAllBtn" onclick="toggleSelectAll()" style="display:none">
-                    <i class="fas fa-check-double"></i> Chọn tất cả
-                </button>
-            </div>
-            <div id="packageListContainer">
-                <div style="text-align:center; padding:40px; color:var(--gray-500);">
-                    <i class="fas fa-cubes fa-2x" style="margin-bottom:12px; opacity:0.5;"></i><br>
-                    Vui lòng nhập API Key và tải dữ liệu
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT: SUMMARY -->
-        <div class="summary-area">
-            <div class="summary-header">
-                <h3><i class="fas fa-chart-pie"></i> Tổng quan Batch</h3>
-                <div class="filter-chip">
-                    <i class="fas fa-info-circle"></i>
-                    <span id="filteredCount">0</span>/<span id="totalCount">0</span> gói
-                </div>
-            </div>
-            
-            <div class="batch-actions">
-                <button class="btn btn-warning btn-sm" onclick="setAllToMorning()" title="Tất cả Ca Sáng">
-                    <i class="fas fa-sun"></i> Sáng
-                </button>
-                <button class="btn btn-ot btn-sm" onclick="setAllToOT4h()" title="Tất cả OT 4h">
-                    <i class="fas fa-moon"></i> OT 4h
-                </button>
-                <button class="btn btn-warning btn-sm" onclick="resetAllSelections()" title="Reset tất cả">
-                    <i class="fas fa-redo"></i> Reset
-                </button>
-            </div>
-            
-            <div class="summary-card">
-                <div class="summary-item"><span>Số gói đã chọn:</span><strong id="sumCount">0</strong></div>
-                <div class="summary-item"><span>Tổng Target:</span><strong id="sumQty">0</strong></div>
-                <div class="summary-item"><span>Tổng giờ làm:</span><strong id="sumHours">0h</strong></div>
-                <div class="shift-breakdown">
-                    <div class="shift-count">
-                        <i class="fas fa-sun" style="color:#FF9800;"></i>
+    <div class="sidebar-content">
+        <!-- Summary Stats Section -->
+        <div class="sidebar-section">
+            <div class="sidebar-label">Thống kê Batch</div>
+            <div class="stat-card">
+                <div class="stat-row"><span>Gói đã chọn:</span> <strong id="sumCount">0</strong></div>
+                <div class="stat-row"><span>Tổng Target:</span> <strong id="sumQty">0</strong></div>
+                <div class="stat-row"><span>Tổng giờ làm:</span> <strong id="sumHours">0h</strong></div>
+                
+                <div class="shift-grid">
+                    <div class="shift-item">
+                        <i class="fas fa-sun" style="color:#F59E0B"></i>
                         <span id="morningCount">0</span>
                     </div>
-                    <div class="shift-count">
-                        <i class="fas fa-moon" style="color:#9C27B0;"></i>
+                    <div class="shift-item">
+                        <i class="fas fa-moon" style="color:#8B5CF6"></i>
                         <span id="otCount">0</span>
                     </div>
                 </div>
             </div>
             
-            <!-- NÚT XỬ LÝ HÀNG LOẠT (ĐƯA LÊN TRÊN) -->
-            <button id="processBtn" class="action-btn" onclick="showBatchPreview()" disabled>
-                <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
-            </button>
-
-
-            <!-- FA TOGGLE (ĐƯA XUỐNG DƯỚI CÙNG) -->
-            <div class="fa-toggle-container">
-                <label class="fa-toggle-label">
-                    <input type="checkbox" id="globalFaToggle" checked>
-                    <i class="fas fa-robot" style="color:#4CAF50;"></i>
-                    <span>Gửi lệnh FA cùng lúc</span>
-                </label>
-                <p style="font-size:12px; color:var(--gray-600); margin-top:4px; margin-left:28px;">
-                    <i class="fas fa-info-circle"></i> Tắt nếu chỉ muốn gửi sản lượng, không gửi FA
-                </p>
+            <!-- Hidden elements but required by JS logic -->
+            <div class="hidden">
+                <span id="totalCount">0</span>
+                <span id="filteredCount">0</span>
             </div>
+        </div>
 
-<!-- BATCH PREVIEW MODAL -->
+        <!-- Quick Actions Section -->
+        <div class="sidebar-section">
+            <div class="sidebar-label">Thao tác nhanh</div>
+            <div class="action-grid">
+                <button class="btn btn-warning btn-sm" onclick="setAllToMorning()">Ca Sáng</button>
+                <button class="btn btn-ot btn-sm" onclick="setAllToOT4h()">OT 4h</button>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="width:100%" onclick="resetAllSelections()">
+                <i class="fas fa-undo"></i> Reset lựa chọn
+            </button>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="sidebar-section">
+            <div class="sidebar-label">Cấu hình gửi</div>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="globalFaToggle" checked style="width:16px; height:16px; accent-color: var(--success);">
+                <span style="font-size:13px">Gửi lệnh FA</span>
+                <i class="fas fa-robot" style="color:var(--success)"></i>
+            </label>
+        </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <button id="processBtn" class="btn btn-process btn-success" onclick="showBatchPreview()" disabled>
+            <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
+        </button>
+    </div>
+</nav>
+
+<!-- MAIN APP AREA -->
+<main class="app-main">
+    <header class="app-header">
+        <div style="font-weight: 700; color: var(--text-main);">Dashboard Sản Xuất</div>
+        <div style="display: flex; gap: 10px;">
+            <a href="https://input-hourly-target.vercel.app/" target="_blank" class="btn btn-sm btn-secondary" style="background:var(--primary); color:white; border:none">
+                <i class="fas fa-keyboard"></i> Nhập Thủ Công
+            </a>
+        </div>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="config-bar">
+        <div class="form-group">
+            <label><i class="fas fa-key"></i> API Access Key</label>
+            <input type="password" id="apiKey" class="form-control" placeholder="Nhập API Key..." onchange="saveConfig()">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-building"></i> Factory</label>
+            <select id="factory" class="form-control" onchange="saveConfig()">
+                <option value="P2C1">P2C1 - Chuyền May</option>
+                <option value="P2A1">P2A1</option>
+                <option value="P2B1">P2B1</option>
+                <option value="P2D1">P2D1</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-calendar"></i> Date</label>
+            <input type="date" id="dateSelect" class="form-control" onchange="saveConfig()">
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="loadPackages()" style="height: 40px; width: 100%;">
+                <i class="fas fa-sync-alt"></i> Tải Dữ Liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- Content List -->
+    <div class="content-area">
+        <!-- Summary Banner (Restored to fix logic) -->
+        <div id="loadingSummary" class="hidden" style="margin-bottom: 15px; background: white; padding: 10px 15px; border-radius: 8px; display: flex; gap: 20px; font-size: 13px; border: 1px solid var(--border);">
+            <span><i class="fas fa-box"></i> Gói: <b id="summaryPackageCount">0</b></span>
+            <span><i class="fas fa-bullseye"></i> Target: <b id="summaryTarget">0</b></span>
+            <span id="summaryActualContainer"><i class="fas fa-check"></i> Thực tế: <b id="summaryActual">0</b> (<span id="summaryPercent">0</span>%)</span>
+        </div>
+
+        <div class="filter-row">
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm Style, Line, ID..." oninput="filterPackages()">
+            <select id="lineFilter" class="form-control" style="width: auto;" onchange="filterPackages()">
+                <option value="all">Tất cả Line</option>
+            </select>
+            <select id="statusFilter" class="form-control" style="width: auto;" onchange="filterPackages()">
+                <option value="all">Trạng thái: Tất cả</option>
+                <option value="pending">⚪ Chưa nhập</option>
+                <option value="done">🟢 Đủ Target</option>
+                <option value="over">🔵 Vượt Target</option>
+                <option value="miss">🟠 Thiếu Target</option>
+            </select>
+            <button class="btn btn-success btn-sm" id="selectAllBtn" onclick="toggleSelectAll()" style="display:none; margin-left: auto;">
+                Chọn tất cả
+            </button>
+        </div>
+
+        <div id="packageListContainer">
+            <div style="text-align: center; padding: 60px; color: var(--text-light);">
+                <i class="fas fa-cubes fa-3x" style="opacity: 0.2; margin-bottom: 20px;"></i>
+                <p>Vui lòng nhập API Key và tải dữ liệu</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- PREVIEW MODAL -->
 <div class="modal-overlay" id="batchPreviewModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fas fa-layer-group"></i> Xem trước Batch Mode</h3>
-            <button class="btn btn-sm btn-danger" onclick="closeBatchPreviewModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <h3 style="font-weight:700">Xác nhận Batch</h3>
+            <button class="btn btn-sm btn-danger" onclick="closeBatchPreviewModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="batchPreviewContent">
-            <div class="loader"></div> Đang tạo preview...
+            <div class="loader"></div> Đang tải preview...
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeBatchPreviewModal()">Hủy</button>
-            <button class="btn btn-success" onclick="confirmBatchProcess()">Xác nhận & Gửi Hàng Loạt</button>
+            <button class="btn btn-success" onclick="confirmBatchProcess()">Gửi Dữ Liệu</button>
         </div>
     </div>
 </div>
@@ -1557,19 +540,15 @@
 <div class="modal-overlay" id="resultModal">
     <div class="modal-box">
         <div class="modal-header">
-            <h3><i class="fas fa-check-circle"></i> Kết quả xử lý</h3>
-            <button class="btn btn-sm btn-danger" onclick="closeResultModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <h3 style="font-weight:700">Kết quả xử lý</h3>
+            <button class="btn btn-sm btn-danger" onclick="closeResultModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body" id="resultContent">
-            <div class="loader"></div> Đang xử lý...
+            <!-- JS fills this -->
         </div>
         <div class="modal-footer">
-            <button class="btn btn-primary" onclick="closeResultModal()">Đóng</button>
-            <button class="btn btn-success" onclick="location.reload()">
-                <i class="fas fa-redo"></i> Làm mới
-            </button>
+            <button class="btn btn-secondary" onclick="closeResultModal()">Đóng</button>
+            <button class="btn btn-primary" onclick="location.reload()">Làm mới</button>
         </div>
     </div>
 </div>
@@ -1903,8 +882,12 @@
             const totalCount = allPackages.length;
             const totalTarget = allPackages.reduce((sum, p) => sum + p.target, 0);
             
-            document.getElementById('totalCount').textContent = totalCount;
-            document.getElementById('filteredCount').textContent = totalCount;
+            // Check if element exists before setting textContent
+            const totalCountEl = document.getElementById('totalCount');
+            if (totalCountEl) totalCountEl.textContent = totalCount;
+            
+            const filteredCountEl = document.getElementById('filteredCount');
+            if (filteredCountEl) filteredCountEl.textContent = totalCount;
             
             // Update summary banner
             document.getElementById('summaryPackageCount').textContent = totalCount;
@@ -1923,7 +906,7 @@
         } catch (e) {
             console.error('Load packages error:', e);
             container.innerHTML = `
-                <div style="text-align:center; padding:30px; color:var(--error);">
+                <div style="text-align:center; padding:30px; color:var(--danger);">
                     <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom:15px;"></i><br>
                     <strong>Lỗi tải dữ liệu:</strong><br>
                     ${e.message || "Không thể kết nối đến server"}
@@ -1972,7 +955,8 @@
             return true;
         });
         
-        document.getElementById('filteredCount').textContent = filtered.length;
+        const filteredCountEl = document.getElementById('filteredCount');
+        if (filteredCountEl) filteredCountEl.textContent = filtered.length;
         renderPackageList(filtered);
     }
 
@@ -1980,7 +964,7 @@
     function renderPackageList(list) {
         const container = document.getElementById('packageListContainer');
         if (list.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray-500);">Không tìm thấy package nào</div>';
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-light);">Không tìm thấy package nào</div>';
             return;
         }
 
@@ -2004,7 +988,7 @@
                 currentLine = p.line;
                 lineHeader = document.createElement('div');
                 lineHeader.className = 'line-header';
-                lineHeader.textContent = `LINE ${currentLine}`;
+                lineHeader.innerHTML = `<i class="fas fa-layer-group"></i> LINE ${currentLine}`;
                 fragment.appendChild(lineHeader);
             }
 
@@ -2033,8 +1017,8 @@
                 </div>
                 <div class="col-status" id="status-${p.id}">
                     ${p.loading ? 
-                        '<div class="loader" style="width:16px;height:16px;"></div><div style="font-size:10px; color:#999; margin-top:5px">Đang tải...</div>' : 
-                        '<div class="loader" style="width:16px;height:16px;"></div><div style="font-size:10px; color:#999; margin-top:5px">Target: ' + p.target + '</div>'
+                        '<div class="loader"></div><div style="font-size:10px; color:#999; margin-top:5px">Đang tải...</div>' : 
+                        '<div class="loader"></div><div style="font-size:10px; color:#999; margin-top:5px">Target: ' + p.target + '</div>'
                     }
                 </div>
                 <div class="col-cmd ${config.shift === 'ot' ? 'mode-ot' : ''} ${isSelected ? '' : 'disabled-overlay'}" id="cmd-${p.id}">
@@ -2042,22 +1026,24 @@
                         <input type="checkbox" class="cmd-checkbox" 
                                ${isSelected ? 'checked' : ''}>
                     </div>
-                    <div class="segment-control">
-                        <button class="segment-btn hc ${config.shift === 'morning' ? 'active' : ''}">
-                            <i class="fas fa-sun"></i> HC
-                        </button>
-                        <button class="segment-btn ot ${config.shift === 'ot' ? 'active' : ''}">
-                            <i class="fas fa-moon"></i> OT
-                        </button>
-                    </div>
-                    <div class="input-row">
-                        <span style="font-size:11px; font-weight:bold">Giờ làm:</span>
-                        <input type="number" class="hour-input" id="input-${p.id}" 
-                               value="${config.hours}" step="0.5" min="0.5" max="14">
-                    </div>
-                    <div class="quick-options ${config.shift === 'morning' ? 'hidden' : ''}" id="ot-opts-${p.id}">
-                        <button class="btn-tiny ${config.otMode === '4h' ? 'active' : ''}">4h Cuối</button>
-                        <button class="btn-tiny ${config.otMode === '11h' ? 'active' : ''}">11h Đều</button>
+                    <div class="cmd-controls">
+                        <div class="segment-control">
+                            <button class="segment-btn hc ${config.shift === 'morning' ? 'active' : ''}">
+                                <i class="fas fa-sun"></i> HC
+                            </button>
+                            <button class="segment-btn ot ${config.shift === 'ot' ? 'active' : ''}">
+                                <i class="fas fa-moon"></i> OT
+                            </button>
+                        </div>
+                        <div class="input-row">
+                            <span style="font-size:11px; font-weight:700; color:var(--text-light)">Giờ:</span>
+                            <input type="number" class="hour-input" id="input-${p.id}" 
+                                value="${config.hours}" step="0.5" min="0.5" max="14">
+                        </div>
+                        <div class="quick-options ${config.shift === 'morning' ? 'hidden' : ''}" id="ot-opts-${p.id}">
+                            <button class="btn-tiny ${config.otMode === '4h' ? 'active' : ''}">4h</button>
+                            <button class="btn-tiny ${config.otMode === '11h' ? 'active' : ''}">11h</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2124,7 +1110,7 @@
                 document.getElementById('summaryPercent').textContent = percent;
                 
                 const actualContainer = document.getElementById('summaryActualContainer');
-                actualContainer.style.color = percent >= 100 ? '#2e7d32' : (percent >= 50 ? '#ff9800' : '#e65100');
+                actualContainer.style.color = percent >= 100 ? '#10B981' : (percent >= 50 ? '#F59E0B' : '#EF4444');
 
             } catch (err) {
                 console.warn(`Status sync failed for ${p.id}:`, err);
@@ -2168,7 +1154,7 @@
         // Update UI
         statusEl.className = `col-status ${statusClass}`;
         statusEl.innerHTML = `
-            ${p.hasOT ? '<div class="ot-badge">Overtime</div>' : ''}
+            ${p.hasOT ? '<div class="ot-badge">OT</div>' : ''}
             <div class="status-display">
                 <div class="qty-fraction">${p.actual} / ${p.target}</div>
                 <div class="status-text">${statusText}</div>
@@ -2792,7 +1778,7 @@
                     <h3 style="color: ${failCount === 0 ? '#4CAF50' : (successCount > 0 ? '#FF9800' : '#F44336')}; margin-bottom: 5px;">
                         ${failCount === 0 ? 'HOÀN THÀNH!' : (successCount > 0 ? 'HOÀN THÀNH MỘT PHẦN' : 'THẤT BẠI')}
                     </h3>
-                    <p style="color: var(--gray-600); font-size: 14px;">Xử lý hoàn tất lúc ${new Date().toLocaleTimeString('vi-VN')}</p>
+                    <p style="color: var(--text-light); font-size: 14px;">Xử lý hoàn tất lúc ${new Date().toLocaleTimeString('vi-VN')}</p>
                 </div>
                 
                 <div class="result-summary">
@@ -2816,25 +1802,25 @@
         // FA Statistics
         if (globalFaEnabled) {
             resultHtml += `
-                <div style="background: var(--primary-light); border-radius: var(--radius-lg); padding: 12px; border: 2px solid var(--primary);">
-                    <h4 style="color: var(--primary-dark); margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                <div style="background: #EFF6FF; border-radius: 8px; padding: 12px; border: 2px solid var(--primary);">
+                    <h4 style="color: #1E3A8A; margin-bottom: 8px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-robot"></i> THỐNG KÊ FA
                     </h4>
                     <div style="display: flex; justify-content: space-around; gap: 10px;">
                         <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 22px; color: #4CAF50; font-weight: bold;">${faSuccessCount}</div>
-                            <div style="font-size: 11px; color: var(--gray-600);">FA Thành công</div>
+                            <div style="font-size: 22px; color: #10B981; font-weight: bold;">${faSuccessCount}</div>
+                            <div style="font-size: 11px; color: var(--text-light);">FA Thành công</div>
                         </div>
                         ${faFailCount > 0 ? `
                         <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 22px; color: #F44336; font-weight: bold;">${faFailCount}</div>
-                            <div style="font-size: 11px; color: var(--gray-600);">FA Thất bại</div>
+                            <div style="font-size: 22px; color: #EF4444; font-weight: bold;">${faFailCount}</div>
+                            <div style="font-size: 11px; color: var(--text-light);">FA Thất bại</div>
                         </div>
                         ` : ''}
                         ${faSuccessCount + faFailCount > 0 ? `
                         <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 22px; color: #2196F3; font-weight: bold;">${faRate}%</div>
-                            <div style="font-size: 11px; color: var(--gray-600);">Tỷ lệ FA</div>
+                            <div style="font-size: 22px; color: #3B82F6; font-weight: bold;">${faRate}%</div>
+                            <div style="font-size: 11px; color: var(--text-light);">Tỷ lệ FA</div>
                         </div>
                         ` : ''}
                     </div>
@@ -2845,13 +1831,13 @@
         // Error details
         if (errors.length > 0) {
             resultHtml += `
-                <div class="error-details">
-                    <h4 style="color: var(--error); margin-bottom: 10px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                <div class="error-details" style="background: #FEF2F2; padding: 12px; border-radius: 8px; border: 1px solid #FCA5A5;">
+                    <h4 style="color: #EF4444; margin-bottom: 10px; font-size: 14px; display: flex; align-items: center; gap: 8px;">
                         <i class="fas fa-exclamation-triangle"></i> Chi tiết lỗi (${errors.length})
                     </h4>
                     <div style="max-height: 150px; overflow-y: auto;">
                         ${errors.map((error, index) => `
-                            <div class="error-item">
+                            <div class="error-item" style="font-size:12px; margin-bottom:4px">
                                 <strong>${index + 1}.</strong> ${error}
                             </div>
                         `).join('')}
@@ -2862,8 +1848,8 @@
         
         // Process information
         resultHtml += `
-                <div class="process-info">
-                    <h4><i class="fas fa-info-circle"></i> Thông tin xử lý</h4>
+                <div class="process-info" style="margin-top:15px; padding:12px; background:#F3F4F6; border-radius:8px">
+                    <h4 style="font-size:14px; margin-bottom:8px"><i class="fas fa-info-circle"></i> Thông tin xử lý</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 12px;">
                         <div>
                             <strong>Tổng số gói:</strong> ${totalProcessed}
