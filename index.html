@@ -822,7 +822,6 @@
             margin-top: 8px;
         }
         
-        /* Action Button */
         .action-btn {
             width: 100%;
             padding: 16px;
@@ -831,6 +830,7 @@
             background: var(--gradient-primary);
             color: white;
             font-weight: 800;
+            font-family: 'Segoe UI Black', 'Roboto', sans-serif; /* THÊM DÒNG NÀY */
             cursor: pointer;
             font-size: 15px;
             margin-top: auto;
@@ -1202,14 +1202,221 @@
                 box-shadow: none;
             }
         }
+        /* NÚT HEADER ĐẸP HƠN */
+        .header-manual-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+            border: 2px solid rgba(255,255,255,0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .header-manual-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%);
+        }
+
+        .header-manual-btn:active {
+            transform: translateY(0);
+        }
+
+        /* RESPONSIVE CHO HEADER */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .header-manual-btn {
+                padding: 8px 14px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-manual-btn {
+                padding: 6px 12px;
+                font-size: 10px;
+            }
+            
+            .header-badge {
+                font-size: 11px;
+                padding: 5px 12px;
+            }
+        }
+        /* ========== PROGRESS BAR CONTAINER ========== */
+        .progress-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 12px;
+            border: 2px solid #2196F3;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0D47A1;
+        }
+
+        .progress-percentage {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1976D2;
+        }
+
+        .progress-bar-wrapper {
+            width: 100%;
+            height: 32px;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+            border-radius: 16px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.4),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-details {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #0D47A1;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .progress-current-item {
+            font-size: 11px;
+            color: #1976D2;
+            margin-top: 5px;
+            font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* ========== FIX OVERFLOW CHO ANDROID ========== */
+        .pkg-id {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pkg-style {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tag {
+            white-space: nowrap;
+        }
+
+        .tag-color {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .pkg-id { font-size: 11px; }
+            .pkg-style { font-size: 13px; }
+            .tag { font-size: 10px; padding: 4px 8px; }
+            .progress-text { font-size: 12px; }
+            .progress-percentage { font-size: 18px; }
+            .progress-bar-wrapper { height: 28px; }
+        }
+
+        @media (max-width: 480px) {
+            .pkg-id { font-size: 10px; }
+            .pkg-style { font-size: 12px; }
+            .tag { font-size: 9px; padding: 3px 6px; }
+            .tag-color { max-width: 80px; }
+            .col-info { padding: 10px; }
+            .progress-container { padding: 12px; }
+            .progress-text { font-size: 11px; }
+            .progress-percentage { font-size: 16px; }
+            .progress-bar-wrapper { height: 24px; }
+            .progress-bar-fill { font-size: 11px; }
+            .progress-details { font-size: 11px; }
+            .progress-current-item { font-size: 10px; }
+        }
+        
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-layer-group"></i> MES Production <span style="font-size:13px; color:var(--gray-600); margin-left:8px;">Batch Mode Pro V2.4</span></h1>
-        <div class="header-badge"><i class="fas fa-bolt"></i> CHẾ ĐỘ HÀNG LOẠT</div>
+        <span style="font-size:13px; color:var(--gray-600); margin-left:8px;">Batch Mode Pro V2.5 ✨</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <!-- NÚT NHẬP LIỆU THỦ CÔNG -->
+            <a href="https://input-hourly-target.vercel.app/" target="_blank" class="header-manual-btn">
+                <i class="fas fa-keyboard"></i> Nhập Liệu Thủ Công
+            </a>
+            
+            <!-- BADGE CHẾ ĐỘ HÀNG LOẠT -->
+            <div class="header-badge"><i class="fas fa-bolt"></i> CHẾ ĐỘ HÀNG LOẠT</div>
+        </div>
     </div>
 
     <div class="toolbar">
@@ -1309,7 +1516,13 @@
                 </div>
             </div>
             
-            <!-- FA TOGGLE -->
+            <!-- NÚT XỬ LÝ HÀNG LOẠT (ĐƯA LÊN TRÊN) -->
+            <button id="processBtn" class="action-btn" onclick="showBatchPreview()" disabled>
+                <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
+            </button>
+
+
+            <!-- FA TOGGLE (ĐƯA XUỐNG DƯỚI CÙNG) -->
             <div class="fa-toggle-container">
                 <label class="fa-toggle-label">
                     <input type="checkbox" id="globalFaToggle" checked>
@@ -1320,23 +1533,6 @@
                     <i class="fas fa-info-circle"></i> Tắt nếu chỉ muốn gửi sản lượng, không gửi FA
                 </p>
             </div>
-            
-            <!-- MANUAL INPUT LINK -->
-            <div class="manual-link-container">
-                <a href="https://input-hourly-target.vercel.app/" target="_blank" class="manual-link-btn">
-                    <i class="fas fa-keyboard"></i> Nhập Liệu Thủ Công
-                </a>
-                <p class="manual-link-desc">
-                    <i class="fas fa-external-link-alt"></i> Mở trang nhập liệu từng gói riêng lẻ
-                </p>
-            </div>
-            
-            <button id="processBtn" class="action-btn" onclick="showBatchPreview()" disabled>
-                <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
-            </button>
-        </div>
-    </div>
-</div>
 
 <!-- BATCH PREVIEW MODAL -->
 <div class="modal-overlay" id="batchPreviewModal">
@@ -2222,7 +2418,7 @@
         modal.classList.add('open');
         
         let previewHtml = '<div style="max-height: 400px; overflow-y: auto;">';
-        previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 XEM TRƯỚC BATCH MODE</h4>';
+        previewHtml += '<h4 style="margin-bottom: 15px; color: #1565c0; font-size: 18px; font-weight: bold;">📋 DỮ LIỆU BÊN DƯỚI SẼ ĐƯỢC GỬI LÊN HỆ THỐNG</h4>';
         
         // THÔNG TIN PHÂN BỔ (ĐÃ THAY ĐỔI)
         previewHtml += '<div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 6px; border: 1px solid #4CAF50; font-size: 13px;">';
@@ -2393,16 +2589,71 @@
             return;
         }
         
-        // Get FA status
+        // Lấy trạng thái FA
         globalFaEnabled = document.getElementById('globalFaToggle').checked;
         
-        Swal.fire({
-            title: '⏳ Đang xử lý hàng loạt...',
-            html: `Đang gửi ${batchSelected.size} gói...<br><small>Vui lòng không đóng trình duyệt</small>`,
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
+        // ============================================
+        // MỞ MODAL VÀ HIỂN THỊ PROGRESS BAR
+        // ============================================
+        const modal = document.getElementById('resultModal');
+        const content = document.getElementById('resultContent');
+        modal.classList.add('open');
         
+        const totalCount = batchSelected.size;
+        
+        // Tạo HTML cho progress bar
+        content.innerHTML = `
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span class="progress-text">🚀 Đang xử lý hàng loạt...</span>
+                    <span class="progress-percentage" id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" id="progressBar" style="width: 0%">
+                        <span id="progressCount">0/${totalCount}</span>
+                    </div>
+                </div>
+                <div class="progress-details">
+                    <span>✅ Thành công: <b id="progressSuccess">0</b></span>
+                    <span>❌ Thất bại: <b id="progressFail">0</b></span>
+                </div>
+                <div class="progress-current-item" id="progressCurrentItem">
+                    Đang chuẩn bị...
+                </div>
+            </div>
+        `;
+        
+        // ============================================
+        // HÀM CẬP NHẬT PROGRESS
+        // ============================================
+        function updateProgress(current, success, fail, currentItem) {
+            const percent = Math.floor((current / totalCount) * 100);
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressCount = document.getElementById('progressCount');
+            const progressSuccess = document.getElementById('progressSuccess');
+            const progressFail = document.getElementById('progressFail');
+            const progressCurrentItem = document.getElementById('progressCurrentItem');
+            
+            if (progressBar) progressBar.style.width = percent + '%';
+            if (progressPercent) progressPercent.textContent = percent + '%';
+            if (progressCount) progressCount.textContent = `${current}/${totalCount}`;
+            if (progressSuccess) progressSuccess.textContent = success;
+            if (progressFail) progressFail.textContent = fail;
+            
+            if (currentItem && progressCurrentItem) {
+                // Giới hạn độ dài tên để tránh overflow
+                const displayName = currentItem.length > 50 
+                    ? currentItem.substring(0, 47) + '...' 
+                    : currentItem;
+                progressCurrentItem.textContent = `🔄 Đang xử lý: ${displayName}`;
+            }
+        }
+        
+        // ============================================
+        // XỬ LÝ TỪNG GÓI VỚI PROGRESS UPDATE
+        // ============================================
+        let processedCount = 0;
         let successCount = 0;
         let failCount = 0;
         let faSuccessCount = 0;
@@ -2410,6 +2661,8 @@
         const errors = [];
         
         for (const pkgId of batchSelected) {
+            processedCount++;
+            
             try {
                 const pkg = allPackages.find(p => p.id === pkgId);
                 const cfg = batchConfigs[pkgId];
@@ -2417,8 +2670,13 @@
                 if (!pkg || !cfg) {
                     failCount++;
                     errors.push(`${pkgId}: Không tìm thấy dữ liệu`);
+                    updateProgress(processedCount, successCount, failCount, pkgId);
                     continue;
                 }
+                
+                // Cập nhật progress TRƯỚC khi xử lý
+                const displayName = `${pkg.style} (${pkg.target}pcs)`;
+                updateProgress(processedCount, successCount, failCount, displayName);
                 
                 // Tính toán phân bổ
                 const result = divideQuantityByHours(pkg.target, cfg.hours, cfg.shift, cfg.otMode);
@@ -2427,7 +2685,7 @@
                 // Gửi dữ liệu sản lượng
                 const payload = {
                     mxpackage: pkgId,
-                    opserial: "1", // Mặc định OPSERIAL 1 cho batch mode
+                    opserial: "1",
                     production_data: productionData,
                     action: 'update'
                 };
@@ -2460,21 +2718,35 @@
                 }
                 
                 successCount++;
-                console.log(`✅ Đã gửi: ${pkgId} - ${pkg.target}pcs - ${cfg.hours}h - ${cfg.shift} ${cfg.shift === 'ot' ? `(${cfg.otMode})` : ''} - FA: ${globalFaEnabled ? (faResult?.success ? '✅' : '❌') : 'N/A'}`);
+                
+                // Cập nhật progress SAU khi xử lý thành công
+                updateProgress(processedCount, successCount, failCount, displayName);
+                
+                console.log(`✅ Đã gửi: ${pkgId} - ${pkg.target}pcs - ${cfg.hours}h - FA: ${globalFaEnabled ? (faResult?.success ? '✅' : '❌') : 'N/A'}`);
+                
+                // Delay nhỏ để người dùng thấy progress (tuỳ chọn)
+                await new Promise(resolve => setTimeout(resolve, 100));
                 
             } catch (error) {
                 console.error(`❌ Lỗi gửi ${pkgId}:`, error);
                 failCount++;
                 errors.push(`${pkgId}: ${error.message || error}`);
+                
+                // Cập nhật progress khi có lỗi
+                updateProgress(processedCount, successCount, failCount, pkgId);
             }
         }
         
-        Swal.close();
+        // ============================================
+        // HIỂN THỊ KẾT QUẢ CUỐI CÙNG
+        // ============================================
+        // Delay 500ms để người dùng thấy 100%
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Show result with improved design
+        // Hiển thị kết quả
         showResultModal(successCount, failCount, faSuccessCount, faFailCount, errors);
         
-        // Reset selections
+        // Reset selections sau 1 giây
         setTimeout(() => {
             batchSelected.clear();
             batchConfigs = {};
@@ -2492,7 +2764,6 @@
             }
         }, 1000);
     }
-
     function showResultModal(successCount, failCount, faSuccessCount, faFailCount, errors) {
         const modal = document.getElementById('resultModal');
         const content = document.getElementById('resultContent');
@@ -2610,7 +2881,7 @@
                             <strong>Thời gian:</strong> ${new Date().toLocaleString('vi-VN')}
                         </div>
                         <div>
-                            <strong>Phiên bản:</strong> Batch Mode Pro V2.4
+                            <strong>Phiên bản:</strong> Batch Mode Pro V2.5 ✨
                         </div>
                     </div>
                 </div>
