@@ -1394,10 +1394,20 @@
         }
 
         .tag-color {
-            max-width: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    max-width: none; /* Xóa giới hạn cứng */
+    white-space: nowrap; /* Giữ trên 1 dòng */
+    overflow: visible; /* Hiển thị đầy đủ */
+    flex-shrink: 0; /* Không bị co lại */
+}
+
+/* Trên màn hình nhỏ thì cho phép xuống dòng */
+@media (max-width: 768px) {
+    .tag-color {
+        white-space: normal;
+        word-break: break-word;
+        max-width: 100px;
+    }
+}
     </style>
 </head>
 <body>
@@ -2237,7 +2247,7 @@
         // Update UI
         statusEl.className = `col-status ${statusClass}`;
         statusEl.innerHTML = `
-            ${p.hasOT ? '<div class="ot-badge">OT</div>' : ''}
+            ${p.hasOT ? '<div class="ot-badge">Overtime</div>' : ''}
             <div class="status-display">
                 <div class="qty-fraction">${p.actual} / ${p.target}</div>
                 <div class="status-text">${statusText}</div>
