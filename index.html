@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MES Pro - Batch Production Master</title>
+    <title>MES Pro - Batch Production Master v2.6</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -272,9 +272,8 @@
             background: white;
             border-bottom: 1px solid var(--gray-200);
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
             align-items: center;
+            gap: 15px;
             flex-shrink: 0;
         }
         
@@ -293,7 +292,99 @@
             white-space: nowrap;
         }
         
-        /* ========== COMPACT STATS BAR (NẰM CÙNG HÀNG VỚI TOOLBAR) ========== */
+        /* ========== COMPACT SEARCH & PROCESS ========== */
+        .compact-search-group {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .compact-search-input {
+            padding: 6px 10px;
+            padding-left: 32px;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            width: 180px;
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 10px center;
+            transition: all var(--transition-fast);
+        }
+        
+        .compact-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+            width: 220px;
+        }
+        
+        /* NÚT XỬ LÝ MỚI - MÀU XANH ĐẬM */
+        .compact-process-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-process {
+            padding: 6px 12px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+        }
+        
+        .btn-process:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+        
+        .btn-process:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* ========== COMPACT FILTER GROUP ========== */
+        .compact-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+        
+        .compact-filter-select {
+            padding: 5px 8px;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 11px;
+            font-weight: 500;
+            outline: none;
+            transition: all var(--transition-fast);
+            background: white;
+            min-width: 90px;
+            cursor: pointer;
+        }
+        
+        .compact-filter-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+        }
+        
+        .compact-filter-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+        
+        /* ========== COMPACT STATS BAR ========== */
         .compact-stats-bar {
             display: flex;
             gap: 15px;
@@ -377,6 +468,11 @@
             border: 2px solid var(--success-light);
             box-shadow: var(--shadow-sm);
             animation: slideIn 0.5s ease;
+            font-size: 15px !important;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            margin-top: 0;
         }
         
         @keyframes slideIn {
@@ -385,45 +481,16 @@
         }
         
         .summary-val {
-            font-size: 12px;
+            font-size: 15px !important;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 5px;
         }
         
-        /* ========== SEARCH & FILTER ========== */
-        .search-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-        
-        .search-input {
-            flex: 1;
-            padding: 8px 12px;
-            padding-left: 35px;
-            border: 2px solid var(--gray-300);
-            border-radius: var(--radius-md);
-            font-size: 12px;
-            font-weight: 500;
-            transition: all var(--transition-fast);
-            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 12px center;
-            min-width: 0;
-        }
-        
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-        }
-        
-        .filter-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-            align-items: center;
-            flex-wrap: wrap;
+        .summary-banner b {
+            font-size: 16px !important;
+            font-weight: 800;
         }
         
         /* ========== PACKAGE CARD ========== */
@@ -499,7 +566,7 @@
         }
         
         .pkg-id {
-            font-size: 13px; /* Tăng từ 11px lên 13px */
+            font-size: 13px;
             font-weight: 700;
             color: var(--primary);
             font-family: 'SF Mono', Monaco, monospace;
@@ -508,7 +575,7 @@
         }
         
         .pkg-style {
-            font-size: 14px; /* Tăng từ 12px lên 14px */
+            font-size: 14px;
             font-weight: 700;
             color: var(--gray-900);
             line-height: 1.3;
@@ -524,8 +591,8 @@
         }
         
         .tag {
-            font-size: 10px; /* Tăng từ 9px lên 10px */
-            padding: 4px 8px; /* Tăng padding */
+            font-size: 10px;
+            padding: 4px 8px;
             border-radius: var(--radius-sm);
             background: var(--gray-100);
             color: var(--gray-700);
@@ -561,13 +628,13 @@
         }
         
         .qty-fraction {
-            font-size: 13px; /* Tăng từ 12px */
+            font-size: 13px;
             font-weight: 800;
             margin-bottom: 2px;
         }
         
         .status-text {
-            font-size: 9px; /* Tăng từ 8px */
+            font-size: 9px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.2px;
@@ -598,8 +665,8 @@
             transform: translateX(-50%);
             background: var(--gradient-secondary);
             color: white;
-            font-size: 8px; /* Tăng từ 7px */
-            padding: 3px 8px; /* Tăng padding */
+            font-size: 8px;
+            padding: 3px 8px;
             border-radius: 15px;
             font-weight: 800;
             text-transform: uppercase;
@@ -664,7 +731,7 @@
             border: none;
             background: transparent;
             padding: 5px 0;
-            font-size: 11px; /* Tăng từ 10px */
+            font-size: 11px;
             font-weight: 700;
             color: var(--gray-700);
             cursor: pointer;
@@ -707,12 +774,12 @@
         
         .hour-input {
             width: 50px;
-            padding: 5px; /* Tăng padding */
+            padding: 5px;
             text-align: center;
             border: 2px solid var(--gray-300);
             border-radius: var(--radius-sm);
             font-weight: 700;
-            font-size: 12px; /* Tăng từ 11px */
+            font-size: 12px;
             transition: all var(--transition-fast);
         }
         
@@ -732,7 +799,7 @@
         
         .btn-tiny {
             flex: 1;
-            font-size: 9px; /* Tăng từ 8px */
+            font-size: 9px;
             padding: 4px 0;
             border: 2px solid var(--secondary);
             color: var(--secondary);
@@ -751,38 +818,6 @@
             background: var(--secondary);
             color: white;
             box-shadow: var(--shadow-sm);
-        }
-        
-        /* ========== PROCESS BUTTON ========== */
-        .process-button-container {
-            padding: 0 15px 12px;
-            flex-shrink: 0;
-        }
-        
-        .action-btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: var(--radius-lg);
-            background: var(--gradient-primary);
-            color: white;
-            font-weight: 800;
-            font-family: 'Segoe UI Black', 'Roboto', sans-serif;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all var(--transition-base);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            letter-spacing: 0.2px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .action-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
         }
         
         /* ========== MODALS ========== */
@@ -992,6 +1027,14 @@
             .compact-stat-item {
                 padding: 3px 6px;
             }
+            
+            .compact-search-input {
+                width: 150px;
+            }
+            
+            .compact-search-input:focus {
+                width: 180px;
+            }
         }
         
         @media (max-width: 1024px) {
@@ -1022,12 +1065,35 @@
             }
             
             .compact-action-bar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 6px;
+                flex-wrap: wrap;
+                gap: 10px;
             }
             
-            .compact-action-group {
+            .compact-search-group {
+                margin-left: 0;
+                order: 2;
+                width: 100%;
+            }
+            
+            .compact-search-input {
+                width: 100% !important;
+            }
+            
+            .compact-filter-group {
+                margin-left: 0;
+                order: 1;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .compact-process-group {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .btn-process {
+                width: 100%;
                 justify-content: center;
             }
         }
@@ -1076,6 +1142,32 @@
             .compact-stat-item {
                 flex: 1;
                 min-width: 60px;
+                justify-content: center;
+            }
+            
+            .compact-action-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .compact-search-group,
+            .compact-process-group,
+            .compact-filter-group {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .compact-search-input {
+                width: 100% !important;
+            }
+            
+            .compact-search-input:focus {
+                width: 100% !important;
+            }
+            
+            .btn-process {
+                width: 100%;
                 justify-content: center;
             }
             
@@ -1148,6 +1240,15 @@
                 text-align: center;
             }
             
+            .compact-filter-group {
+                flex-wrap: wrap;
+            }
+            
+            .compact-filter-select {
+                flex: 1;
+                min-width: 70px;
+            }
+            
             .package-card {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto auto;
@@ -1183,7 +1284,7 @@
         
         /* ========== ANDROID DESKTOP MODE FIX ========== */
         @media (hover: none) and (pointer: coarse) {
-            .btn, .segment-btn, .btn-tiny {
+            .btn, .segment-btn, .btn-tiny, .btn-process {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1198,12 +1299,12 @@
                 font-size: 16px;
             }
             
-            .compact-input, .compact-select {
+            .compact-input, .compact-select, .compact-filter-select {
                 min-height: 44px;
                 font-size: 16px;
             }
             
-            .search-input {
+            .compact-search-input {
                 min-height: 44px;
             }
             
@@ -1215,7 +1316,7 @@
         /* ========== PRINT STYLES ========== */
         @media print {
             .compact-toolbar, .compact-action-bar, .compact-stats-bar, 
-            .process-button-container, .modal-overlay, .btn {
+            .modal-overlay, .btn, .btn-process {
                 display: none !important;
             }
             
@@ -1305,7 +1406,7 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-title">
-            <i class="fas fa-industry"></i> Batch Mode Pro
+            <i class="fas fa-industry"></i> Batch Mode Pro v2.6
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <a href="https://input-hourly-target.vercel.app/" target="_blank" class="header-manual-btn">
@@ -1315,7 +1416,7 @@
         </div>
     </div>
 
-    <!-- COMPACT TOOLBAR (CHỨA CẢ INPUT VÀ STATS) -->
+    <!-- COMPACT TOOLBAR -->
     <div class="compact-toolbar">
         <!-- INPUT GROUPS -->
         <div style="display: flex; flex-wrap: wrap; gap: 8px; flex: 1;">
@@ -1344,7 +1445,7 @@
             </button>
         </div>
         
-        <!-- COMPACT STATS BAR (NẰM CÙNG HÀNG) -->
+        <!-- COMPACT STATS BAR -->
         <div class="compact-stats-bar">
             <div class="compact-stat-item">
                 <i class="fas fa-cube compact-stat-icon"></i>
@@ -1407,9 +1508,9 @@
         </div>
     </div>
 
-    <!-- COMPACT ACTION BAR -->
+    <!-- COMPACT ACTION BAR - PHIÊN BẢN 2.6 HOÀN CHỈNH -->
     <div class="compact-action-bar">
-        <!-- CHỌN GÓI -->
+        <!-- CHỌN GÓI (BÊN TRÁI) -->
         <div class="compact-action-group">
             <span class="compact-action-label">Chọn gói:</span>
             <button class="btn btn-success btn-xs" id="selectAllBtn" onclick="toggleSelectAll()" style="display:none">
@@ -1426,42 +1527,49 @@
             </button>
         </div>
         
-        <!-- LỌC -->
-        <div class="compact-action-group">
-            <span class="compact-action-label">Lọc:</span>
-            <select id="lineFilter" class="compact-select" style="min-width: 80px;" onchange="filterPackages()">
+        <!-- LỌC (GIỮA) -->
+        <div class="compact-filter-group">
+            <span class="compact-filter-label">Lọc:</span>
+            <select id="lineFilter" class="compact-filter-select" onchange="filterPackages()">
                 <option value="all">Tất cả Line</option>
             </select>
-            <select id="statusFilter" class="compact-select" style="min-width: 90px;" onchange="filterPackages()">
+            <select id="statusFilter" class="compact-filter-select" onchange="filterPackages()">
                 <option value="all">Tất cả</option>
                 <option value="pending">Chưa nhập</option>
                 <option value="done">Đủ Target</option>
                 <option value="over">Vượt Target</option>
                 <option value="miss">Thiếu Target</option>
             </select>
-            <select id="otFilter" class="compact-select" style="min-width: 90px;" onchange="filterPackages()">
+            <select id="otFilter" class="compact-filter-select" onchange="filterPackages()">
                 <option value="all">Tất cả OT</option>
                 <option value="hasOT">Có OT</option>
                 <option value="noOT">Không OT</option>
             </select>
+        </div>
+        
+        <!-- THANH TÌM KIẾM (BÊN PHẢI) -->
+        <div class="compact-search-group">
+            <input type="text" id="searchInput" class="compact-search-input" placeholder="Tìm kiếm..." oninput="filterPackages()">
+        </div>
+        
+        <!-- NÚT XỬ LÝ (BÊN PHẢI) - MÀU XANH ĐẬM -->
+        <div class="compact-process-group">
+            <button id="processBtn" class="btn-process" onclick="showBatchPreview()" disabled>
+                <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
+            </button>
         </div>
     </div>
 
     <!-- CONTENT AREA -->
     <div class="content-wrapper">
         <div class="package-list-area">
-            <!-- SUMMARY BANNER -->
+            <!-- SUMMARY BANNER - CHỮ TO 15px, CỐ ĐỊNH -->
             <div id="loadingSummary" class="summary-banner hidden">
                 <span><i class="fas fa-cubes"></i> Gói: <b id="summaryPackageCount">0</b></span>
                 <span class="summary-val"><i class="fas fa-bullseye"></i> Target: <b id="summaryTarget">0</b></span>
                 <span class="summary-val" id="summaryActualContainer">
                     <i class="fas fa-check"></i> Thực tế: <b id="summaryActual">0</b> (<span id="summaryPercent">0</span>%)
                 </span>
-            </div>
-            
-            <!-- SEARCH -->
-            <div class="search-bar">
-                <input type="text" id="searchInput" class="search-input" placeholder="Tìm kiếm Style, Line, ID..." oninput="filterPackages()">
             </div>
             
             <!-- PACKAGE LIST -->
@@ -1472,13 +1580,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- PROCESS BUTTON -->
-    <div class="process-button-container">
-        <button id="processBtn" class="action-btn" onclick="showBatchPreview()" disabled>
-            <i class="fas fa-rocket"></i> XỬ LÝ HÀNG LOẠT
-        </button>
     </div>
 </div>
 
