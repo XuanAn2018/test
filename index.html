@@ -1576,9 +1576,9 @@
         { key:'style_name', label:'Style Name', width: 240 },
         { key:'color_name', label:'Color', width: 130 },
         { key:'size_code', label:'Size', width: 60 },
-        { key:'qty', label:'Qty', right:true, width: 90 },
+        { key:'qty', label:'Qty', right:true, width: 90, borderRight: '1px solid rgba(255,255,255,.15)' },
         { key:'shipped_qty', label:'ĐÃ XUẤT', right:true, width: 100 },
-        { key:'remain', label:'CHƯA XUẤT', right:true, width: 100 },
+        { key:'remain', label:'CHƯA XUẤT', right:true, width: 100, borderRight: '1px solid rgba(255,255,255,.15)' },
         { key:'mx_qty', label:'SL ĐÃ BÁO CÁO', right:true, width: 120 },
         { key:'mx_unreported', label:'CÒN LẠI', right:true, width: 100 },
         { key:'mx_packages', label:'SL PKG', right:true, width: 90 },
@@ -1595,8 +1595,8 @@
 
       const headerGroups = [
         { label: '', span: 6 },
-        { label: 'SỐ LƯỢNG', span: 1, borderColor: 'rgba(59,130,246,.5)' },
-        { label: 'XUẤT HÀNG', span: 2, borderColor: 'rgba(16,185,129,.5)' },
+        { label: 'SỐ LƯỢNG', span: 1, borderColor: 'rgba(59,130,246,.5)', borderRight: '1px solid rgba(255,255,255,.15)' },
+        { label: 'XUẤT HÀNG', span: 2, borderColor: 'rgba(16,185,129,.5)', borderRight: '1px solid rgba(255,255,255,.15)' },
         { label: 'BÁO CÁO DB', span: 2, borderColor: 'rgba(124,58,237,.5)' },
         { label: '', span: 10 },
       ];
@@ -1633,7 +1633,7 @@
         <table style={{ minWidth: totalWidth, width: '100%', fontSize: '.8125rem', borderCollapse: 'collapse' }}>
           <thead>
             {/* Row 1: Group headers (scrolls away, not sticky) */}
-            <tr style={{ background: 'var(--bg-table-head)' }}>
+            <tr style={{ background: '#4B5563' }}>
               {headerGroups.map((g, i) => (
                 <th key={i} colSpan={g.span} style={{
                   padding: '6px 14px', fontSize: '.65rem', fontWeight: 800,
@@ -1642,6 +1642,7 @@
                   color: g.label ? 'var(--bg-table-head-text)' : 'transparent',
                   userSelect: 'none',
                   borderBottom: g.borderColor ? `2px solid ${g.borderColor}` : 'none',
+                  borderRight: g.borderRight || 'none',
                 }}>
                   {g.label || ''}
                 </th>
@@ -1730,7 +1731,8 @@
           position: 'relative', whiteSpace: 'nowrap', padding: '10px 14px', fontWeight: 700,
           fontSize: '.6875rem', textTransform: 'uppercase', letterSpacing: '.03em',
           textAlign: align, color: 'var(--bg-table-head-text)', width: width,
-          minWidth: 50, userSelect: 'none'
+          minWidth: 50, userSelect: 'none',
+          borderRight: column.borderRight || 'none'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: align === 'right' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start' }}>
             <span>{column.label}</span>
