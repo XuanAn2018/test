@@ -1571,14 +1571,11 @@
     function DetailTable({ rows, sortConfig, applySort, openColumn, setOpenColumn, columnFilters, setColumnFilter, onImageClick }) {
       const columns = [
         { key:'factory', label:'Factory', width: 80 },
-        { key:'buyer', label:'Buyer', width: 80 },
-        { key:'dest', label:'Dest', width: 60 },
         { key:'style', label:'Style Code', width: 130 },
         { key:'ao_no', label:'AO No', width: 130 },
         { key:'style_name', label:'Style Name', width: 240 },
         { key:'color_name', label:'Color', width: 130 },
         { key:'size_code', label:'Size', width: 60 },
-        { key:'buyer_po', label:'Buyer PO', width: 140 },
         { key:'qty', label:'Qty', right:true, width: 90 },
         { key:'shipped_qty', label:'ĐÃ XUẤT', right:true, width: 100 },
         { key:'remain', label:'CHƯA XUẤT', right:true, width: 100 },
@@ -1586,11 +1583,22 @@
         { key:'mx_unreported', label:'CÒN LẠI', right:true, width: 100 },
         { key:'mx_packages', label:'SL PKG', right:true, width: 90 },
         { key:'exf', label:'Ngày xuất', center:true, width: 100 },
+        { key:'buyer', label:'Buyer', width: 80 },
+        { key:'dest', label:'Dest', width: 60 },
+        { key:'buyer_po', label:'Buyer PO', width: 140 },
         { key:'shipping_pkg', label:'SHPPKG', width: 90 },
         { key:'prd_pkg', label:'PRDPKG', width: 100 },
         { key:'sku', label:'SKU', width: 200 },
         { key:'package_group', label:'Package Group', width: 130 },
         { key:'status', label:'Trạng thái', center:true, width: 90 }
+      ];
+
+      const headerGroups = [
+        { label: '', span: 6 },
+        { label: 'SẢN XUẤT', span: 1, style: { background: 'rgba(59,130,246,.08)' } },
+        { label: 'XUẤT HÀNG', span: 2, style: { background: 'rgba(16,185,129,.08)' } },
+        { label: 'BÁO CÁO DB', span: 2, style: { background: 'rgba(124,58,237,.08)' } },
+        { label: '', span: 10 },
       ];
 
       const [colWidths, setColWidths] = useState(() => {
@@ -1624,6 +1632,20 @@
       return (
         <table style={{ minWidth: totalWidth, width: '100%', fontSize: '.8125rem', borderCollapse: 'collapse' }}>
           <thead>
+            {/* Row 1: Group headers */}
+            <tr style={{ position: 'sticky', top: 0, zIndex: 11, background: 'var(--bg-table-head)' }}>
+              {headerGroups.map((g, i) => (
+                <th key={i} colSpan={g.span} style={{
+                  padding: '6px 14px', fontSize: '.65rem', fontWeight: 800,
+                  textTransform: 'uppercase', letterSpacing: '.06em',
+                  textAlign: 'center', color: g.label ? 'var(--text-muted)' : 'transparent',
+                  userSelect: 'none', ...g.style
+                }}>
+                  {g.label || ''}
+                </th>
+              ))}
+            </tr>
+            {/* Row 2: Individual column headers */}
             <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-table-head)' }}>
               {columns.map(col => (
                 <SortableTh key={col.key} column={col} width={colWidths[col.key]} sortConfig={sortConfig} applySort={applySort} openColumn={openColumn} setOpenColumn={setOpenColumn} columnFilters={columnFilters} setColumnFilter={setColumnFilter} onResize={onMouseDown} />
@@ -1640,8 +1662,6 @@
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <Td strong style={{ width: colWidths.factory }}>{row.factory || '-'}</Td>
-                  <Td style={{ width: colWidths.buyer, color: 'var(--text-muted)' }}>{row.buyer || '-'}</Td>
-                  <Td style={{ width: colWidths.dest }}>{row.dest || '-'}</Td>
                   <Td strong style={{ width: colWidths.style }}>{row.style || '-'}</Td>
                   <Td style={{ width: colWidths.ao_no }}>{row.ao_no || '-'}</Td>
                   {/* Style Name with image link */}
@@ -1655,7 +1675,6 @@
                   </Td>
                   <Td style={{ width: colWidths.color_name }}>{row.color_name || '-'}</Td>
                   <Td style={{ width: colWidths.size_code }}>{row.size_code || '-'}</Td>
-                  <Td style={{ width: colWidths.buyer_po }}>{row.buyer_po || '-'}</Td>
                   {/* Highlighted numeric columns */}
                   <Td right style={{ width: colWidths.qty, fontWeight: 700, color: 'var(--accent)' }}>{formatNumber(row.qty)}</Td>
                   <Td right style={{ width: colWidths.shipped_qty, background: 'rgba(16,185,129,.08)', fontWeight: 900, color: '#059669' }}>{formatNumber(row.shipped_qty)}</Td>
@@ -1677,6 +1696,9 @@
                     {row.mx_packages != null ? formatNumber(row.mx_packages) : '-'}
                   </Td>
                   <Td center style={{ width: colWidths.exf }}>{fmtDisplayDate(row.exf)}</Td>
+                  <Td style={{ width: colWidths.buyer, color: 'var(--text-muted)' }}>{row.buyer || '-'}</Td>
+                  <Td style={{ width: colWidths.dest }}>{row.dest || '-'}</Td>
+                  <Td style={{ width: colWidths.buyer_po }}>{row.buyer_po || '-'}</Td>
                   <Td style={{ width: colWidths.shipping_pkg }}>{row.shipping_pkg || '-'}</Td>
                   <Td style={{ width: colWidths.prd_pkg }}>{row.prd_pkg || '-'}</Td>
                   <Td style={{ width: colWidths.sku, fontSize: '.75rem' }}>{row.sku || '-'}</Td>
