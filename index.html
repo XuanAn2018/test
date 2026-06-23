@@ -163,11 +163,11 @@
 
     /* Summary banner */
     .summary-banner {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border-radius: .75rem; padding: 1rem 1.25rem; color: #fff;
+      background: #E0F2FE;
+      border-radius: .75rem; padding: 1rem 1.25rem;
       display: flex; flex-direction: column; align-items: stretch; gap: .75rem;
     }
-    html.dark .summary-banner { background: linear-gradient(135deg, #020617 0%, #1e293b 100%); }
+    html.dark .summary-banner { background: linear-gradient(135deg, #1a2332 0%, #0f172a 100%); }
     .summary-row {
       display: flex; flex-wrap: wrap; align-items: center; gap: .75rem;
     }
@@ -1364,7 +1364,7 @@
                     </div>
 
                     {/* Summary banner */}
-                    <div className="summary-banner" style={{ padding: '12px 14px', marginTop: 12, borderRadius: 8, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                    <div className="summary-banner" style={{ padding: '12px 14px', marginTop: 12, border: '1px solid var(--border)' }}>
                       <div className="summary-row">
                         <span style={{ fontSize: '.8125rem', fontWeight: 600, opacity: .8 }}>Tổng hợp:</span>
                         <span className="summary-badge" style={{ background: 'rgba(255,255,255,.12)' }}>
@@ -1648,7 +1648,7 @@
               ))}
             </tr>
             {/* Row 2: Individual column headers (sticky when scrolling) */}
-            <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-table-head)', borderBottom: '1px solid var(--border)' }}>
+            <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: '#4B5563', borderBottom: '1px solid var(--border)' }}>
               {columns.map(col => (
                 <SortableTh key={col.key} column={col} width={colWidths[col.key]} sortConfig={sortConfig} applySort={applySort} openColumn={openColumn} setOpenColumn={setOpenColumn} columnFilters={columnFilters} setColumnFilter={setColumnFilter} onResize={onMouseDown} />
               ))}
