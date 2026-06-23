@@ -1595,9 +1595,9 @@
 
       const headerGroups = [
         { label: '', span: 6 },
-        { label: 'SẢN XUẤT', span: 1, style: { background: 'rgba(59,130,246,.08)' } },
-        { label: 'XUẤT HÀNG', span: 2, style: { background: 'rgba(16,185,129,.08)' } },
-        { label: 'BÁO CÁO DB', span: 2, style: { background: 'rgba(124,58,237,.08)' } },
+        { label: 'SỐ LƯỢNG', span: 1, borderColor: 'rgba(59,130,246,.5)' },
+        { label: 'XUẤT HÀNG', span: 2, borderColor: 'rgba(16,185,129,.5)' },
+        { label: 'BÁO CÁO DB', span: 2, borderColor: 'rgba(124,58,237,.5)' },
         { label: '', span: 10 },
       ];
 
@@ -1632,21 +1632,23 @@
       return (
         <table style={{ minWidth: totalWidth, width: '100%', fontSize: '.8125rem', borderCollapse: 'collapse' }}>
           <thead>
-            {/* Row 1: Group headers */}
-            <tr style={{ position: 'sticky', top: 0, zIndex: 11, background: 'var(--bg-table-head)' }}>
+            {/* Row 1: Group headers (scrolls away, not sticky) */}
+            <tr style={{ background: 'var(--bg-table-head)' }}>
               {headerGroups.map((g, i) => (
                 <th key={i} colSpan={g.span} style={{
                   padding: '6px 14px', fontSize: '.65rem', fontWeight: 800,
                   textTransform: 'uppercase', letterSpacing: '.06em',
-                  textAlign: 'center', color: g.label ? 'var(--text-muted)' : 'transparent',
-                  userSelect: 'none', ...g.style
+                  textAlign: 'center',
+                  color: g.label ? 'var(--bg-table-head-text)' : 'transparent',
+                  userSelect: 'none',
+                  borderBottom: g.borderColor ? `2px solid ${g.borderColor}` : 'none',
                 }}>
                   {g.label || ''}
                 </th>
               ))}
             </tr>
-            {/* Row 2: Individual column headers */}
-            <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-table-head)' }}>
+            {/* Row 2: Individual column headers (sticky when scrolling) */}
+            <tr style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-table-head)', borderBottom: '1px solid var(--border)' }}>
               {columns.map(col => (
                 <SortableTh key={col.key} column={col} width={colWidths[col.key]} sortConfig={sortConfig} applySort={applySort} openColumn={openColumn} setOpenColumn={setOpenColumn} columnFilters={columnFilters} setColumnFilter={setColumnFilter} onResize={onMouseDown} />
               ))}
