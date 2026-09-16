@@ -826,6 +826,39 @@
     .autoscan-pkg-item .as-pkg-meta { display: block; color: #64748b; font-size: 10px; word-break: break-all; }
     .autoscan-pkg-item .as-pkg-low { color: #ef4444; font-weight: 700; }
     .autoscan-pkg-item .as-pkg-done { color: #10b981; font-weight: 700; }
+
+    /* ========== AUTO-SCAN: TOÀN MÀN HÌNH + CỬA SỔ RIÊNG + BÁO CÁO ========== */
+    .autoscan-fullscreen {
+        width: 98vw !important;
+        height: 97vh !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+    }
+    .autoscan-fullscreen .autoscan-log-panel,
+    .autoscan-fullscreen .autoscan-result-panel { min-height: 240px; }
+    .autoscan-fullscreen .autoscan-pkg-list { max-height: 120px; }
+
+        // Chế độ cửa sổ riêng (?view=autoscan): ẩn giao diện chính, modal chiếm cả cửa sổ
+    body.as-standalone #autoScanModal {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        position: fixed !important;
+        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        padding: 0 !important; margin: 0 !important;
+        background: rgba(0,0,0,0.85) !important;
+        backdrop-filter: blur(4px);
+    }
+    body.as-standalone #autoScanModal .modal-box {
+        width: 100vw !important; height: 100vh !important;
+        max-width: none !important; border-radius: 0 !important;
+    }
+
+    .as-report-body { padding: 0 0 10px; overflow-y: auto; flex: 1; max-height: 58vh; }
+    .as-report-body table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .as-report-body th { position: sticky; top: 0; background: #f1f5f9; padding: 8px 6px; text-align: left; color: #475569; border-bottom: 2px solid #e2e8f0; z-index: 1; }
+    .as-report-body td { padding: 6px; border-bottom: 1px solid #f1f5f9; }
+    .as-report-section { padding: 12px 18px 4px; font-weight: 800; color: #334155; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -1299,7 +1332,9 @@
               </h3>
               <div style="display:flex; gap:10px; align-items:center;">
                   <span id="autoScanBadge" style="font-size:11px; padding:3px 10px; border-radius:20px; background:rgba(167,139,250,0.2); border:1px solid rgba(167,139,250,0.4); color:#c4b5fd;">Sẵn sàng</span>
-                  <button class="btn btn-sm btn-danger" onclick="closeAutoScanModal()" style="width:auto;"><i class="fas fa-times"></i></button>
+                  <button class="btn btn-sm btn-slate" onclick="openAutoScanWindow()" style="width:auto;" title="Mở Auto-Scan trong cửa sổ riêng (full màn hình)"><i class="fas fa-external-link-alt"></i></button>
+                  <button class="btn btn-sm btn-slate" id="asBtnFullscreen" onclick="toggleAutoScanFullscreen()" style="width:auto;" title="Phóng to / thu nhỏ modal"><i class="fas fa-expand"></i></button>
+                  <button class="btn btn-sm btn-danger" id="asBtnCloseX" onclick="closeAutoScanModal()" style="width:auto;"><i class="fas fa-times"></i></button>
               </div>
           </div>
 
@@ -1343,13 +1378,13 @@
                   </label>
                   <input type="number" id="asFaMax" value="1" min="0" step="1" onchange="onAutoScanRuleChange()">
               </span>
-              <span style="display:inline-flex; align-items:center; gap:6px;" title="Máy được gán FA phải có CurrOutput ≤ % này của Target package. Các máy còn lại Type rỗng (VD: 4,M1000)">
-                  <label for="asFaPercent" style="cursor:pointer;">
-                      <i class="fas fa-percentage" style="color:#f59e0b;"></i> FA khi CurrOutput ≤
-                  </label>
-                  <input type="number" id="asFaPercent" value="60" min="1" max="100" step="5" onchange="onAutoScanRuleChange()">
-                  <span>% Target</span>
-              </span>
+<span style="display:inline-flex; align-items:center; gap:6px;" title="Máy được gán FA phải có CurrOutput ≤ % này của Target package. Các máy còn lại Type rỗng (VD: 4,M1000)">
+                   <label for="asFaPercent" style="cursor:pointer;">
+                       <i class="fas fa-percentage" style="color:#f59e0b;"></i> FA khi CurrOutput ≤
+                   </label>
+                   <input type="number" id="asFaPercent" value="50" min="1" max="100" step="5" onchange="onAutoScanRuleChange()">
+                   <span>% Target</span>
+               </span>
           </div>
 
           <!-- TOOLBAR CHỌN PACKAGE -->
@@ -1436,19 +1471,45 @@
                   </div>
               </div>
               <!-- Right: Buttons -->
-              <div style="display:flex; gap:8px;">
+              <div style="display:flex; gap:8px; flex-wrap: wrap;">
                   <button class="btn btn-sm btn-danger" id="btnStopAutoScan" onclick="stopAutoScan()" style="display:none; width:auto;">
                       <i class="fas fa-stop-circle"></i> Dừng
                   </button>
                   <button class="btn-autoscan" id="btnStartAutoScan" onclick="startAutoScanPipeline()">
                       <i class="fas fa-play"></i> Bắt Đầu
                   </button>
-                  <button class="btn btn-sm btn-slate" onclick="closeAutoScanModal()" style="width:auto;">
+                  <button class="btn btn-sm btn-success" id="btnResumeAutoScan" onclick="resumeAutoScanPipeline()" style="width:auto; display:none;" title="Tiếp tục từ chỗ dừng (giữ FA đã gán, quét tiếp Opserinal trống)">
+                      <i class="fas fa-forward"></i> Tiếp Tục
+                  </button>
+                  <button class="btn btn-sm btn-info" onclick="showAutoScanReport()" style="width:auto;" title="Xem báo cáo tóm tắt">
+                      <i class="fas fa-clipboard-list"></i> Báo cáo
+                  </button>
+                  <button class="btn btn-sm btn-slate" id="asBtnCloseModal" onclick="closeAutoScanModal()" style="width:auto;">
                       <i class="fas fa-times"></i> Đóng
                   </button>
               </div>
           </div>
 
+      </div>
+  </div>
+
+  <!-- MODAL BÁO CÁO AUTO-SCAN -->
+  <div class="modal-overlay" id="asReportModal">
+      <div class="modal-box" style="max-width: 1000px;">
+          <div class="autoscan-header">
+              <h3><i class="fas fa-clipboard-list" style="color:#93c5fd;"></i> Báo Cáo Auto-Scan</h3>
+              <div style="display:flex; gap:10px; align-items:center;">
+                  <button class="btn btn-sm btn-slate" onclick="copyAutoScanReport()" style="width:auto;"><i class="fas fa-copy"></i> Copy</button>
+                  <button class="btn btn-sm btn-danger" onclick="document.getElementById('asReportModal').classList.remove('open')" style="width:auto;"><i class="fas fa-times"></i></button>
+              </div>
+          </div>
+          <div class="as-report-body" id="asReportBody"></div>
+          <div class="autoscan-footer">
+              <div class="autoscan-stats-bar" id="asReportTotals"></div>
+              <div style="display:flex; gap:8px;">
+                  <button class="btn btn-sm btn-slate" onclick="document.getElementById('asReportModal').classList.remove('open')" style="width:auto;"><i class="fas fa-times"></i> Đóng</button>
+              </div>
+          </div>
       </div>
   </div>
 
@@ -3516,8 +3577,22 @@
         renderAutoScanPackageList();
         updateAutoScanSelectionInfo();
 
+        // Mặc định phóng to modal; ẩn nút Đóng khi đang ở cửa sổ riêng
+        const asBox = document.querySelector('#autoScanModal .modal-box');
+        if (asBox) asBox.classList.add('autoscan-fullscreen');
+        const asFbtn = document.getElementById('asBtnFullscreen');
+        if (asFbtn) asFbtn.innerHTML = '<i class="fas fa-compress"></i>';
+        const asStandalone = document.body.classList.contains('as-standalone');
+        const asCloseX = document.getElementById('asBtnCloseX');
+        if (asCloseX) asCloseX.style.display = asStandalone ? 'none' : 'inline-flex';
+        const asCloseBtn = document.getElementById('asBtnCloseModal');
+        if (asCloseBtn) asCloseBtn.style.display = asStandalone ? 'none' : 'inline-flex';
+
         document.getElementById('autoScanModal').classList.add('open');
         loadAutoScanPackages();
+        
+        // Kiểm tra nút Tiếp Tục sau khi load xong
+        setTimeout(checkAndShowResumeButton, 500);
     }
 
     /* ========== AUTO-SCAN: CHỌN PACKAGE & QUY TẮC ========== */
@@ -3537,7 +3612,7 @@
 
     function getAutoScanFaPercent() {
         const v = parseFloat(document.getElementById('asFaPercent').value);
-        return (!isFinite(v) || v <= 0) ? 60 : Math.min(v, 100);
+        return (!isFinite(v) || v <= 0) ? 50 : Math.min(v, 100);
     }
 
     function autoScanIsSkipDone() {
@@ -3761,6 +3836,7 @@
             updateAutoScanSelectionInfo();
         } finally {
             btn.disabled = false;
+            checkAndShowResumeButton();
         }
     }
 
@@ -3862,6 +3938,7 @@
             });
         }
         renderAutoScanPackageList();
+        checkAndShowResumeButton();
     }
 
     /** Lấy danh sách opserial khả dụng (bỏ opserial 1) của 1 package */
@@ -3878,49 +3955,63 @@
     }
 
     /**
-     * Chia máy IoT cho các package.
-     * roundRobin = true  : mỗi vòng đi từ package 1 → package N, mỗi package nhận 1 máy,
-     *                      lặp lại tới khi hết máy hoặc hết opserial
-     *                      (VD: 30 package + 300 máy → mỗi package được 10 opserial đều nhau,
-     *                       máy còn dư vẫn được chia tiếp ở các vòng sau).
-     * roundRobin = false : chạy tuần tự như bản cũ (package 1 lấy hết máy cho tới khi hết opserial).
-     * faQuota   : số máy Type FA TỐI ĐA cho TOÀN BỘ phiên Auto-Scan (mặc định 1, 0 = không gán FA).
-     * faPercent : máy FA phải có CurrOutput <= faPercent% Target của package (mặc định 60).
-     *             Mọi máy còn lại đều có Type rỗng (VD: "4,M1000" thay vì "4,M1000,FA").
+     * Chia máy IoT cho các package - LOGIC MỚI THEO YÊU CẦU:
+     * 1. Mỗi Opserinal chỉ được gán TỐI ĐA 1 máy IoT (không được 2 máy vào 1 Opserinal)
+     * 2. Opserinal 1 là bất khả xâm phạm - BỎ QUA KHÔNG QUÉT
+     * 3. FA logic: Chỉ áp dụng cho MÁY ĐƯỢC GÁN LÀ FA (điều kiện: CurrOutput ≤ % Target).
+     *    Các máy còn lại: chỉ cần CurrOutput > 0, MotoTime > 0, MXPACKAGE trống, Factory khớp.
+     * 4. Chia đều theo Round-Robin: mỗi vòng 1 máy cho mỗi package, lặp lại.
+     * 5. Hỗ trợ resume: khi reload trang, kiểm tra FA logic đã gán chưa, tiếp tục Opserinal trống.
+     * faQuota   : số máy Type FA TỐI ĐA cho TOÀN BỘ phiên (mặc định 1, 0 = không gán FA).
+     * faPercent : ngưỡng CurrOutput ≤ % Target để máy đó đủ điều kiện LÀ FA.
      */
-    function buildAutoScanPlan(pkgTasks, pool, roundRobin = true, faQuota = 1, faPercent = 60) {
+    function buildAutoScanPlan(pkgTasks, pool, roundRobin = true, faQuota = 1, faPercent = 50) {
         const plan = [];
-        const available = pool.slice();
+        const available = pool.slice(); // các máy đủ điều kiện cơ bản
         const assignedPerPkg = {};
         const faMax = Math.max(0, parseInt(faQuota) || 0);
-        const faRatio = (parseFloat(faPercent) || 0) / 100;
+        const faRatio = (parseFloat(faPercent) || 50) / 100; // mặc định 50%
         let faUsed = 0;
+
+        // Tạo state cho từng package: danh sách opserial khả dụng (đã bỏ qua opserial 1 và đã chạy)
         const states = pkgTasks.map(t => ({
             pkg: t.pkg,
-            opserials: t.opserials,
+            opserials: t.opserials, // đã lọc >1 và bỏ qua đã chạy
             nextIdx: 0
         }));
 
+        // Helper: kiểm tra máy có đủ điều kiện làm FA cho package này không
+        const isFaCandidate = (machine, target) => {
+            const currOutput = parseFloat(machine.CurrOutput) || 0;
+            const threshold = target * faRatio;
+            return currOutput > 0 && currOutput <= threshold;
+        };
+
+        // Helper: gán 1 máy cho 1 opserial của 1 package
         const assignOne = (st) => {
             if (available.length === 0) return false;
             if (st.nextIdx >= st.opserials.length) return false;
 
             const target = parseInt(st.pkg.target) || 0;
-            const faThreshold = target * faRatio;
             let chosen = null;
             let type = '';
 
-            // Chỉ gán Type FA cho tối đa faMax máy trong TOÀN BỘ phiên Auto-Scan,
-            // máy đó phải có CurrOutput <= faRatio * Target. Các máy khác Type rỗng.
-            if (faUsed < faMax && faThreshold > 0) {
-                const faIdx = available.findIndex(m => (parseFloat(m.CurrOutput) || 0) <= faThreshold);
+            // LOGIC FA MỚI: Chỉ gán FA cho máy THỰC SỰ THỎA MÃN điều kiện FA
+            // - Chỉ gán tối đa faMax máy FA trong TOÀN BỘ phiên
+            // - Máy FA phải có CurrOutput ≤ faRatio * Target CỦA PACKAGE ĐÓ
+            // - Các máy khác: Type rỗng (chỉ cần đủ điều kiện cơ bản)
+            if (faUsed < faMax && faRatio > 0) {
+                const faIdx = available.findIndex(m => isFaCandidate(m, target));
                 if (faIdx !== -1) {
                     chosen = available.splice(faIdx, 1)[0];
                     type = 'FA';
                     faUsed++;
                 }
             }
-            if (!chosen) chosen = available.shift();
+            if (!chosen) {
+                chosen = available.shift();
+                type = ''; // Type rỗng cho các máy không phải FA
+            }
 
             const pkgId = st.pkg.packageId;
             plan.push({
@@ -3929,7 +4020,8 @@
                 target,
                 opserial: st.opserials[st.nextIdx],
                 mcid: chosen.MachineId || chosen.MacAddress || '',
-                type
+                type,
+                currOutput: parseFloat(chosen.CurrOutput) || 0
             });
             assignedPerPkg[pkgId] = (assignedPerPkg[pkgId] || 0) + 1;
             st.nextIdx++;
@@ -3952,6 +4044,111 @@
         }
 
         return { plan, assignedPerPkg, leftoverIot: available.length, faUsed };
+    }
+
+    let asReport = null;            // số liệu của lần chạy hiện tại (cho báo cáo)
+    let lastAutoScanReport = null;  // báo cáo gần nhất (nút "Báo cáo" đọc từ đây)
+
+    function openAutoScanWindow() {
+        const base = location.href.split('?')[0].split('#')[0];
+        window.open(base + '?view=autoscan', 'mes_autoscan_window',
+            'width=1920,height=1080,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
+    }
+
+    /** Bật/chữa chế độ toàn màn hình cho modal (không cần cửa sổ riêng) */
+    function toggleAutoScanFullscreen() {
+        const box = document.querySelector('#autoScanModal .modal-box');
+        if (!box) return;
+        box.classList.toggle('autoscan-fullscreen');
+        const on = box.classList.contains('autoscan-fullscreen');
+        const btn = document.getElementById('asBtnFullscreen');
+        if (btn) btn.innerHTML = `<i class="fas fa-${on ? 'compress' : 'expand'}"></i>`;
+    }
+
+    /** Đóng modal (giữ nguyên bản gốc) */
+    function closeAutoScanModal() {
+        if (autoScanRunning) {
+            if (!confirm('Auto-Scan đang chạy. Bạn có muốn dừng và đóng không?')) return;
+            stopAutoScan();
+        }
+        document.getElementById('autoScanModal').classList.remove('open');
+    }
+
+    /* ========== BÁO CÁO AUTO-SCAN ========== */
+    function showAutoScanReport() {
+        if (!lastAutoScanReport) {
+            alert('Chưa có báo cáo. Hãy chạy Auto-Scan trước.');
+            return;
+        }
+        const r = lastAutoScanReport;
+        const ids = Object.keys(r.rows).sort((a, b) => String(r.rows[a].lineName).localeCompare(String(r.rows[b].lineName)));
+        let okSum = 0, failSum = 0, planSum = 0;
+
+        const rowsHtml = ids.map(id => {
+            const x = r.rows[id];
+            okSum += x.ok; failSum += x.fail; planSum += x.planned;
+            const st = x.fail === 0
+                ? '<span style="color:#10b981; font-weight:700;">XONG</span>'
+                : `<span style="color:#ef4444; font-weight:700;">CÒN ${x.fail} LỖI</span>`;
+            const faTxt = x.fa ? ` • FA: <b>${x.fa}</b>` : '';
+            return `<tr>
+                <td>${x.lineName || '-'}</td>
+                <td style="font-size:10px; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${id}">${id}</td>
+                <td style="text-align:right;">${x.target || 0}</td>
+                <td style="text-align:center;">${x.planned}</td>
+                <td style="text-align:center; color:#10b981; font-weight:700;">${x.ok}</td>
+                <td style="text-align:center; color:#ef4444; font-weight:700;">${x.fail}</td>
+                <td style="font-size:11px;">${st}${faTxt}</td>
+            </tr>`;
+        }).join('');
+
+        const skipRows = r.skipped.map(s => `<tr>
+                <td>${s.lineName}</td>
+                <td style="font-size:10px;">${s.pkgId}</td>
+                <td style="text-align:right;">${s.target}</td>
+                <td colspan="3" style="color:#f59e0b; font-weight:600;">${s.reason}</td>
+            </tr>`).join('');
+
+        document.getElementById('asReportBody').innerHTML = `
+            <div class="as-report-section">📦 Đã scan (${ids.length} package — ${planSum} opserial)</div>
+            <table>
+                <thead><tr><th>Line</th><th>Package</th><th>Target</th><th>OP</th><th>OK</th><th>Lỗi</th><th>Trạng thái</th></tr></thead>
+                <tbody>${rowsHtml || '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:14px;">Không có package nào được scan</td></tr>'}</tbody>
+            </table>
+            ${r.skipped.length ? `
+            <div class="as-report-section">⏭️ Bỏ qua (${r.skipped.length} package)</div>
+            <table>
+                <thead><tr><th>Line</th><th>Package</th><th>Target</th><th colspan="3">Lý do</th></tr></thead>
+                <tbody>${skipRows}</tbody>
+            </table>` : ''}
+        `;
+
+        document.getElementById('asReportTotals').innerHTML = `
+            <div class="autoscan-stat"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>OK: <strong style="color:#10b981;">${okSum}</strong></span></div>
+            <div class="autoscan-stat"><i class="fas fa-times-circle" style="color:#ef4444;"></i><span>Lỗi: <strong style="color:#ef4444;">${failSum}</strong></span></div>
+            <div class="autoscan-stat"><i class="fas fa-forward" style="color:#f59e0b;"></i><span>Bỏ qua: <strong style="color:#f59e0b;">${r.skipped.length}</strong> pkg</span></div>
+            <div class="autoscan-stat"><i class="fas fa-industry"></i><span>${r.factory || '-'} / ${r.dateVal || '-'}</span></div>
+        `;
+
+        document.getElementById('asReportModal').classList.add('open');
+    }
+
+    function copyAutoScanReport() {
+        if (!lastAutoScanReport) return;
+        const r = lastAutoScanReport;
+        const lines = ['Line\tPackage\tTarget\tOP\tOK\tLỗi\tGhi chú'];
+        let okSum = 0, failSum = 0;
+        Object.keys(r.rows).sort((a, b) => String(r.rows[a].lineName).localeCompare(String(r.rows[b].lineName))).forEach(id => {
+            const x = r.rows[id];
+            okSum += x.ok; failSum += x.fail;
+            lines.push(`${x.lineName || '-'}\t${id}\t${x.target || 0}\t${x.planned}\t${x.ok}\t${x.fail}\t${x.fail === 0 ? 'XONG' : 'CÒN ' + x.fail + ' LỖI'}${x.fa ? ' | FA: ' + x.fa : ''}`);
+        });
+        r.skipped.forEach(s => lines.push(`${s.lineName}\t${s.pkgId}\t${s.target}\t0\t0\t0\tBỎ QUA: ${s.reason}`));
+        lines.push(`\tTỔNG\t\t${okSum + failSum}\t${okSum}\t${failSum}\tBỏ qua: ${r.skipped.length} pkg`);
+        navigator.clipboard.writeText(lines.join('\n')).then(
+            () => alert('Đã copy báo cáo vào clipboard.'),
+            () => alert('Không copy được — trình duyệt chặn clipboard.')
+        );
     }
 
     async function startAutoScanPipeline() {
@@ -3994,6 +4191,10 @@
             }
         }
 
+        // Khởi tạo báo cáo của lần chạy này
+        asReport = { factory, dateVal, rows: {}, skipped: [] };
+        lastAutoScanReport = asReport;
+
         autoScanRunning = true;
         autoScanAbortController = new AbortController();
         asStatSuccessVal = 0; asStatFailVal = 0; asStatSkipVal = 0;
@@ -4020,6 +4221,9 @@
                     autoScanLogEntry(`<i class="fas fa-forward"></i> Bỏ qua ${skippedLow.length} package có Target < ${minTarget}:`, 'warning');
                     skippedLow.slice(0, 10).forEach(p => autoScanLogEntry(`   • ${p.lineName || '?'} — ${p.packageId} (Target ${parseInt(p.target) || 0})`, 'warning'));
                     if (skippedLow.length > 10) autoScanLogEntry(`   ... và ${skippedLow.length - 10} package khác`, 'warning');
+                    // Ghi vào báo cáo: mọi package Target thấp (kể cả không được tích)
+                    autoScanPackages.filter(p => (parseInt(p.target) || 0) < minTarget)
+                        .forEach(p => asReport.skipped.push({ pkgId: p.packageId, lineName: p.lineName || '?', target: parseInt(p.target) || 0, reason: `Target < ${minTarget}` }));
                 }
 
             selected.forEach((p, i) => autoScanLogEntry(`   [${i+1}/${selected.length}] ${p.lineName || '?'} — ${p.packageId} (Target ${parseInt(p.target) || 0})`, 'info'));
@@ -4076,6 +4280,7 @@
                     if (autoScanIsSkipDone() && isAutoScanPkgDone(pkg.packageId)) {
                         const rec = loadAutoScanHistory()[pkg.packageId];
                         autoScanLogEntry(`  <i class="fas fa-history"></i> [${i+1}/${selected.length}] ${lineLabel}: đã chạy xong ${autoScanDoneCount(pkg.packageId)}/${rec.total} opserial lần trước — bỏ qua`, 'warning');
+                        asReport.skipped.push({ pkgId: pkg.packageId, lineName: lineLabel, target: parseInt(pkg.target) || 0, reason: `Đã chạy xong lần trước (${autoScanDoneCount(pkg.packageId)}/${rec.total} OP)` });
                         asStatSkipVal++;
                         updateAutoScanStats();
                         continue;
@@ -4084,6 +4289,7 @@
                     const opserials = await fetchAutoScanOperations(pkg.packageId, autoScanAbortController.signal);
                     if (!opserials || opserials.length === 0) {
                         autoScanLogEntry(`  <i class="fas fa-ban"></i> [${i+1}/${selected.length}] ${lineLabel}: không có opserial khả dụng — bỏ qua`, 'warning');
+                        asReport.skipped.push({ pkgId: pkg.packageId, lineName: lineLabel, target: parseInt(pkg.target) || 0, reason: 'Không có opserial khả dụng' });
                         asStatSkipVal++;
                     } else {
                         // Lưu tổng số opserial + lọc bỏ opserial đã chạy THÀNH CÔNG ở các lần trước
@@ -4093,6 +4299,7 @@
 
                         if (remaining.length === 0) {
                             autoScanLogEntry(`  <i class="fas fa-history"></i> [${i+1}/${selected.length}] ${lineLabel}: đã chạy xong ${opserials.length} opserial lần trước — bỏ qua`, 'warning');
+                            asReport.skipped.push({ pkgId: pkg.packageId, lineName: lineLabel, target: parseInt(pkg.target) || 0, reason: `Đã chạy xong lần trước (${opserials.length} OP)` });
                             asStatSkipVal++;
                         } else {
                             if (remaining.length < opserials.length) {
@@ -4105,6 +4312,7 @@
                 } catch (opsErr) {
                     if (opsErr.name === 'AbortError') break;
                     autoScanLogEntry(`  <i class="fas fa-times-circle"></i> [${i+1}/${selected.length}] ${lineLabel}: lỗi lấy operations — ${opsErr.message}`, 'error');
+                    asReport.skipped.push({ pkgId: pkg.packageId, lineName: lineLabel, target: parseInt(pkg.target) || 0, reason: `Lỗi lấy operations: ${opsErr.message}` });
                     asStatSkipVal++;
                 }
                 updateAutoScanStats();
@@ -4132,6 +4340,17 @@
             const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(pkgTasks, eligibleIot, useRoundRobin, faQuota, faPercent);
             autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot} máy không dùng)`, 'success');
             autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA: gán ${faUsed}/${faQuota} máy (CurrOutput ≤ ${faPercent}% Target) — các máy khác Type rỗng`, faUsed > 0 ? 'success' : 'warning');
+            if (faUsed > 0) {
+                const faRow = plan.find(p => p.type === 'FA');
+                if (faRow) autoScanLogEntry(`   🤖 Máy FA chọn: <b>${faRow.mcid}</b> (CurrOutput ${faRow.currOutput}) → ${faRow.lineName || faRow.pkgId} OP${faRow.opserial}`, 'info');
+            }
+
+            // Khởi tạo số liệu báo cáo cho từng package trong kế hoạch
+            plan.forEach(p => {
+                const row = asReport.rows[p.pkgId] || (asReport.rows[p.pkgId] = { lineName: p.lineName, target: p.target, planned: 0, ok: 0, fail: 0, fa: '' });
+                row.planned++;
+                if (p.type === 'FA') row.fa = p.mcid;
+            });
 
             pkgTasks.forEach(t => {
                 const got   = assignedPerPkg[t.pkg.packageId] || 0;
@@ -4173,17 +4392,27 @@
 
                         if (ok) {
                             asStatSuccessVal++;
-                            markAutoScanDone(a.pkgId, a.opserial);   // ghi nhớ đã chạy — lần sau bỏ qua opserial này
+                            // Lưu FA nếu đây là opserial FA của package này (chỉ lưu 1 lần)
+                            if (a.type === 'FA') {
+                                const faRec = loadAutoScanHistory()[a.pkgId] || { faDone: { opserial: '', mcid: '', currOutput: 0 } };
+                                faRec.faDone = { opserial: String(a.opserial), mcid: a.mcid, currOutput: a.currOutput };
+                                faRec.faDone.logAt = new Date().toISOString();
+                                saveAutoScanHistory(loadAutoScanHistory());
+                            }
+                            markAutoScanDone(a.pkgId, a.opserial);
+                            const rr = asReport.rows[a.pkgId]; if (rr) rr.ok++;
                             autoScanLogEntry(`    ✅ OP${a.opserial} | ${a.mcid}${a.type ? ' ['+a.type+']' : ''} → OK`, 'success');
                             addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'OK');
                         } else {
                             asStatFailVal++;
+                            const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
                             autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
                             addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'FAIL');
                         }
                     } catch (fetchErr) {
                         if (fetchErr.name === 'AbortError') break;
                         asStatFailVal++;
+                        const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
                         autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
                         addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'ERR');
                     }
@@ -4207,6 +4436,20 @@
                 autoScanLogEntry(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'divider');
                 autoScanLogEntry(`🏁 HOÀN TẤT!  ✅ ${asStatSuccessVal} OK  ❌ ${asStatFailVal} FAIL  ⏭️ ${asStatSkipVal} Skip`, 'success');
                 autoScanLogEntry(`💾 Đã lưu lịch sử — lần sau các OP đã chạy xong sẽ được bỏ qua (nút "Xóa lịch sử" để chạy lại từ đầu).`, 'info');
+
+                // BÁO CÁO NHANH THEO PACKAGE
+                const repIds = Object.keys(asReport.rows);
+                if (repIds.length) {
+                    autoScanLogEntry(`<i class="fas fa-clipboard-list"></i> BÁO CÁO NHANH THEO PACKAGE:`, 'divider');
+                    repIds.forEach(id => {
+                        const x = asReport.rows[id];
+                        autoScanLogEntry(`   • ${x.lineName || id} — ${id} (Target ${x.target}): ✅ ${x.ok} OK, ❌ ${x.fail} lỗi, 📋 ${x.planned} OP${x.fa ? ', FA=' + x.fa : ''}`, x.fail ? 'warning' : 'success');
+                    });
+                }
+                if (asReport.skipped.length) {
+                    autoScanLogEntry(`⏭️ Đã bỏ qua ${asReport.skipped.length} package (chi tiết trong nút "Báo cáo")`, 'warning');
+                }
+                showAutoScanReport();
                 document.getElementById('autoScanBadge').textContent = '✅ Hoàn tất';
                 document.getElementById('autoScanBadge').style.background = 'rgba(16,185,129,0.2)';
                 document.getElementById('autoScanBadge').style.color = '#6ee7b7';
@@ -4229,6 +4472,362 @@
             document.getElementById('btnStartAutoScan').disabled = false;
             document.getElementById('btnStartAutoScan').innerHTML = '<i class="fas fa-redo"></i> Chạy Lại';
             document.getElementById('btnStopAutoScan').style.display = 'none';
+            // Hiện nút Tiếp Tục nếu có opserial chưa chạy
+            checkAndShowResumeButton();
+            updateAutoScanStats();
+        }
+    }
+
+    /** Kiểm tra và hiển thị nút Tiếp Tục nếu có package chưa hoàn thành */
+    function checkAndShowResumeButton() {
+        const resumeBtn = document.getElementById('btnResumeAutoScan');
+        if (!resumeBtn) return;
+        
+        // Kiểm tra xem có package nào đã chọn mà còn opserial chưa chạy không
+        const selected = getAutoScanSelectedPackages();
+        let hasPending = false;
+        
+        for (const pkg of selected) {
+            const rec = loadAutoScanHistory()[pkg.packageId];
+            if (!rec || !rec.total) continue;
+            
+            const doneCount = autoScanDoneCount(pkg.packageId);
+            if (doneCount < rec.total) {
+                hasPending = true;
+                break;
+            }
+        }
+        
+        // Cũng kiểm tra FA logic đã gán chưa
+        const history = loadAutoScanHistory();
+        let hasFaAssigned = false;
+        for (const [pkgId, rec] of Object.entries(history)) {
+            if (rec.faDone && rec.faDone.mcid) {
+                hasFaAssigned = true;
+                break;
+            }
+        }
+        
+        if (hasPending || hasFaAssigned) {
+            resumeBtn.style.display = 'inline-flex';
+            const pendingCount = selected.reduce((sum, pkg) => {
+                const rec = loadAutoScanHistory()[pkg.packageId];
+                return sum + (rec && rec.total ? rec.total - autoScanDoneCount(pkg.packageId) : 0);
+            }, 0);
+            resumeBtn.innerHTML = `<i class="fas fa-forward"></i> Tiếp Tục (${pendingCount} OP còn lại)`;
+        } else {
+            resumeBtn.style.display = 'none';
+        }
+    }
+
+    /** Tiếp tục Auto-Scan từ chỗ dừng - giữ FA đã gán, quét tiếp Opserinal trống */
+    async function resumeAutoScanPipeline() {
+        if (autoScanRunning) return;
+
+        const factory = document.getElementById('asFactory').value.trim();
+        const dateVal  = document.getElementById('asDate').value;
+        const dateStr  = dateVal ? dateVal.replace(/-/g, '') : '';
+        if (!factory || !dateStr) {
+            alert('Vui lòng chọn Factory và Date!');
+            return;
+        }
+
+        // Lấy các package đã chọn
+        let selected = getAutoScanSelectedPackages();
+        if (selected.length === 0) {
+            alert('Không có package nào được chọn!');
+            return;
+        }
+
+        // Lọc ra chỉ các package còn opserial chưa chạy
+        const pendingPackages = [];
+        for (const pkg of selected) {
+            const rec = loadAutoScanHistory()[pkg.packageId];
+            if (!rec || !rec.total) continue;
+            
+            const doneCount = autoScanDoneCount(pkg.packageId);
+            const remaining = rec.total - doneCount;
+            
+            if (remaining > 0) {
+                pendingPackages.push({ pkg, remaining, doneCount });
+            }
+        }
+
+        if (pendingPackages.length === 0) {
+            alert('Tất cả package đã chọn đã chạy xong!');
+            checkAndShowResumeButton();
+            return;
+        }
+
+        // Hiển thị thông tin resume
+        autoScanLogEntry(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'divider');
+        autoScanLogEntry(`🔄 CHẾ ĐỘ TIẾP TỤC: ${pendingPackages.length} package còn opserial chưa chạy`, 'warning');
+        pendingPackages.forEach(p => {
+            autoScanLogEntry(`   • ${p.pkg.lineName || p.pkg.packageId}: đã chạy ${p.doneCount}/${p.doneCount + p.remaining} OP, còn ${p.remaining} OP`, 'info');
+        });
+
+        // Kiểm tra FA đã gán
+        const history = loadAutoScanHistory();
+        let faAlreadyAssigned = false;
+        let faAssignedInfo = null;
+        for (const [pkgId, rec] of Object.entries(history)) {
+            if (rec.faDone && rec.faDone.mcid) {
+                faAlreadyAssigned = true;
+                faAssignedInfo = { pkgId, ...rec.faDone };
+                autoScanLogEntry(`🤖 FA đã gán trước đó: Package ${pkgId} OP${rec.faDone.opserial} → ${rec.faDone.mcid} (CurrOutput ${rec.faDone.currOutput})`, 'info');
+                break;
+            }
+        }
+
+        if (!confirm(`Tiếp tục chạy ${pendingPackages.reduce((s, p) => s + p.remaining, 0)} opserial còn lại?\n${faAlreadyAssigned ? '⚠️ FA đã được gán trước đó sẽ được GIỮ NGUYÊN.' : 'Chưa có FA được gán.'}`)) {
+            return;
+        }
+
+        // Khởi tạo báo cáo cho lần chạy này (giữ báo cáo cũ)
+        const prevReport = lastAutoScanReport;
+        asReport = { factory, dateVal, rows: {}, skipped: [] };
+        lastAutoScanReport = asReport;
+
+        autoScanRunning = true;
+        autoScanAbortController = new AbortController();
+        asStatSuccessVal = 0; asStatFailVal = 0; asStatSkipVal = 0;
+        updateAutoScanStats();
+
+        // Update UI
+        document.getElementById('autoScanBadge').textContent = '🔄 Đang tiếp tục...';
+        document.getElementById('autoScanBadge').style.background = 'rgba(59,130,246,0.2)';
+        document.getElementById('autoScanBadge').style.color = '#93c5fd';
+        document.getElementById('btnResumeAutoScan').disabled = true;
+        document.getElementById('btnResumeAutoScan').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang chạy...';
+        document.getElementById('btnStopAutoScan').style.display = 'inline-flex';
+
+        try {
+            /* ── BƯỚC 1: Tải IoT status ── */
+            autoScanLogEntry(`🔍 Đang tải danh sách máy IoT (Factory: ${factory})...`, 'info');
+            const iotUrl = buildIotStatusUrl({ factory, length: 1000 });
+            const iotRes = await apiFetch(iotUrl, { signal: autoScanAbortController.signal });
+            const iotText = await iotRes.text();
+            let iotJson = null;
+            try { iotJson = JSON.parse(iotText); } catch { iotJson = null; }
+
+            if (!iotJson || !iotJson.success) {
+                autoScanLogEntry('❌ Không thể tải dữ liệu IoT! Kiểm tra kết nối.', 'error');
+                setAutoScanBadge('❌ Lỗi IoT', 'rgba(239,68,68,0.15)', '#fca5a5');
+                return;
+            }
+            const allIot = iotJson.data || [];
+            autoScanLogEntry(`✅ Tải được ${allIot.length} máy IoT từ server`, 'success');
+
+            /* ── BƯỚC 2: Filter IoT đủ điều kiện cơ bản ── */
+            const factoryScope = getFactoryScopeParam(factory);
+            const eligibleIot = allIot.filter(m => {
+                const currOutput = parseFloat(m.CurrOutput) || 0;
+                const motoTime  = parseFloat(m.MotoTime)  || 0;
+                const mxpackage = (m.MXPACKAGE || '').trim();
+                const machineFactory = getFactoryScopeParam(m.Factory || '');
+                return currOutput > 0 && motoTime > 0 && !mxpackage && machineFactory === factoryScope;
+            });
+
+            autoScanLogEntry(`✅ ${eligibleIot.length} máy đủ điều kiện (CurrOutput>0, MotoTime>0, MXPACKAGE trống, Factory=${factoryScope})`, 'success');
+
+            if (eligibleIot.length === 0) {
+                autoScanLogEntry('⚠️ Không có máy IoT nào đủ điều kiện!', 'warning');
+                setAutoScanBadge('⚠️ Không có IoT', 'rgba(245,158,11,0.2)', '#fcd34d');
+                return;
+            }
+
+            /* ── BƯỚC 3: Lấy opserial còn lại của từng package (bỏ qua opserial 1, bỏ qua đã chạy) ── */
+            autoScanLogEntry(`<i class="fas fa-list-ol"></i> Đang lấy opserial còn lại cho ${pendingPackages.length} package...`, 'info');
+            const pkgTasks = [];
+            
+            for (let i = 0; i < pendingPackages.length; i++) {
+                if (autoScanAbortController.signal.aborted) break;
+                
+                const { pkg, remaining } = pendingPackages[i];
+                const lineLabel = pkg.lineName || pkg.packageId;
+                
+                try {
+                    const opserials = await fetchAutoScanOperations(pkg.packageId, autoScanAbortController.signal);
+                    if (!opserials || opserials.length === 0) {
+                        autoScanLogEntry(`  <i class="fas fa-ban"></i> ${lineLabel}: không có opserial khả dụng`, 'warning');
+                        continue;
+                    }
+                    
+                    // Lọc bỏ opserial đã chạy thành công
+                    const doneSet = autoScanDoneSet(pkg.packageId);
+                    const remainingOps = opserials.filter(s => !doneSet.has(String(s)));
+                    
+                    if (remainingOps.length === 0) {
+                        autoScanLogEntry(`  <i class="fas fa-check"></i> ${lineLabel}: đã chạy xong tất cả`, 'success');
+                        continue;
+                    }
+                    
+                    pkgTasks.push({ pkg, opserials: remainingOps, remainingCount: remainingOps.length });
+                    autoScanLogEntry(`  <i class="fas fa-list-ol"></i> ${lineLabel}: ${remainingOps.length} opserial còn lại (Target ${parseInt(pkg.target) || 0})`, 'info');
+                    
+                } catch (opsErr) {
+                    if (opsErr.name === 'AbortError') break;
+                    autoScanLogEntry(`  <i class="fas fa-times-circle"></i> ${lineLabel}: lỗi lấy operations — ${opsErr.message}`, 'error');
+                }
+            }
+
+            if (autoScanAbortController.signal.aborted) {
+                autoScanLogEntry('⛔ Đã dừng theo yêu cầu.', 'warning');
+                return;
+            }
+            if (pkgTasks.length === 0) {
+                autoScanLogEntry('<i class="fas fa-exclamation-triangle"></i> Không có package nào còn opserial để chạy.', 'warning');
+                return;
+            }
+
+            /* ── BƯỚC 4: Chia máy IoT - LOGIC FA ĐÃ ĐƯỢC GÁN SẼ GIỮ NGUYÊN ── */
+            const faQuota = getAutoScanFaMax();
+            const faPercent = getAutoScanFaPercent();
+            
+            // Nếu FA đã được gán trước đó, giảm quota xuống 0 để không gán thêm FA
+            const effectiveFaQuota = faAlreadyAssigned ? 0 : faQuota;
+            if (faAlreadyAssigned) {
+                autoScanLogEntry(`🔒 FA quota set to 0 vì FA đã được gán trước đó (${faAssignedInfo.mcid})`, 'warning');
+            }
+            
+            const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(
+                pkgTasks, 
+                eligibleIot, 
+                document.getElementById('asRoundRobin').checked, 
+                effectiveFaQuota, 
+                faPercent
+            );
+            
+            autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch tiếp tục: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot})`, 'success');
+            if (faUsed > 0) {
+                autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA mới: gán ${faUsed} máy (CurrOutput ≤ ${faPercent}% Target)`, 'success');
+            } else if (faAlreadyAssigned) {
+                autoScanLogEntry(`<i class="fas fa-lock"></i> FA quota: 0 (đã có FA từ lần trước)`, 'info');
+            }
+
+            // Khởi tạo số liệu báo cáo
+            plan.forEach(p => {
+                const row = asReport.rows[p.pkgId] || (asReport.rows[p.pkgId] = { lineName: p.lineName, target: p.target, planned: 0, ok: 0, fail: 0, fa: '' });
+                row.planned++;
+                if (p.type === 'FA') row.fa = p.mcid;
+            });
+
+            pkgTasks.forEach(t => {
+                const got   = assignedPerPkg[t.pkg.packageId] || 0;
+                const need  = t.opserials.length;
+                const label = t.pkg.lineName || t.pkg.packageId;
+                autoScanLogEntry(`   • ${label}: ${got}/${need} opserial${got < need ? ' (thiếu IoT)' : ' (đủ)'}`, got < need ? 'warning' : 'info');
+            });
+
+            /* ── BƯỚC 5: Gửi API theo kế hoạch ── */
+            const totalAssign = plan.length;
+            autoScanLogEntry(`<i class="fas fa-rocket"></i> Bắt đầu gửi ${totalAssign} request...`, 'divider');
+
+            for (let apiIdx = 0; apiIdx < totalAssign; apiIdx++) {
+                if (autoScanAbortController.signal.aborted) break;
+                const a = plan[apiIdx];
+
+                let url = `${API_ENDPOINT}?mxpackage=${encodeURIComponent(a.pkgId)}&opserial=${a.opserial}&mcid=${encodeURIComponent(a.mcid)}`;
+                if (a.type) url += `&processtype=${encodeURIComponent(a.type)}`;
+
+                try {
+                    const res = await apiFetch(url, { signal: autoScanAbortController.signal });
+                    const text = await res.text();
+                    let ok = res.ok;
+                    try { const j = JSON.parse(text); if (j.IsSuccess === true) ok = true; } catch {}
+
+                    if (ok) {
+                        asStatSuccessVal++;
+                        if (a.type === 'FA') {
+                            // Lưu FA mới
+                            const faRec = loadAutoScanHistory()[a.pkgId] || { faDone: { opserial: '', mcid: '', currOutput: 0 } };
+                            faRec.faDone = { opserial: String(a.opserial), mcid: a.mcid, currOutput: a.currOutput };
+                            faRec.faDone.logAt = new Date().toISOString();
+                            saveAutoScanHistory(loadAutoScanHistory());
+                        }
+                        markAutoScanDone(a.pkgId, a.opserial);
+                        const rr = asReport.rows[a.pkgId]; if (rr) rr.ok++;
+                        autoScanLogEntry(`    ✅ OP${a.opserial} | ${a.mcid}${a.type ? ' ['+a.type+']' : ''} → OK`, 'success');
+                        addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'OK');
+                    } else {
+                        asStatFailVal++;
+                        const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
+                        autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
+                        addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'FAIL');
+                    }
+                } catch (fetchErr) {
+                    if (fetchErr.name === 'AbortError') break;
+                    asStatFailVal++;
+                    const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
+                    autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
+                    addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'ERR');
+                }
+                updateAutoScanStats();
+
+                const donePct = 40 + Math.round(((apiIdx + 1) / totalAssign) * 60);
+                document.getElementById('autoScanProgress').style.width = `${donePct}%`;
+                document.getElementById('autoScanProgressText').textContent =
+                    `${donePct}% — ${apiIdx + 1}/${totalAssign} (${a.lineName || a.pkgId} OP${a.opserial})`;
+
+                if (!autoScanAbortController.signal.aborted) {
+                    await new Promise(r => setTimeout(r, Math.random() * 1500 + 1000));
+                }
+            }
+
+            /* ── DONE ── */
+            if (!autoScanAbortController.signal.aborted) {
+                document.getElementById('autoScanProgress').style.width = '100%';
+                document.getElementById('autoScanProgressText').textContent = '100% — Hoàn tất!';
+                autoScanLogEntry(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'divider');
+                autoScanLogEntry(`🏁 TIẾP TỤC HOÀN TẤT!  ✅ ${asStatSuccessVal} OK  ❌ ${asStatFailVal} FAIL`, 'success');
+                
+                // Merge với báo cáo cũ nếu có
+                if (prevReport) {
+                    Object.entries(prevReport.rows).forEach(([pkgId, data]) => {
+                        if (!asReport.rows[pkgId]) asReport.rows[pkgId] = data;
+                        else {
+                            asReport.rows[pkgId].ok += data.ok;
+                            asReport.rows[pkgId].fail += data.fail;
+                            asReport.rows[pkgId].planned += data.planned;
+                        }
+                    });
+                    prevReport.skipped.forEach(s => asReport.skipped.push(s));
+                }
+                
+                // BÁO CÁO NHANH
+                const repIds = Object.keys(asReport.rows);
+                if (repIds.length) {
+                    autoScanLogEntry(`<i class="fas fa-clipboard-list"></i> BÁO CÁO TỔNG HỢP:`, 'divider');
+                    repIds.forEach(id => {
+                        const x = asReport.rows[id];
+                        autoScanLogEntry(`   • ${x.lineName || id} — ${id} (Target ${x.target}): ✅ ${x.ok} OK, ❌ ${x.fail} lỗ, 📋 ${x.planned} OP${x.fa ? ', FA=' + x.fa : ''}`, x.fail ? 'warning' : 'success');
+                    });
+                }
+                showAutoScanReport();
+                document.getElementById('autoScanBadge').textContent = '✅ Hoàn tất';
+                document.getElementById('autoScanBadge').style.background = 'rgba(16,185,129,0.2)';
+                document.getElementById('autoScanBadge').style.color = '#6ee7b7';
+            } else {
+                autoScanLogEntry('⛔ Đã dừng theo yêu cầu.', 'warning');
+                document.getElementById('autoScanBadge').textContent = '⛔ Đã dừng';
+                document.getElementById('autoScanBadge').style.background = 'rgba(239,68,68,0.15)';
+                document.getElementById('autoScanBadge').style.color = '#fca5a5';
+            }
+
+        } catch (e) {
+            if (e.name !== 'AbortError') {
+                autoScanLogEntry(`❌ Lỗi nghiêm trọng: ${e.message}`, 'error');
+                document.getElementById('autoScanBadge').textContent = '❌ Lỗi';
+            } else {
+                autoScanLogEntry('⛔ Đã dừng theo yêu cầu.', 'warning');
+            }
+        } finally {
+            autoScanRunning = false;
+            document.getElementById('btnResumeAutoScan').disabled = false;
+            document.getElementById('btnStartAutoScan').disabled = false;
+            document.getElementById('btnStartAutoScan').innerHTML = '<i class="fas fa-redo"></i> Chạy Lại';
+            document.getElementById('btnStopAutoScan').style.display = 'none';
+            checkAndShowResumeButton();
             updateAutoScanStats();
         }
     }
@@ -4263,6 +4862,12 @@
     /* ========== INITIALIZATION ========== */
     document.addEventListener('DOMContentLoaded', () => {
         setTodayDate();
+
+        // Chế độ cửa sổ riêng cho Auto-Scan (?view=autoscan): chỉ hiện Auto-Scan full màn hình
+        if (new URLSearchParams(location.search).get('view') === 'autoscan') {
+            document.body.classList.add('as-standalone');
+            openAutoScanModal();
+        }
 
         checkSessionSession();
 
