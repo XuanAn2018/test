@@ -810,6 +810,8 @@
     }
     .autoscan-pkg-item:hover { background: #f8fafc; border-color: #cbd5e1; }
     .autoscan-pkg-item.selected { border-color: #7c3aed; background: #f5f3ff; }
+    .autoscan-pkg-item.manual-selected { border-color: #7c3aed; background: #faf5ff; border-style: dashed; }
+    .autoscan-pkg-item.manual-selected:hover { background: #f3e8ff; }
     /* Reset style input TOÀN CỤC (width:100%, padding, border) cho các ô tích chọn Auto-Scan */
     .autoscan-pkg-item input[type="checkbox"],
     .autoscan-rules input[type="checkbox"],
@@ -1372,12 +1374,12 @@
                   <input type="checkbox" id="asSkipDone" checked onchange="onAutoScanRuleChange()">
                   <i class="fas fa-history" style="color:#0ea5e9;"></i> Nhớ pkg đã chạy
               </label>
-              <span style="display:inline-flex; align-items:center; gap:6px;" title="Số máy Type FA TỐI ĐA được gán trong toàn bộ phiên Auto-Scan (0 = không gán FA)">
-                  <label for="asFaMax" style="cursor:pointer;">
-                      <i class="fas fa-robot" style="color:#10b981;"></i> Số máy FA:
-                  </label>
-                  <input type="number" id="asFaMax" value="1" min="0" step="1" onchange="onAutoScanRuleChange()">
-              </span>
+<span style="display:inline-flex; align-items:center; gap:6px;" title="Số máy Type FA TỐI ĐA cho TỪNG PACKAGE (mặc định 1, 0 = không gán FA)">
+                   <label for="asFaMax" style="cursor:pointer;">
+                       <i class="fas fa-robot" style="color:#10b981;"></i> FA/Pkg:
+                   </label>
+                   <input type="number" id="asFaMax" value="1" min="0" step="1" onchange="onAutoScanRuleChange()">
+               </span>
 <span style="display:inline-flex; align-items:center; gap:6px;" title="Máy được gán FA phải có CurrOutput ≤ % này của Target package. Các máy còn lại Type rỗng (VD: 4,M1000)">
                    <label for="asFaPercent" style="cursor:pointer;">
                        <i class="fas fa-percentage" style="color:#f59e0b;"></i> FA khi CurrOutput ≤
@@ -1385,6 +1387,33 @@
                    <input type="number" id="asFaPercent" value="50" min="1" max="100" step="5" onchange="onAutoScanRuleChange()">
                    <span>% Target</span>
                </span>
+          </div>
+
+          <!-- BỘ LỌC IOT (mở rộng khi Resume ít máy) -->
+          <div class="autoscan-rules" style="border-top: 1px dashed #e2e8f0; margin-top: 4px; padding-top: 8px;">
+              <details style="width: 100%;">
+                  <summary style="cursor: pointer; font-weight: 600; color: #334155; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                      <i class="fas fa-filter" style="color: #0ea5e9;"></i> Bộ lọc IoT (nới lỏng khi Resume ít máy)
+                  </summary>
+                  <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; padding-left: 24px; font-size: 12px; color: #475569;">
+                      <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                          <input type="checkbox" id="asFilterCurrOutput" checked onchange="onAutoScanRuleChange()" title="Chỉ lấy máy có CurrOutput > 0">
+                          <i class="fas fa-chart-line" style="color:#10b981;"></i> CurrOutput > 0
+                      </label>
+                      <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                          <input type="checkbox" id="asFilterMotoTime" checked onchange="onAutoScanRuleChange()" title="Chỉ lấy máy có MotoTime > 0">
+                          <i class="fas fa-clock" style="color:#3b82f6;"></i> MotoTime > 0
+                      </label>
+                      <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                          <input type="checkbox" id="asFilterMxPackage" checked onchange="onAutoScanRuleChange()" title="Chỉ lấy máy chưa được gán package (MXPACKAGE trống)">
+                          <i class="fas fa-box-open" style="color:#f59e0b;"></i> MXPACKAGE trống
+                      </label>
+                      <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;">
+                          <input type="checkbox" id="asFilterFactory" checked onchange="onAutoScanRuleChange()" title="Chỉ lấy máy cùng Factory">
+                          <i class="fas fa-industry" style="color:#8b5cf6;"></i> Factory khớp
+                      </label>
+                  </div>
+              </details>
           </div>
 
           <!-- TOOLBAR CHỌN PACKAGE -->
@@ -3544,6 +3573,7 @@
     // Danh sách package tải từ server + các package đang được tích chọn để chạy
     let autoScanPackages = [];
     let autoScanSelectedIds = new Set();
+    let autoScanManuallySelected = new Set(); // packageId được user chủ động tích chọn
 
     function openAutoScanModal() {
         const factory = document.getElementById('factory').value.trim();
@@ -3574,6 +3604,7 @@
 
         autoScanPackages = [];
         autoScanSelectedIds.clear();
+        autoScanManuallySelected.clear();
         renderAutoScanPackageList();
         updateAutoScanSelectionInfo();
 
@@ -3657,7 +3688,7 @@
                 <span><i class="fas fa-boxes"></i> Đã chọn: <strong>${selected}/${total}</strong></span>
                 <span><i class="fas fa-filter"></i> Target tối thiểu: <strong>${skipLow ? minTarget : 'không giới hạn'}</strong></span>
                 <span><i class="fas fa-random"></i> Chia đều IoT: <strong>${roundRobin ? 'BẬT' : 'TẮT'}</strong></span>
-                <span><i class="fas fa-robot"></i> FA: <strong>${getAutoScanFaMax()} máy ≤ ${getAutoScanFaPercent()}% Target</strong></span>
+                <span><i class="fas fa-robot"></i> FA: <strong>${getAutoScanFaMax()}/pkg ≤ ${getAutoScanFaPercent()}% Target</strong></span>
                 <span><i class="fas fa-history"></i> Đã chạy trước: <strong>${autoScanPackages.filter(p => autoScanDoneCount(p.packageId) > 0).length} pkg</strong></span>
             `;
         }
@@ -3815,6 +3846,7 @@
 
             // Tích sẵn theo quy tắc: Target tối thiểu + bỏ qua pkg đã chạy xong lần trước
             autoScanSelectedIds.clear();
+            autoScanManuallySelected.clear(); // reset manual selection khi load pkg mới
             const skipLow = autoScanIsSkipLowTarget();
             const minTarget = getAutoScanMinTarget();
             const skipDone = autoScanIsSkipDone();
@@ -3831,6 +3863,7 @@
         } catch (e) {
             autoScanPackages = [];
             autoScanSelectedIds.clear();
+            autoScanManuallySelected.clear();
             listEl.innerHTML = `<div style="padding:20px; text-align:center; color:#ef4444; font-size:12px; grid-column:1/-1;"><i class="fas fa-exclamation-circle"></i> Lỗi tải packages: ${e.message}</div>`;
             autoScanLogEntry(`<i class="fas fa-exclamation-circle"></i> Lỗi tải packages: ${e.message}`, 'error');
             updateAutoScanSelectionInfo();
@@ -3876,12 +3909,13 @@
                     ? ` • <span class="as-pkg-done">✔ đã chạy xong ${doneCnt} OP</span>`
                     : ` • <span class="as-pkg-done">⏳ đã chạy ${doneCnt}${rec.total ? '/' + rec.total : ''} OP</span>`;
             }
-            return `<label class="autoscan-pkg-item ${checked ? 'selected' : ''}" title="${p.packageId}">
+            const isManual = autoScanManuallySelected.has(p.packageId);
+            return `<label class="autoscan-pkg-item ${checked ? 'selected' : ''} ${isManual ? 'manual-selected' : ''}" title="${p.packageId}${isManual ? ' (tự chọn)' : ''}">
                 <input type="checkbox" data-pkg="${p.packageId}" ${checked ? 'checked' : ''} onchange="toggleAutoScanPackage(this.dataset.pkg, this.checked)">
                 <span style="min-width:0; flex:1;">
                     <span class="as-pkg-id">${p.lineName || '?'} — ${p.styleText || p.packageId}</span>
                     <span class="as-pkg-meta">${p.packageId}</span>
-                    <span class="as-pkg-meta">Target: <span class="${isLow ? 'as-pkg-low' : ''}">${target}</span>${statusText ? ' • ' + statusText : ''}${isLow ? ' • sẽ bỏ qua' : ''}${doneHtml}</span>
+                    <span class="as-pkg-meta">Target: <span class="${isLow ? 'as-pkg-low' : ''}">${target}</span>${statusText ? ' • ' + statusText : ''}${isLow ? ' • sẽ bỏ qua' : ''}${doneHtml}${isManual ? ' • <span style="color:#7c3aed;font-weight:600;">✎ tự chọn</span>' : ''}</span>
                 </span>
             </label>`;
         }).join('');
@@ -3892,8 +3926,13 @@
     /** Tích / bỏ tích 1 package */
     function toggleAutoScanPackage(pkgId, checked) {
         if (autoScanRunning) return; // không cho đổi lựa chọn khi đang chạy
-        if (checked) autoScanSelectedIds.add(pkgId);
-        else autoScanSelectedIds.delete(pkgId);
+        if (checked) {
+            autoScanSelectedIds.add(pkgId);
+            autoScanManuallySelected.add(pkgId); // đánh dấu là user chủ động chọn
+        } else {
+            autoScanSelectedIds.delete(pkgId);
+            autoScanManuallySelected.delete(pkgId); // bỏ chọn = bỏ dấu manual
+        }
 
         const cb = document.querySelector(`.autoscan-pkg-item input[data-pkg="${pkgId}"]`);
         if (cb) {
@@ -3903,38 +3942,49 @@
         updateAutoScanSelectionInfo();
     }
 
-    /** Chọn tất cả / Bỏ chọn tất cả (tôn trọng quy tắc Target tối thiểu) */
+    /** Chọn tất cả / Bỏ chọn tất cả (chỉ chọn pkg đủ điều kiện, giữ lại pkg user tự chọn) */
     function selectAllAutoScanPackages(checked) {
         if (autoScanRunning) return; // không cho đổi lựa chọn khi đang chạy
         const skipLow = autoScanIsSkipLowTarget();
         const minTarget = getAutoScanMinTarget();
+        const skipDone = autoScanIsSkipDone();
 
-        autoScanSelectedIds.clear();
         if (checked) {
-            const skipDone = autoScanIsSkipDone();
+            // Chỉ thêm pkg đủ điều kiện, KHÔNG xóa pkg user đã tự chọn
             autoScanPackages.forEach(p => {
                 const target = parseInt(p.target) || 0;
                 if (skipLow && target < minTarget) return;
                 if (skipDone && isAutoScanPkgDone(p.packageId)) return;
                 autoScanSelectedIds.add(p.packageId);
+                // KHÔNG add vào manuallySelected vì đây là auto-select
             });
+        } else {
+            // Bỏ chọn tất cả: xóa hết nhưng GIỮ LẠI pkg user tự chọn
+            autoScanSelectedIds.clear();
+            autoScanManuallySelected.forEach(pkgId => autoScanSelectedIds.add(pkgId));
         }
         renderAutoScanPackageList();
     }
 
     /** Khi đổi quy tắc (Target tối thiểu / Round-Robin / Nhớ pkg đã chạy) */
     function onAutoScanRuleChange() {
-        if (autoScanIsSkipLowTarget()) {
-            // Loại các package Target thấp ra khỏi danh sách đã chọn cho khớp quy tắc
-            const minTarget = getAutoScanMinTarget();
+        const skipLow = autoScanIsSkipLowTarget();
+        const minTarget = getAutoScanMinTarget();
+        const skipDone = autoScanIsSkipDone();
+
+        if (skipLow) {
+            // Chỉ xóa pkg auto-selected không đủ điều kiện, GIỮ LẠI pkg user tự chọn
             autoScanPackages.forEach(p => {
-                if ((parseInt(p.target) || 0) < minTarget) autoScanSelectedIds.delete(p.packageId);
+                if ((parseInt(p.target) || 0) < minTarget && !autoScanManuallySelected.has(p.packageId)) {
+                    autoScanSelectedIds.delete(p.packageId);
+                }
             });
         }
-        if (autoScanIsSkipDone()) {
-            // Loại các package đã chạy xong lần trước ra khỏi danh sách đã chọn
+        if (skipDone) {
             autoScanPackages.forEach(p => {
-                if (isAutoScanPkgDone(p.packageId)) autoScanSelectedIds.delete(p.packageId);
+                if (isAutoScanPkgDone(p.packageId) && !autoScanManuallySelected.has(p.packageId)) {
+                    autoScanSelectedIds.delete(p.packageId);
+                }
             });
         }
         renderAutoScanPackageList();
@@ -3958,20 +4008,20 @@
      * Chia máy IoT cho các package - LOGIC MỚI THEO YÊU CẦU:
      * 1. Mỗi Opserinal chỉ được gán TỐI ĐA 1 máy IoT (không được 2 máy vào 1 Opserinal)
      * 2. Opserinal 1 là bất khả xâm phạm - BỎ QUA KHÔNG QUÉT
-     * 3. FA logic: Chỉ áp dụng cho MÁY ĐƯỢC GÁN LÀ FA (điều kiện: CurrOutput ≤ % Target).
+     * 3. FA logic: MỖI PACKAGE ĐƯỢC GÁN TỐI ĐA 1 MÁY FA (nếu có máy thỏa CurrOutput ≤ % Target).
      *    Các máy còn lại: chỉ cần CurrOutput > 0, MotoTime > 0, MXPACKAGE trống, Factory khớp.
      * 4. Chia đều theo Round-Robin: mỗi vòng 1 máy cho mỗi package, lặp lại.
      * 5. Hỗ trợ resume: khi reload trang, kiểm tra FA logic đã gán chưa, tiếp tục Opserinal trống.
-     * faQuota   : số máy Type FA TỐI ĐA cho TOÀN BỘ phiên (mặc định 1, 0 = không gán FA).
+     * faPerPkg  : số máy Type FA TỐI ĐA cho TỪNG PACKAGE (mặc định 1, 0 = không gán FA).
      * faPercent : ngưỡng CurrOutput ≤ % Target để máy đó đủ điều kiện LÀ FA.
      */
-    function buildAutoScanPlan(pkgTasks, pool, roundRobin = true, faQuota = 1, faPercent = 50) {
+    function buildAutoScanPlan(pkgTasks, pool, roundRobin = true, faPerPkg = 1, faPercent = 50) {
         const plan = [];
         const available = pool.slice(); // các máy đủ điều kiện cơ bản
         const assignedPerPkg = {};
-        const faMax = Math.max(0, parseInt(faQuota) || 0);
+        const faMaxPerPkg = Math.max(0, parseInt(faPerPkg) || 0);
         const faRatio = (parseFloat(faPercent) || 50) / 100; // mặc định 50%
-        let faUsed = 0;
+        const faUsedPerPkg = {}; // theo dõi FA đã dùng cho từng package
 
         // Tạo state cho từng package: danh sách opserial khả dụng (đã bỏ qua opserial 1 và đã chạy)
         const states = pkgTasks.map(t => ({
@@ -3992,20 +4042,21 @@
             if (available.length === 0) return false;
             if (st.nextIdx >= st.opserials.length) return false;
 
+            const pkgId = st.pkg.packageId;
             const target = parseInt(st.pkg.target) || 0;
             let chosen = null;
             let type = '';
 
-            // LOGIC FA MỚI: Chỉ gán FA cho máy THỰC SỰ THỎA MÃN điều kiện FA
-            // - Chỉ gán tối đa faMax máy FA trong TOÀN BỘ phiên
+            // LOGIC FA MỚI: MỖI PACKAGE ĐƯỢC GÁN TỐI ĐA 1 MÁY FA
             // - Máy FA phải có CurrOutput ≤ faRatio * Target CỦA PACKAGE ĐÓ
             // - Các máy khác: Type rỗng (chỉ cần đủ điều kiện cơ bản)
-            if (faUsed < faMax && faRatio > 0) {
+            const faUsedForThisPkg = faUsedPerPkg[pkgId] || 0;
+            if (faUsedForThisPkg < faMaxPerPkg && faRatio > 0) {
                 const faIdx = available.findIndex(m => isFaCandidate(m, target));
                 if (faIdx !== -1) {
                     chosen = available.splice(faIdx, 1)[0];
                     type = 'FA';
-                    faUsed++;
+                    faUsedPerPkg[pkgId] = faUsedForThisPkg + 1;
                 }
             }
             if (!chosen) {
@@ -4013,7 +4064,6 @@
                 type = ''; // Type rỗng cho các máy không phải FA
             }
 
-            const pkgId = st.pkg.packageId;
             plan.push({
                 pkgId,
                 lineName: st.pkg.lineName || '',
@@ -4246,15 +4296,31 @@
 
             /* ── BƯỚC 3: Filter IoT đủ điều kiện ── */
             const factoryScope = getFactoryScopeParam(factory);
+            // Đọc bộ lọc từ UI
+            const filterCurrOutput = document.getElementById('asFilterCurrOutput')?.checked !== false;
+            const filterMotoTime = document.getElementById('asFilterMotoTime')?.checked !== false;
+            const filterMxPackage = document.getElementById('asFilterMxPackage')?.checked !== false;
+            const filterFactory = document.getElementById('asFilterFactory')?.checked !== false;
+            
             const eligibleIot = allIot.filter(m => {
                 const currOutput = parseFloat(m.CurrOutput) || 0;
                 const motoTime  = parseFloat(m.MotoTime)  || 0;
                 const mxpackage = (m.MXPACKAGE || '').trim();
                 const machineFactory = getFactoryScopeParam(m.Factory || '');
-                return currOutput > 0 && motoTime > 0 && !mxpackage && machineFactory === factoryScope;
+                
+                if (filterCurrOutput && currOutput <= 0) return false;
+                if (filterMotoTime && motoTime <= 0) return false;
+                if (filterMxPackage && mxpackage) return false;
+                if (filterFactory && machineFactory !== factoryScope) return false;
+                return true;
             });
 
-            autoScanLogEntry(`✅ ${eligibleIot.length} máy đủ điều kiện (CurrOutput>0, MotoTime>0, MXPACKAGE trống, Factory=${factoryScope})`, 'success');
+            const filterDesc = [];
+            if (filterCurrOutput) filterDesc.push('CurrOutput>0');
+            if (filterMotoTime) filterDesc.push('MotoTime>0');
+            if (filterMxPackage) filterDesc.push('MXPACKAGE trống');
+            if (filterFactory) filterDesc.push(`Factory=${factoryScope}`);
+            autoScanLogEntry(`✅ ${eligibleIot.length} máy đủ điều kiện (${filterDesc.join(', ')})`, 'success');
             document.getElementById('autoScanSummary').innerHTML = `
                 <span><i class="fas fa-industry"></i> Factory: <strong>${factory}</strong></span>
                 <span><i class="fas fa-boxes"></i> Package sẽ chạy: <strong>${selected.length}</strong></span>
@@ -4335,15 +4401,15 @@
             }
 
             /* ── BƯỚC 5: Chia máy IoT cho từng package ── */
-            const faQuota = getAutoScanFaMax();
+            const faPerPkg = getAutoScanFaMax();
             const faPercent = getAutoScanFaPercent();
-            const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(pkgTasks, eligibleIot, useRoundRobin, faQuota, faPercent);
+            const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(pkgTasks, eligibleIot, useRoundRobin, faPerPkg, faPercent);
             autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot} máy không dùng)`, 'success');
-            autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA: gán ${faUsed}/${faQuota} máy (CurrOutput ≤ ${faPercent}% Target) — các máy khác Type rỗng`, faUsed > 0 ? 'success' : 'warning');
-            if (faUsed > 0) {
-                const faRow = plan.find(p => p.type === 'FA');
-                if (faRow) autoScanLogEntry(`   🤖 Máy FA chọn: <b>${faRow.mcid}</b> (CurrOutput ${faRow.currOutput}) → ${faRow.lineName || faRow.pkgId} OP${faRow.opserial}`, 'info');
-            }
+            const totalFaInPlan = plan.filter(p => p.type === 'FA').length;
+            autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa 1, CurrOutput ≤ ${faPercent}% Target) — các máy khác Type rỗng`, totalFaInPlan > 0 ? 'success' : 'warning');
+            plan.filter(p => p.type === 'FA').forEach(faRow => {
+                autoScanLogEntry(`   🤖 Package ${faRow.lineName || faRow.pkgId}: FA → ${faRow.mcid} (CurrOutput ${faRow.currOutput}, OP${faRow.opserial})`, 'info');
+            });
 
             // Khởi tạo số liệu báo cáo cho từng package trong kế hoạch
             plan.forEach(p => {
@@ -4620,15 +4686,31 @@
 
             /* ── BƯỚC 2: Filter IoT đủ điều kiện cơ bản ── */
             const factoryScope = getFactoryScopeParam(factory);
+            // Đọc bộ lọc từ UI (cùng với chạy mới)
+            const filterCurrOutput = document.getElementById('asFilterCurrOutput')?.checked !== false;
+            const filterMotoTime = document.getElementById('asFilterMotoTime')?.checked !== false;
+            const filterMxPackage = document.getElementById('asFilterMxPackage')?.checked !== false;
+            const filterFactory = document.getElementById('asFilterFactory')?.checked !== false;
+            
             const eligibleIot = allIot.filter(m => {
                 const currOutput = parseFloat(m.CurrOutput) || 0;
                 const motoTime  = parseFloat(m.MotoTime)  || 0;
                 const mxpackage = (m.MXPACKAGE || '').trim();
                 const machineFactory = getFactoryScopeParam(m.Factory || '');
-                return currOutput > 0 && motoTime > 0 && !mxpackage && machineFactory === factoryScope;
+                
+                if (filterCurrOutput && currOutput <= 0) return false;
+                if (filterMotoTime && motoTime <= 0) return false;
+                if (filterMxPackage && mxpackage) return false;
+                if (filterFactory && machineFactory !== factoryScope) return false;
+                return true;
             });
 
-            autoScanLogEntry(`✅ ${eligibleIot.length} máy đủ điều kiện (CurrOutput>0, MotoTime>0, MXPACKAGE trống, Factory=${factoryScope})`, 'success');
+            const filterDesc = [];
+            if (filterCurrOutput) filterDesc.push('CurrOutput>0');
+            if (filterMotoTime) filterDesc.push('MotoTime>0');
+            if (filterMxPackage) filterDesc.push('MXPACKAGE trống');
+            if (filterFactory) filterDesc.push(`Factory=${factoryScope}`);
+            autoScanLogEntry(`✅ ${eligibleIot.length} máy đủ điều kiện (${filterDesc.join(', ')})`, 'success');
 
             if (eligibleIot.length === 0) {
                 autoScanLogEntry('⚠️ Không có máy IoT nào đủ điều kiện!', 'warning');
@@ -4685,24 +4767,28 @@
             const faPercent = getAutoScanFaPercent();
             
             // Nếu FA đã được gán trước đó, giảm quota xuống 0 để không gán thêm FA
-            const effectiveFaQuota = faAlreadyAssigned ? 0 : faQuota;
+            const effectiveFaPerPkg = faAlreadyAssigned ? 0 : faPerPkg;
             if (faAlreadyAssigned) {
-                autoScanLogEntry(`🔒 FA quota set to 0 vì FA đã được gán trước đó (${faAssignedInfo.mcid})`, 'warning');
+                autoScanLogEntry(`🔒 FA per-package set to 0 vì FA đã được gán trước đó (${faAssignedInfo.mcid})`, 'warning');
             }
             
             const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(
                 pkgTasks, 
                 eligibleIot, 
                 document.getElementById('asRoundRobin').checked, 
-                effectiveFaQuota, 
+                effectiveFaPerPkg, 
                 faPercent
             );
             
             autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch tiếp tục: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot})`, 'success');
-            if (faUsed > 0) {
-                autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA mới: gán ${faUsed} máy (CurrOutput ≤ ${faPercent}% Target)`, 'success');
+            const totalFaInPlan = plan.filter(p => p.type === 'FA').length;
+            if (totalFaInPlan > 0) {
+                autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA mới: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa 1, CurrOutput ≤ ${faPercent}% Target)`, 'success');
+                plan.filter(p => p.type === 'FA').forEach(faRow => {
+                    autoScanLogEntry(`   🤖 Package ${faRow.lineName || faRow.pkgId}: FA → ${faRow.mcid} (CurrOutput ${faRow.currOutput}, OP${faRow.opserial})`, 'info');
+                });
             } else if (faAlreadyAssigned) {
-                autoScanLogEntry(`<i class="fas fa-lock"></i> FA quota: 0 (đã có FA từ lần trước)`, 'info');
+                autoScanLogEntry(`<i class="fas fa-lock"></i> FA per-package: 0 (đã có FA từ lần trước)`, 'info');
             }
 
             // Khởi tạo số liệu báo cáo
