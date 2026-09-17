@@ -4093,7 +4093,7 @@
             }
         }
 
-        return { plan, assignedPerPkg, leftoverIot: available.length, faUsed };
+        return { plan, assignedPerPkg, leftoverIot: available.length, faUsed: Object.values(faUsedPerPkg).reduce((s, n) => s + n, 0), faUsedPerPkg };
     }
 
     let asReport = null;            // số liệu của lần chạy hiện tại (cho báo cáo)
