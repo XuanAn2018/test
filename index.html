@@ -4017,66 +4017,58 @@
      */
     function buildAutoScanPlan(pkgTasks, pool, roundRobin = true, faPerPkg = 1, faPercent = 50) {
         const plan = [];
-        const available = pool.slice(); // các máy đủ điều kiện cơ bản
+        const available = pool.slice();
         const assignedPerPkg = {};
         const faMaxPerPkg = Math.max(0, parseInt(faPerPkg) || 0);
-        const faRatio = (parseFloat(faPercent) || 50) / 100; // mặc định 50%
-        const faUsedPerPkg = {}; // theo dõi FA đã dùng cho từng package
+        const faRatio = (parseFloat(faPercent) || 50) / 100;
+        const faUsedPerPkg = {};
 
-        // Tạo state cho từng package: danh sách opserial khả dụng (đã bỏ qua opserial 1 và đã chạy)
-        const states = pkgTasks.map(t => ({
-            pkg: t.pkg,
-            opserials: t.opserials, // đã lọc >1 và bỏ qua đã chạy
-            nextIdx: 0
-        }));
-
-        // Helper: kiểm tra máy có đủ điều kiện làm FA cho package này không
         const isFaCandidate = (machine, target) => {
             const currOutput = parseFloat(machine.CurrOutput) || 0;
+            const motoTime = parseFloat(machine.MotoTime) || 0;
             const threshold = target * faRatio;
             return currOutput > 0 && currOutput <= threshold;
         };
 
-        // Helper: gán 1 máy cho 1 opserial của 1 package
-        const assignOne = (st) => {
-            if (available.length === 0) return false;
-            if (st.nextIdx >= st.opserials.length) return false;
+        /* ═══════ GIAI ĐOẠN 1: Gửi FA mỗi package 1 lần ═══════ */
+        for (const t of pkgTasks) {
+            if (available.length === 0) break;
+            const pkgId = t.pkg.packageId;
+            const target = parseInt(t.pkg.target) || 0;
+            if (faMaxPerPkg <= 0 || faRatio <= 0) continue;
+            if ((faUsedPerPkg[pkgId] || 0) >= faMaxPerPkg) continue;
 
-            const pkgId = st.pkg.packageId;
-            const target = parseInt(st.pkg.target) || 0;
-            let chosen = null;
-            let type = '';
+            const faIdx = available.findIndex(m => isFaCandidate(m, target));
+            if (faIdx === -1) continue;
 
-            // LOGIC FA MỚI: MỖI PACKAGE ĐƯỢC GÁN TỐI ĐA 1 MÁY FA
-            // - Máy FA phải có CurrOutput ≤ faRatio * Target CỦA PACKAGE ĐÓ
-            // - Các máy khác: Type rỗng (chỉ cần đủ điều kiện cơ bản)
-            const faUsedForThisPkg = faUsedPerPkg[pkgId] || 0;
-            if (faUsedForThisPkg < faMaxPerPkg && faRatio > 0) {
-                const faIdx = available.findIndex(m => isFaCandidate(m, target));
-                if (faIdx !== -1) {
-                    chosen = available.splice(faIdx, 1)[0];
-                    type = 'FA';
-                    faUsedPerPkg[pkgId] = faUsedForThisPkg + 1;
-                }
-            }
-            if (!chosen) {
-                chosen = available.shift();
-                type = ''; // Type rỗng cho các máy không phải FA
-            }
+            const machine = available.splice(faIdx, 1)[0];
+            faUsedPerPkg[pkgId] = (faUsedPerPkg[pkgId] || 0) + 1;
 
             plan.push({
                 pkgId,
-                lineName: st.pkg.lineName || '',
+                lineName: t.pkg.lineName || '',
                 target,
-                opserial: st.opserials[st.nextIdx],
-                mcid: chosen.MachineId || chosen.MacAddress || '',
-                type,
-                currOutput: parseFloat(chosen.CurrOutput) || 0
+                opserial: t.opserials[0],
+                mcid: machine.MachineId || machine.MacAddress || '',
+                type: 'FA',
+                currOutput: parseFloat(machine.CurrOutput) || 0,
+                motoTime: parseFloat(machine.MotoTime) || 0,
+                factory: machine.Factory || '',
+                mxpackage: machine.MXPACKAGE || ''
             });
-            assignedPerPkg[pkgId] = (assignedPerPkg[pkgId] || 0) + 1;
-            st.nextIdx++;
-            return true;
-        };
+            assignedPerPkg[pkgId] = 1;
+        }
+
+        /* ═══════ GIAI ĐOẠN 2: Scan tiếp các opserial còn lại (không FA) ═══════ */
+        const states = pkgTasks.map(t => {
+            const pkgId = t.pkg.packageId;
+            const usedCount = assignedPerPkg[pkgId] || 0;
+            return {
+                pkg: t.pkg,
+                opserials: t.opserials.slice(usedCount),
+                nextIdx: 0
+            };
+        });
 
         if (roundRobin) {
             let progressed = true;
@@ -4084,12 +4076,44 @@
                 progressed = false;
                 for (const st of states) {
                     if (available.length === 0) break;
-                    if (assignOne(st)) progressed = true;
+                    if (st.nextIdx >= st.opserials.length) continue;
+                    const machine = available.shift();
+                    plan.push({
+                        pkgId: st.pkg.packageId,
+                        lineName: st.pkg.lineName || '',
+                        target: parseInt(st.pkg.target) || 0,
+                        opserial: st.opserials[st.nextIdx],
+                        mcid: machine.MachineId || machine.MacAddress || '',
+                        type: '',
+                        currOutput: parseFloat(machine.CurrOutput) || 0,
+                        motoTime: parseFloat(machine.MotoTime) || 0,
+                        factory: machine.Factory || '',
+                        mxpackage: machine.MXPACKAGE || ''
+                    });
+                    assignedPerPkg[st.pkg.packageId] = (assignedPerPkg[st.pkg.packageId] || 0) + 1;
+                    st.nextIdx++;
+                    progressed = true;
                 }
             }
         } else {
             for (const st of states) {
-                while (available.length > 0 && assignOne(st)) { /* chạy tới khi hết máy */ }
+                while (available.length > 0 && st.nextIdx < st.opserials.length) {
+                    const machine = available.shift();
+                    plan.push({
+                        pkgId: st.pkg.packageId,
+                        lineName: st.pkg.lineName || '',
+                        target: parseInt(st.pkg.target) || 0,
+                        opserial: st.opserials[st.nextIdx],
+                        mcid: machine.MachineId || machine.MacAddress || '',
+                        type: '',
+                        currOutput: parseFloat(machine.CurrOutput) || 0,
+                        motoTime: parseFloat(machine.MotoTime) || 0,
+                        factory: machine.Factory || '',
+                        mxpackage: machine.MXPACKAGE || ''
+                    });
+                    assignedPerPkg[st.pkg.packageId] = (assignedPerPkg[st.pkg.packageId] || 0) + 1;
+                    st.nextIdx++;
+                }
             }
         }
 
@@ -4403,13 +4427,16 @@
             /* ── BƯỚC 5: Chia máy IoT cho từng package ── */
             const faPerPkg = getAutoScanFaMax();
             const faPercent = getAutoScanFaPercent();
-            const { plan, assignedPerPkg, leftoverIot, faUsed } = buildAutoScanPlan(pkgTasks, eligibleIot, useRoundRobin, faPerPkg, faPercent);
+            const { plan, assignedPerPkg, leftoverIot, faUsed, faUsedPerPkg } = buildAutoScanPlan(pkgTasks, eligibleIot, useRoundRobin, faPerPkg, faPercent);
             autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot} máy không dùng)`, 'success');
+
             const totalFaInPlan = plan.filter(p => p.type === 'FA').length;
-            autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa 1, CurrOutput ≤ ${faPercent}% Target) — các máy khác Type rỗng`, totalFaInPlan > 0 ? 'success' : 'warning');
+            autoScanLogEntry(`<i class="fas fa-robot"></i> Giai đoạn 1 — FA: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa ${faPerPkg}, CurrOutput ≤ ${faPercent}% Target)`, totalFaInPlan > 0 ? 'success' : 'warning');
             plan.filter(p => p.type === 'FA').forEach(faRow => {
-                autoScanLogEntry(`   🤖 Package ${faRow.lineName || faRow.pkgId}: FA → ${faRow.mcid} (CurrOutput ${faRow.currOutput}, OP${faRow.opserial})`, 'info');
+                const faThreshold = Math.round(faRow.target * faPercent / 100);
+                autoScanLogEntry(`   🤖 [FA] ${faRow.lineName || faRow.pkgId} | MCID: ${faRow.mcid} | OP: ${faRow.opserial} | Target: ${faRow.target} | CurrOutput: ${faRow.currOutput} (≤${faThreshold}) | MotoTime: ${faRow.motoTime} | Factory: ${faRow.factory} | MXPACKAGE: ${faRow.mxpackage || 'trống'}`, 'info');
             });
+            autoScanLogEntry(`<i class="fas fa-arrow-right"></i> Giai đoạn 2 — Scan thường: ${plan.filter(p => p.type !== 'FA').length} request tiếp theo (Type rỗng)`, 'info');
 
             // Khởi tạo số liệu báo cáo cho từng package trong kế hoạch
             plan.forEach(p => {
@@ -4441,6 +4468,11 @@
             /* ── BƯỚC 6: Gửi API /scan theo kế hoạch đã chia ── */
             const totalAssign = plan.length;
             autoScanLogEntry(`<i class="fas fa-rocket"></i> Bắt đầu gửi ${totalAssign} request (mỗi request 1 opserial)...`, 'divider');
+            autoScanLogEntry(`<i class="fas fa-list-ol"></i> Chi tiết kế hoạch:`, 'info');
+            plan.forEach((p, idx) => {
+                const faTag = p.type ? ` [${p.type}]` : '';
+                autoScanLogEntry(`   ${idx+1}. ${p.lineName || p.pkgId} | OP${p.opserial} | MCID:${p.mcid}${faTag} | Target:${p.target} | CurrOutput:${p.currOutput} | MotoTime:${p.motoTime}`, 'info');
+            });
 
             /* ── BƯỚC 6b: Gửi từng request theo kế hoạch (đã chia đều IoT) ── */
             for (let apiIdx = 0; apiIdx < totalAssign; apiIdx++) {
@@ -4458,7 +4490,6 @@
 
                         if (ok) {
                             asStatSuccessVal++;
-                            // Lưu FA nếu đây là opserial FA của package này (chỉ lưu 1 lần)
                             if (a.type === 'FA') {
                                 const faRec = loadAutoScanHistory()[a.pkgId] || { faDone: { opserial: '', mcid: '', currOutput: 0 } };
                                 faRec.faDone = { opserial: String(a.opserial), mcid: a.mcid, currOutput: a.currOutput };
@@ -4467,19 +4498,21 @@
                             }
                             markAutoScanDone(a.pkgId, a.opserial);
                             const rr = asReport.rows[a.pkgId]; if (rr) rr.ok++;
-                            autoScanLogEntry(`    ✅ OP${a.opserial} | ${a.mcid}${a.type ? ' ['+a.type+']' : ''} → OK`, 'success');
+                            const faTag = a.type ? ` [${a.type}]` : '';
+                            const detail = `Target:${a.target} CurrOutput:${a.currOutput} MotoTime:${a.motoTime} Factory:${a.factory}`;
+                            autoScanLogEntry(`    ✅ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid}${faTag} | ${detail} → OK`, 'success');
                             addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'OK');
                         } else {
                             asStatFailVal++;
                             const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
-                            autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
+                            autoScanLogEntry(`    ❌ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
                             addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'FAIL');
                         }
                     } catch (fetchErr) {
                         if (fetchErr.name === 'AbortError') break;
                         asStatFailVal++;
                         const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
-                        autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
+                        autoScanLogEntry(`    ❌ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
                         addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'ERR');
                     }
                     updateAutoScanStats();
@@ -4766,7 +4799,6 @@
             const faQuota = getAutoScanFaMax();
             const faPercent = getAutoScanFaPercent();
             
-            // Nếu FA đã được gán trước đó, giảm quota xuống 0 để không gán thêm FA
             const effectiveFaPerPkg = faAlreadyAssigned ? 0 : faPerPkg;
             if (faAlreadyAssigned) {
                 autoScanLogEntry(`🔒 FA per-package set to 0 vì FA đã được gán trước đó (${faAssignedInfo.mcid})`, 'warning');
@@ -4783,10 +4815,12 @@
             autoScanLogEntry(`<i class="fas fa-calculator"></i> Kế hoạch tiếp tục: ${plan.length} request ← ${eligibleIot.length} máy IoT (dư ${leftoverIot})`, 'success');
             const totalFaInPlan = plan.filter(p => p.type === 'FA').length;
             if (totalFaInPlan > 0) {
-                autoScanLogEntry(`<i class="fas fa-robot"></i> Type FA mới: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa 1, CurrOutput ≤ ${faPercent}% Target)`, 'success');
+                autoScanLogEntry(`<i class="fas fa-robot"></i> Giai đoạn 1 — FA: ${totalFaInPlan} package được gán FA (mỗi pkg tối đa ${effectiveFaPerPkg}, CurrOutput ≤ ${faPercent}% Target)`, 'success');
                 plan.filter(p => p.type === 'FA').forEach(faRow => {
-                    autoScanLogEntry(`   🤖 Package ${faRow.lineName || faRow.pkgId}: FA → ${faRow.mcid} (CurrOutput ${faRow.currOutput}, OP${faRow.opserial})`, 'info');
+                    const faThreshold = Math.round(faRow.target * faPercent / 100);
+                    autoScanLogEntry(`   🤖 [FA] ${faRow.lineName || faRow.pkgId} | MCID: ${faRow.mcid} | OP: ${faRow.opserial} | Target: ${faRow.target} | CurrOutput: ${faRow.currOutput} (≤${faThreshold}) | MotoTime: ${faRow.motoTime} | Factory: ${faRow.factory} | MXPACKAGE: ${faRow.mxpackage || 'trống'}`, 'info');
                 });
+                autoScanLogEntry(`<i class="fas fa-arrow-right"></i> Giai đoạn 2 — Scan thường: ${plan.filter(p => p.type !== 'FA').length} request tiếp theo (Type rỗng)`, 'info');
             } else if (faAlreadyAssigned) {
                 autoScanLogEntry(`<i class="fas fa-lock"></i> FA per-package: 0 (đã có FA từ lần trước)`, 'info');
             }
@@ -4808,6 +4842,11 @@
             /* ── BƯỚC 5: Gửi API theo kế hoạch ── */
             const totalAssign = plan.length;
             autoScanLogEntry(`<i class="fas fa-rocket"></i> Bắt đầu gửi ${totalAssign} request...`, 'divider');
+            autoScanLogEntry(`<i class="fas fa-list-ol"></i> Chi tiết kế hoạch:`, 'info');
+            plan.forEach((p, idx) => {
+                const faTag = p.type ? ` [${p.type}]` : '';
+                autoScanLogEntry(`   ${idx+1}. ${p.lineName || p.pkgId} | OP${p.opserial} | MCID:${p.mcid}${faTag} | Target:${p.target} | CurrOutput:${p.currOutput} | MotoTime:${p.motoTime}`, 'info');
+            });
 
             for (let apiIdx = 0; apiIdx < totalAssign; apiIdx++) {
                 if (autoScanAbortController.signal.aborted) break;
@@ -4825,7 +4864,6 @@
                     if (ok) {
                         asStatSuccessVal++;
                         if (a.type === 'FA') {
-                            // Lưu FA mới
                             const faRec = loadAutoScanHistory()[a.pkgId] || { faDone: { opserial: '', mcid: '', currOutput: 0 } };
                             faRec.faDone = { opserial: String(a.opserial), mcid: a.mcid, currOutput: a.currOutput };
                             faRec.faDone.logAt = new Date().toISOString();
@@ -4833,19 +4871,21 @@
                         }
                         markAutoScanDone(a.pkgId, a.opserial);
                         const rr = asReport.rows[a.pkgId]; if (rr) rr.ok++;
-                        autoScanLogEntry(`    ✅ OP${a.opserial} | ${a.mcid}${a.type ? ' ['+a.type+']' : ''} → OK`, 'success');
+                        const faTag = a.type ? ` [${a.type}]` : '';
+                        const detail = `Target:${a.target} CurrOutput:${a.currOutput} MotoTime:${a.motoTime} Factory:${a.factory}`;
+                        autoScanLogEntry(`    ✅ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid}${faTag} | ${detail} → OK`, 'success');
                         addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'OK');
                     } else {
                         asStatFailVal++;
                         const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
-                        autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
+                        autoScanLogEntry(`    ❌ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid} → FAIL (HTTP ${res.status})`, 'error');
                         addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'FAIL');
                     }
                 } catch (fetchErr) {
                     if (fetchErr.name === 'AbortError') break;
                     asStatFailVal++;
                     const rr = asReport.rows[a.pkgId]; if (rr) rr.fail++;
-                    autoScanLogEntry(`    ❌ OP${a.opserial} | ${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
+                    autoScanLogEntry(`    ❌ ${a.lineName || a.pkgId} | OP${a.opserial} | MCID:${a.mcid} → Lỗi: ${fetchErr.message}`, 'error');
                     addAutoScanRow(a.pkgId, a.lineName, a.opserial, a.mcid, a.type, 'ERR');
                 }
                 updateAutoScanStats();
